@@ -75,3 +75,5 @@ The project uses Tailwind CSS with additional animation utilities via `tw-animat
 
 
 ## Instructions
+
+Once you are done doing a batch of editing, run `yarn lint:fix`

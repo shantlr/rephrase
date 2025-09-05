@@ -1,6 +1,6 @@
-import { ColumnType, Generated, JSONColumnType } from 'kysely';
+import { ColumnType, Generated, GeneratedAlways, JSONColumnType } from 'kysely';
 import { WordingData } from './wording.types';
-import { Account, Session, User, VerificationToken } from './user.types';
+import { Account, Session, User } from './user.types';
 
 export interface Database {
   Project: Project;
@@ -11,21 +11,20 @@ export interface Database {
   User: User;
   Account: Account;
   Session: Session;
-  VerificationToken: VerificationToken;
 }
 
 export interface Project {
-  id: Generated<string>;
+  id: GeneratedAlways<string>;
   name: string;
   description: string;
-  createdAt: ColumnType<Date, string | undefined, never>;
-  updatedAt: ColumnType<Date, string | undefined, never>;
-  archivedAt: ColumnType<Date | null, Date | null, Date | null>;
+  created_at: GeneratedAlways<Date>;
+  updated_at: ColumnType<Date, string | undefined, never>;
+  archived_at: ColumnType<Date | null, Date | null, Date | null>;
 }
 
 export interface ProjectWordingBranch {
-  id: Generated<string>;
-  projectId: ColumnType<string, string, never>;
+  id: GeneratedAlways<string>;
+  project_id: ColumnType<string, string, never>;
   name: string;
 
   /**
@@ -43,7 +42,7 @@ export interface ProjectWordingBranch {
    */
   data: JSONColumnType<WordingData>;
 
-  created_at: Generated<Date>;
+  created_at: GeneratedAlways<Date>;
   updated_at: Generated<Date>;
 
   archived_at: Date | null;
@@ -53,7 +52,7 @@ export interface ProjectWordingBranch {
  * We log branch operation to be able to do diff/merge and retrace graph
  */
 export interface ProjectWordingBranchOperation {
-  id: Generated<string>;
+  id: GeneratedAlways<string>;
 
   project_id: ColumnType<string, string, never>;
 
@@ -71,14 +70,14 @@ export interface ProjectWordingBranchOperation {
       }
   >;
 
-  created_at: Generated<Date>;
+  created_at: GeneratedAlways<Date>;
 }
 
 /**
  * Audit logs of what happend on wordings
  */
 export interface ProjectWordingAuditLog {
-  id: Generated<string>;
+  id: GeneratedAlways<string>;
   project_id: ColumnType<string, string, never>;
   branch_id: ColumnType<string, string, never>;
   user_id: ColumnType<string, string, never>;
@@ -92,5 +91,5 @@ export interface ProjectWordingAuditLog {
         branching_operation_id: string;
       }
   >;
-  created_at: Generated<Date>;
+  created_at: GeneratedAlways<Date>;
 }

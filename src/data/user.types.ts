@@ -8,9 +8,6 @@ export type User = {
   id: GeneratedAlways<string>;
   name: string | null;
   email: string;
-  emailVerified: Date | null;
-  image: string | null;
-
   global_roles: UserRole[];
   project_roles: JSONColumnType<
     {
@@ -21,10 +18,10 @@ export type User = {
 };
 export type Account = {
   id: GeneratedAlways<string>;
-  userId: string;
+  user_id: string;
   type: string;
   provider: string;
-  providerAccountId: string;
+  provider_account_id: string;
   refresh_token: string | null;
   access_token: string | null;
   expires_at: number | null;
@@ -35,12 +32,7 @@ export type Account = {
 };
 export type Session = {
   id: GeneratedAlways<string>;
-  userId: string;
-  sessionToken: string;
-  expires: Date;
-};
-export type VerificationToken = {
-  identifier: string;
-  token: string;
+  user_id: string;
+  session_token: string;
   expires: Date;
 };

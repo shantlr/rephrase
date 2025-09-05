@@ -9,26 +9,34 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
     .addColumn('name', 'varchar', (col) => col.notNull())
     .addColumn('description', 'varchar', (col) => col.notNull())
-    .addColumn('createdAt', 'timestamptz', (col) => col.notNull())
-    .addColumn('updatedAt', 'timestamptz', (col) => col.notNull())
-    .addColumn('archivedAt', 'timestamptz')
+    .addColumn('created_at', 'timestamptz', (col) =>
+      col.notNull().defaultTo('NOW()'),
+    )
+    .addColumn('updated_at', 'timestamptz', (col) =>
+      col.notNull().defaultTo('NOW()'),
+    )
+    .addColumn('archived_at', 'timestamptz')
     .execute();
 
   // ProjectWordingBranch table
   await db.schema
     .createTable('ProjectWordingBranch')
     .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
-    .addColumn('projectId', 'varchar', (col) => col.notNull())
+    .addColumn('project_id', 'varchar', (col) => col.notNull())
     .addColumn('name', 'varchar', (col) => col.notNull())
     .addColumn('locked', 'boolean', (col) => col.notNull())
     .addColumn('hash', 'varchar', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
-    .addColumn('created_at', 'timestamptz', (col) => col.notNull())
-    .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) =>
+      col.notNull().defaultTo('NOW()'),
+    )
+    .addColumn('updated_at', 'timestamptz', (col) =>
+      col.notNull().defaultTo('NOW()'),
+    )
     .addColumn('archived_at', 'timestamptz')
     .addForeignKeyConstraint(
-      'ProjectWordingBranch_projectId_fkey',
-      ['projectId'],
+      'ProjectWordingBranch_project_id_fkey',
+      ['project_id'],
       'Project',
       ['id'],
     )
@@ -91,19 +99,19 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('User')
     .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
     .addColumn('name', 'varchar')
-    .addColumn('email', 'varchar')
-    .addColumn('emailVerified', 'timestamptz')
-    .addColumn('image', 'varchar')
+    .addColumn('email', 'varchar', (col) => col.notNull())
+    .addColumn('global_roles', 'jsonb', (col) => col.notNull().defaultTo('[]'))
+    .addColumn('project_roles', 'jsonb', (col) => col.notNull().defaultTo('[]'))
     .execute();
 
   // Account table
   await db.schema
     .createTable('Account')
     .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
-    .addColumn('userId', 'varchar', (col) => col.notNull())
+    .addColumn('user_id', 'varchar', (col) => col.notNull())
     .addColumn('type', 'varchar', (col) => col.notNull())
     .addColumn('provider', 'varchar', (col) => col.notNull())
-    .addColumn('providerAccountId', 'varchar', (col) => col.notNull())
+    .addColumn('provider_account_id', 'varchar', (col) => col.notNull())
     .addColumn('refresh_token', 'varchar')
     .addColumn('access_token', 'varchar')
     .addColumn('expires_at', 'bigint')
@@ -111,17 +119,21 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('scope', 'varchar')
     .addColumn('id_token', 'varchar')
     .addColumn('session_state', 'varchar')
-    .addForeignKeyConstraint('Account_userId_fkey', ['userId'], 'User', ['id'])
+    .addForeignKeyConstraint('Account_user_id_fkey', ['user_id'], 'User', [
+      'id',
+    ])
     .execute();
 
   // Session table
   await db.schema
     .createTable('Session')
     .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
-    .addColumn('sessionToken', 'varchar', (col) => col.notNull())
-    .addColumn('userId', 'varchar', (col) => col.notNull())
+    .addColumn('user_id', 'varchar', (col) => col.notNull())
+    .addColumn('session_token', 'varchar', (col) => col.notNull())
     .addColumn('expires', 'timestamptz', (col) => col.notNull())
-    .addForeignKeyConstraint('Session_userId_fkey', ['userId'], 'User', ['id'])
+    .addForeignKeyConstraint('Session_user_id_fkey', ['user_id'], 'User', [
+      'id',
+    ])
     .execute();
 
   // VerificationToken table
