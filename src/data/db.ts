@@ -1,38 +1,31 @@
 import { ColumnType, Generated, JSONColumnType } from 'kysely';
 import { WordingData } from './wording.types';
-import { UserProjectRole, UserRole } from './user.types';
+import { Account, Session, User, VerificationToken } from './user.types';
 
 export interface Database {
-  project: Project;
-  project_wording_branch: ProjectWordingBranch;
-}
+  Project: Project;
+  ProjectWordingBranch: ProjectWordingBranch;
+  ProjectWordingBranchOperation: ProjectWordingBranchOperation;
+  ProjectWordingAuditLog: ProjectWordingAuditLog;
 
-export interface User {
-  id: Generated<string>;
-  name: string;
-  email: string;
-
-  global_roles: UserRole[];
-  project_roles: JSONColumnType<
-    {
-      project_id: string;
-      roles: UserProjectRole[];
-    }[]
-  >;
+  User: User;
+  Account: Account;
+  Session: Session;
+  VerificationToken: VerificationToken;
 }
 
 export interface Project {
   id: Generated<string>;
   name: string;
   description: string;
-  created_at: ColumnType<Date, string | undefined, never>;
-  updated_at: ColumnType<Date, string | undefined, never>;
-  archived_at: ColumnType<Date | null, Date | null, Date | null>;
+  createdAt: ColumnType<Date, string | undefined, never>;
+  updatedAt: ColumnType<Date, string | undefined, never>;
+  archivedAt: ColumnType<Date | null, Date | null, Date | null>;
 }
 
 export interface ProjectWordingBranch {
   id: Generated<string>;
-  project_id: ColumnType<string, string, never>;
+  projectId: ColumnType<string, string, never>;
   name: string;
 
   /**
