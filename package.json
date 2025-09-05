@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "lint:fix": "eslint --fix ./src",
     "migrate:latest": "dotenvx run -- kysely migrate:latest",
     "migrate:down": "dotenvx run -- kysely migrate:down"
   },
@@ -37,7 +38,10 @@
   "dependencies": {
     "@auth/core": "^0.40.0",
     "@auth/kysely-adapter": "^1.10.0",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/postcss": "^4.1.13",
+    "arctic": "^3.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "getenv": "^2.0.0",

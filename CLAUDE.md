@@ -5,9 +5,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Development
+
+An instance of the service is already started, you don't need to start it
+
 - `yarn dev` - Start development server on port 3000
 - `yarn build` - Build production application
 - `yarn migrate:latest` - Run database migrations
+- `yarn lint:fix` - Fix all auto-fixable errors (such as formatting)
 
 ### Database Operations
 - `dotenvx run -- kysely migrate:latest` - Run migrations with environment variables loaded
@@ -68,3 +72,6 @@ Use the repository pattern in `src/data/repo/` for database operations. All repo
 
 ### Styling
 The project uses Tailwind CSS with additional animation utilities via `tw-animate-css`.
+
+
+## Instructions

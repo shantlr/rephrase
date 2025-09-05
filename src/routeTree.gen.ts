@@ -8,39 +8,88 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { createServerRootRoute } from '@tanstack/react-start/server'
 
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as IndexRouteImport } from './routes/index'
+import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './routes/api/auth/callback/microsoft-entra-id/index'
+
+const rootServerRouteImport = createServerRootRoute()
+
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthCallbackMicrosoftEntraIdIndexServerRoute =
+  ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport.update({
+    id: '/api/auth/callback/microsoft-entra-id/',
+    path: '/api/auth/callback/microsoft-entra-id/',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/login'
+  id: '__root__' | '/' | '/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+}
+export interface FileServerRoutesByFullPath {
+  '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
+}
+export interface FileServerRoutesByTo {
+  '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
+}
+export interface FileServerRoutesById {
+  __root__: typeof rootServerRouteImport
+  '/api/auth/callback/microsoft-entra-id/': typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
+}
+export interface FileServerRouteTypes {
+  fileServerRoutesByFullPath: FileServerRoutesByFullPath
+  fullPaths: '/api/auth/callback/microsoft-entra-id'
+  fileServerRoutesByTo: FileServerRoutesByTo
+  to: '/api/auth/callback/microsoft-entra-id'
+  id: '__root__' | '/api/auth/callback/microsoft-entra-id/'
+  fileServerRoutesById: FileServerRoutesById
+}
+export interface RootServerRouteChildren {
+  ApiAuthCallbackMicrosoftEntraIdIndexServerRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -50,10 +99,29 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+declare module '@tanstack/react-start/server' {
+  interface ServerFileRoutesByPath {
+    '/api/auth/callback/microsoft-entra-id/': {
+      id: '/api/auth/callback/microsoft-entra-id/'
+      path: '/api/auth/callback/microsoft-entra-id'
+      fullPath: '/api/auth/callback/microsoft-entra-id'
+      preLoaderRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+  }
+}
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+const rootServerRouteChildren: RootServerRouteChildren = {
+  ApiAuthCallbackMicrosoftEntraIdIndexServerRoute:
+    ApiAuthCallbackMicrosoftEntraIdIndexServerRoute,
+}
+export const serverRouteTree = rootServerRouteImport
+  ._addFileChildren(rootServerRouteChildren)
+  ._addFileTypes<FileServerRouteTypes>()
