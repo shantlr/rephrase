@@ -1,5 +1,5 @@
 import { db } from '..';
-import { Account } from '../user.types';
+import { Account, User } from '../user.types';
 import { SESSION_EXPIRATION_DAYS } from '../../common/env';
 import { encryptToken } from '../../common/crypto/token-encryption';
 
@@ -67,13 +67,25 @@ export const UserRepo = {
 
           let userId = existingUser?.id;
           if (!existingUser) {
+            const nbAccounts = await trx
+              .selectFrom('account')
+              .select((eb) => [eb.fn.countAll().as('count')])
+              .executeTakeFirstOrThrow();
+
             const result = await trx
               .insertInto('user')
               .values({
                 email,
                 name,
-                global_roles: JSON.stringify(['default']),
-                project_roles: JSON.stringify([]),
+                global_roles: JSON.stringify(
+                  // NOTE: the first user is automatically created as an admin
+                  (nbAccounts.count === 0
+                    ? ['admin']
+                    : ['default']) satisfies User['global_roles'],
+                ),
+                project_roles: JSON.stringify(
+                  [] satisfies User['project_roles'],
+                ),
               })
               .returning('id')
               .executeTakeFirstOrThrow();

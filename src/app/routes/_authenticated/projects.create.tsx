@@ -25,7 +25,7 @@ function RouteComponent() {
   const router = useRouter();
   const [projectName, setProjectName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedLocales, setSelectedLocales] = useState<string[]>(['en']); // Default to English
+  const [selectedLocales, setSelectedLocales] = useState<string[]>(['en-GB']); // Default to English
   const [selectValue, setSelectValue] = useState<string>('');
 
   const createProjectMutation = useCreateProject();
@@ -63,13 +63,13 @@ function RouteComponent() {
     }
   };
 
-  const getLocaleDisplayName = (code: string) => {
-    const locale = LOCALE_OPTIONS.find((l) => l.code === code);
-    return locale ? `${locale.nativeName} (${locale.code})` : code;
+  const getLocaleDisplayName = (tag: string) => {
+    const locale = LOCALE_OPTIONS.find((l) => l.tag === tag);
+    return locale ? `${locale.nativeName} (${locale.code})` : tag;
   };
 
   const availableLocales = LOCALE_OPTIONS.filter(
-    (locale) => !selectedLocales.includes(locale.code),
+    (locale) => !selectedLocales.includes(locale.tag),
   );
 
   return (
@@ -190,7 +190,7 @@ function RouteComponent() {
                     </SelectTrigger>
                     <SelectContent>
                       {availableLocales.map((locale) => (
-                        <SelectItem key={locale.code} value={locale.code}>
+                        <SelectItem key={locale.tag} value={locale.tag}>
                           {locale.nativeName} ({locale.code}) - {locale.name}
                         </SelectItem>
                       ))}

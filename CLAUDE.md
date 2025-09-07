@@ -36,8 +36,16 @@ This is a React application built with **TanStack Start** (React-based full-stac
   - `src/server/data/*.types.ts` - Type definitions for database schemas and entities
 - `src/server/common/env/` - Environment variable configuration
 - `src/app/common/lib/utils.ts` - Shared utility functions
+- `src/app/features` - Contain features slices
+  - any hooks should be a file prefixed with `use-`
+  - any feature specific component should be a file prefixed with `ui-`
 - `src/router.tsx` - Router configuration and setup
 - `src/routeTree.gen.ts` - Auto-generated route tree (do not edit manually)
+- `src/server-functions` - Contains all server functions
+
+### Api calls
+
+When the app need to do a query, use react-query
 
 ### Database Architecture
 The application uses a **repository pattern** for data access with these main entities:
