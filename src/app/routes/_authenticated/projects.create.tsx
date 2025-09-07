@@ -16,6 +16,7 @@ import {
 import { Badge } from '@/app/common/ui/badge';
 import { useCreateProject } from '@/app/features/projects/use-projects';
 import { LOCALE_OPTIONS } from '@/app/common/data/locales';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_authenticated/projects/create')({
   component: RouteComponent,
@@ -55,11 +56,23 @@ function RouteComponent() {
         locales: selectedLocales,
       });
 
+      // Show success toast
+      toast.success('Project created successfully!', {
+        description: `"${projectName.trim()}" has been created and is ready to use.`,
+      });
+
       // Navigate back to dashboard on success
       router.navigate({ to: '/dashboard' });
     } catch (error) {
       console.error('Failed to create project:', error);
-      // Error is handled by React Query - could show toast here
+
+      // Show error toast
+      toast.error('Failed to create project', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred. Please try again.',
+      });
     }
   };
 

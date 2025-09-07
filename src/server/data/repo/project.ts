@@ -48,6 +48,24 @@ export const ProjectRepo = {
         .orderBy('created_at', 'desc')
         .execute();
     },
+
+    findByProjectIds: async (
+      projectIds: string[],
+      trx?: Transaction<Database>,
+    ): Promise<ProjectSelect[]> => {
+      if (projectIds.length === 0) {
+        return [];
+      }
+
+      const executor = trx || db;
+      return await executor
+        .selectFrom('project')
+        .selectAll()
+        .where('id', 'in', projectIds)
+        .where('archived_at', 'is', null)
+        .orderBy('created_at', 'desc')
+        .execute();
+    },
   },
 
   mutate: {

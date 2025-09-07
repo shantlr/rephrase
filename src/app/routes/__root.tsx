@@ -11,6 +11,7 @@ import {
 import appCss from './app.css?url';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/app/common/api/query-client';
+import { Toaster } from '@/app/common/ui/sonner';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -41,6 +42,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <RootDocument>
         <Outlet />
+        <Toaster />
       </RootDocument>
     </QueryClientProvider>
   );

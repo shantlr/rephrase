@@ -7,6 +7,8 @@ import { LOCALE_OPTIONS, VALID_LOCALE_TAGS } from '@/app/common/data/locales';
 import {
   isUserAllowedToCreateProject,
   isUserAllowedToReadProject,
+  isUserAllowedToDeleteProject,
+  getAllowedProjectIds,
 } from '@/server/common/authorization';
 import { db } from '@/server/data';
 
@@ -99,9 +101,13 @@ export const serverGetProjects = createServerFn({
   response: 'data',
 })
   .middleware([$serverAuthenticated()])
-  .handler(async () => {
-    // For now, get all projects. Later we can filter by user access
-    const projects = await ProjectRepo.query.findAll();
+  .handler(async ({ context }) => {
+    // Determine which projects the user can access based on roles
+    const allowedProjectIds = getAllowedProjectIds(context.user);
+
+    const projects = await (allowedProjectIds === null
+      ? ProjectRepo.query.findAll()
+      : ProjectRepo.query.findByProjectIds(allowedProjectIds));
 
     // Get locale codes for each project from the main branch
     const projectsWithLocales = await Promise.all(
@@ -209,4 +215,36 @@ export const serverGetProject = createServerFn({
       updatedAt: project.updated_at,
       locales,
     };
+  });
+
+export const serverDeleteProject = createServerFn({
+  method: 'POST',
+  response: 'data',
+})
+  .middleware([$serverAuthenticated()])
+  .validator((data: { id: string }) => {
+    if (!data.id || typeof data.id !== 'string') {
+      throw new Error('Project ID is required');
+    }
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    if (!isUserAllowedToDeleteProject(context.user, data.id)) {
+      throw json('unauthorized', { status: 403 });
+    }
+
+    const project = await ProjectRepo.query.findById(data.id);
+
+    if (!project) {
+      throw json('not_found', { status: 404 });
+    }
+
+    // Archive the project instead of hard delete for data integrity
+    const success = await ProjectRepo.mutate.archive(data.id);
+
+    if (!success) {
+      throw json('failed_to_archive', { status: 500 });
+    }
+
+    return { success: true };
   });

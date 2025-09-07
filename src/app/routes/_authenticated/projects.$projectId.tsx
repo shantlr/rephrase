@@ -1,10 +1,30 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/common/ui/card';
-import { useProject } from '@/app/features/projects/use-projects';
+import {
+  useProject,
+  useDeleteProject,
+} from '@/app/features/projects/use-projects';
 import { Badge } from '@/app/common/ui/badge';
 import { Button } from '@/app/common/ui/button';
-import { ArrowLeftIcon, CalendarIcon, LanguagesIcon } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/app/common/ui/alert-dialog';
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  LanguagesIcon,
+  TrashIcon,
+} from 'lucide-react';
 import { LOCALE_OPTIONS } from '@/app/common/data/locales';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_authenticated/projects/$projectId')({
   component: RouteComponent,
@@ -12,7 +32,32 @@ export const Route = createFileRoute('/_authenticated/projects/$projectId')({
 
 function RouteComponent() {
   const { projectId } = Route.useParams();
+  const router = useRouter();
   const { data: project, isLoading, error } = useProject(projectId);
+  const deleteProject = useDeleteProject();
+
+  const handleDelete = async () => {
+    try {
+      await deleteProject.mutateAsync(projectId);
+
+      // Show success toast
+      toast.success('Project deleted successfully!', {
+        description: `"${project?.name}" has been permanently deleted.`,
+      });
+
+      router.navigate({ to: '/dashboard' });
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+
+      // Show error toast
+      toast.error('Failed to delete project', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred. Please try again.',
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -67,7 +112,39 @@ function RouteComponent() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{project.name}</CardTitle>
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-2xl">{project.name}</CardTitle>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <TrashIcon className="w-4 h-4 mr-2" />
+                    Delete Project
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete &ldquo;{project.name}
+                      &rdquo;? This action cannot be undone and will permanently
+                      remove all project data including translations.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={deleteProject.isPending}
+                      className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                    >
+                      {deleteProject.isPending
+                        ? 'Deleting...'
+                        : 'Delete Project'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
