@@ -1,9 +1,18 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Plus, LanguagesIcon } from 'lucide-react';
+import { Plus, LanguagesIcon, LogOut, User } from 'lucide-react';
 import { Button } from '@/app/common/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/common/ui/card';
 import { Badge } from '@/app/common/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/app/common/ui/dropdown-menu';
 import { useProjects } from '@/app/features/projects/use-projects';
+import { useCurrentUser } from '@/app/features/user/use-me';
+import { useLogout } from '@/app/features/user/use-logout';
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: RouteComponent,
@@ -12,30 +21,59 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 function RouteComponent() {
   const { data, isLoading, error } = useProjects();
   const projects = data?.projects || [];
+  const { data: currentUser } = useCurrentUser();
+  const logoutMutation = useLogout();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-600 mt-2">
               Manage your localization projects
             </p>
           </div>
-          <Button asChild>
-            <Link to="/projects/create">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Project
-            </Link>
-          </Button>
+
+          {currentUser && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span>{currentUser.user.name || currentUser.user.email}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                  {currentUser.user.email}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-red-600 cursor-pointer"
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         {/* Projects Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Projects</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Your Projects</CardTitle>
+              <Button asChild size="sm">
+                <Link to="/projects/create">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Project
+                </Link>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (

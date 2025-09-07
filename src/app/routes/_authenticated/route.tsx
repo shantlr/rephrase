@@ -10,11 +10,6 @@ function RouteComponent() {
   const { data, isPending } = useCurrentUser();
   const nav = useNavigate();
 
-  console.log({
-    data,
-    isPending,
-  });
-
   useEffect(() => {
     if (!data && !isPending) {
       nav({

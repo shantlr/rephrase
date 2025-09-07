@@ -166,6 +166,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('refresh_token_expires_at', 'timestamptz')
     .addColumn('last_activity_at', 'timestamptz', (col) => col.notNull())
     .addColumn('expires_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('disabled_at', 'timestamptz')
     .addForeignKeyConstraint('user_session_user_id_fkey', ['user_id'], 'user', [
       'id',
     ])

@@ -36,6 +36,7 @@ export type UserSession = {
 
   last_activity_at: Date;
   expires_at: Date;
+  disabled_at: Date | null;
 };
 
 export type Account = Selectable<AccountTable>;

@@ -13,9 +13,6 @@ An instance of the service is already started, you don't need to start it
 - `yarn migrate:latest` - Run database migrations
 - `yarn lint:fix` - Fix all auto-fixable errors (such as formatting)
 
-### Database Operations
-- `dotenvx run -- kysely migrate:latest` - Run migrations with environment variables loaded
-
 ## Project Architecture
 
 This is a React application built with **TanStack Start** (React-based full-stack framework) using:
@@ -44,10 +41,6 @@ This is a React application built with **TanStack Start** (React-based full-stac
 - `src/routeTree.gen.ts` - Auto-generated route tree (do not edit manually)
 - `src/server-functions` - Contains all server functions
 
-### Api calls
-
-When the app need to do a query, use react-query
-
 ### Database Architecture
 The application uses a **repository pattern** for data access with these main entities:
 - **Users** - User management
@@ -56,13 +49,7 @@ The application uses a **repository pattern** for data access with these main en
 
 Database migrations are stored in `.config/migrations/` and managed with Kysely CLI.
 
-### Environment Configuration
-Database connection configured via environment variables:
-- `PG_DATABASE` (default: "rewrite")
-- `PG_HOST` (default: "localhost") 
-- `PG_USER` (default: "admin")
-- `PG_PASSWORD` (default: "")
-- `PG_PORT` (default: 5432)
+If you need to implement a new repo, check user as an exemple
 
 ### Development Setup
 - Uses Yarn 4.x with Berry package manager
@@ -82,6 +69,9 @@ Use the repository pattern in `src/server/data/repo/` for database operations. A
 ### Styling
 The project uses Tailwind CSS with additional animation utilities via `tw-animate-css`.
 
+### Api calls
+
+When the app need to do a query, use react-query
 
 ## Instructions
 

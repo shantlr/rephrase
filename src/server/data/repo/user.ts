@@ -20,6 +20,7 @@ export const UserRepo = {
           'user_session.access_token_expires_at',
           'user_session.refresh_token_expires_at',
           'user_session.last_activity_at',
+          'user_session.disabled_at',
           'user.id as user_id',
           'user.email',
           'user.name',
@@ -29,6 +30,7 @@ export const UserRepo = {
           'account.provider_account_id',
         ])
         .where('user_session.id', '=', sessionId)
+        .where('user_session.disabled_at', 'is', null)
         .executeTakeFirst();
     },
   },
@@ -213,11 +215,14 @@ export const UserRepo = {
         .where('id', '=', sessionId)
         .execute();
     },
-    // deleteSession: async (sessionId: string) => {
-    //   return await db
-    //     .deleteFrom('user_session')
-    //     .where('id', '=', sessionId)
-    //     .execute();
-    // },
+    disableSession: async (sessionId: string) => {
+      const now = new Date();
+      return await db
+        .updateTable('user_session')
+        .set({ disabled_at: now })
+        .where('id', '=', sessionId)
+        .where('disabled_at', 'is', null)
+        .execute();
+    },
   },
 };

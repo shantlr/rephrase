@@ -1,8 +1,11 @@
 import { ENTRA_ID } from '@/server/common/auth';
+import { SESSION_COOKIE_NAME } from '@/server/common/env';
 import { MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX } from '@/server/common/env/microsoft-entra-id';
 import { redis } from '@/server/data/redis';
+import { UserRepo } from '@/server/data/repo/user';
 import { redirect } from '@tanstack/react-router';
 import { createServerFn, serverOnly } from '@tanstack/react-start';
+import { deleteCookie } from '@tanstack/react-start/server';
 import { $serverAuthenticated } from '../_middlewares/auth';
 
 const resolveSessionKey = (state: string) =>
@@ -49,4 +52,16 @@ export const serverGetUserMe = createServerFn({
         name: context.user.name,
       },
     };
+  });
+
+export const serverLogout = createServerFn({
+  method: 'POST',
+  response: 'data',
+})
+  .middleware([$serverAuthenticated()])
+  .handler(async ({ context }) => {
+    await UserRepo.mutate.disableSession(context.session.id);
+    deleteCookie(SESSION_COOKIE_NAME);
+
+    return { success: true };
   });
