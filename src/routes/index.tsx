@@ -1,3 +1,4 @@
+import { useCurrentUser } from '@/features/user/use-me';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
@@ -5,5 +6,9 @@ export const Route = createFileRoute('/')({
 });
 
 function RouteComponent() {
-  return <div>Hello "/"!</div>;
+  const { data } = useCurrentUser();
+
+  console.log(data);
+
+  return <div>Hello</div>;
 }

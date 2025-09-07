@@ -1,12 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Kysely } from 'kysely';
+import { sql } from 'kysely';
 
 // `any` is required here since migrations should be frozen in time. alternatively, keep a "snapshot" db interface.
 export async function up(db: Kysely<any>): Promise<void> {
-  // Project table
+  // Enable pgcrypto extension for gen_random_uuid function
+  await sql`CREATE EXTENSION IF NOT EXISTS pgcrypto`.execute(db);
+  // project table
   await db.schema
-    .createTable('Project')
-    .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
+    .createTable('project')
+    .addColumn('id', 'varchar', (col) =>
+      col
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn('name', 'varchar', (col) => col.notNull())
     .addColumn('description', 'varchar', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) =>
@@ -18,10 +26,15 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('archived_at', 'timestamptz')
     .execute();
 
-  // ProjectWordingBranch table
+  // project_wording_branch table
   await db.schema
-    .createTable('ProjectWordingBranch')
-    .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
+    .createTable('project_wording_branch')
+    .addColumn('id', 'varchar', (col) =>
+      col
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn('project_id', 'varchar', (col) => col.notNull())
     .addColumn('name', 'varchar', (col) => col.notNull())
     .addColumn('locked', 'boolean', (col) => col.notNull())
@@ -35,125 +48,143 @@ export async function up(db: Kysely<any>): Promise<void> {
     )
     .addColumn('archived_at', 'timestamptz')
     .addForeignKeyConstraint(
-      'ProjectWordingBranch_project_id_fkey',
+      'project_wording_branch_project_id_fkey',
       ['project_id'],
-      'Project',
+      'project',
       ['id'],
     )
     .execute();
 
-  // ProjectWordingBranchOperation table
+  // project_wording_branch_operation table
   await db.schema
-    .createTable('ProjectWordingBranchOperation')
-    .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
+    .createTable('project_wording_branch_operation')
+    .addColumn('id', 'varchar', (col) =>
+      col
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn('project_id', 'varchar', (col) => col.notNull())
     .addColumn('source_branch_id', 'varchar', (col) => col.notNull())
     .addColumn('target_branch_id', 'varchar', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addForeignKeyConstraint(
-      'ProjectWordingBranchOperation_project_id_fkey',
+      'project_wording_branch_operation_project_id_fkey',
       ['project_id'],
-      'Project',
+      'project',
       ['id'],
     )
     .addForeignKeyConstraint(
-      'ProjectWordingBranchOperation_source_branch_id_fkey',
+      'project_wording_branch_operation_source_branch_id_fkey',
       ['source_branch_id'],
-      'ProjectWordingBranch',
+      'project_wording_branch',
       ['id'],
     )
     .addForeignKeyConstraint(
-      'ProjectWordingBranchOperation_target_branch_id_fkey',
+      'project_wording_branch_operation_target_branch_id_fkey',
       ['target_branch_id'],
-      'ProjectWordingBranch',
+      'project_wording_branch',
       ['id'],
     )
     .execute();
 
-  // ProjectWordingAuditLog table
+  // project_wording_audit_log table
   await db.schema
-    .createTable('ProjectWordingAuditLog')
-    .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
+    .createTable('project_wording_audit_log')
+    .addColumn('id', 'varchar', (col) =>
+      col
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn('project_id', 'varchar', (col) => col.notNull())
     .addColumn('branch_id', 'varchar', (col) => col.notNull())
     .addColumn('user_id', 'varchar', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addForeignKeyConstraint(
-      'ProjectWordingAuditLog_project_id_fkey',
+      'project_wording_audit_log_project_id_fkey',
       ['project_id'],
-      'Project',
+      'project',
       ['id'],
     )
     .addForeignKeyConstraint(
-      'ProjectWordingAuditLog_branch_id_fkey',
+      'project_wording_audit_log_branch_id_fkey',
       ['branch_id'],
-      'ProjectWordingBranch',
+      'project_wording_branch',
       ['id'],
     )
     .execute();
 
-  // User table
+  // user table
   await db.schema
-    .createTable('User')
-    .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
+    .createTable('user')
+    .addColumn('id', 'varchar', (col) =>
+      col
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn('name', 'varchar')
     .addColumn('email', 'varchar', (col) => col.notNull())
     .addColumn('global_roles', 'jsonb', (col) => col.notNull().defaultTo('[]'))
     .addColumn('project_roles', 'jsonb', (col) => col.notNull().defaultTo('[]'))
     .execute();
 
-  // Account table
+  // account table
   await db.schema
-    .createTable('Account')
-    .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
+    .createTable('account')
+    .addColumn('id', 'varchar', (col) =>
+      col
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn('user_id', 'varchar', (col) => col.notNull())
-    .addColumn('type', 'varchar', (col) => col.notNull())
     .addColumn('provider', 'varchar', (col) => col.notNull())
     .addColumn('provider_account_id', 'varchar', (col) => col.notNull())
+    .addForeignKeyConstraint('account_user_id_fkey', ['user_id'], 'user', [
+      'id',
+    ])
+    .execute();
+
+  // user_session table
+  await db.schema
+    .createTable('user_session')
+    .addColumn('id', 'varchar', (col) =>
+      col
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`),
+    )
+    .addColumn('user_id', 'varchar', (col) => col.notNull())
+    .addColumn('account_id', 'varchar', (col) => col.notNull())
     .addColumn('refresh_token', 'varchar')
     .addColumn('access_token', 'varchar')
-    .addColumn('expires_at', 'bigint')
-    .addColumn('token_type', 'varchar')
-    .addColumn('scope', 'varchar')
-    .addColumn('id_token', 'varchar')
-    .addColumn('session_state', 'varchar')
-    .addForeignKeyConstraint('Account_user_id_fkey', ['user_id'], 'User', [
+    .addColumn('access_token_expires_at', 'timestamptz')
+    .addColumn('refresh_token_expires_at', 'timestamptz')
+    .addColumn('last_activity_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('expires_at', 'timestamptz', (col) => col.notNull())
+    .addForeignKeyConstraint('user_session_user_id_fkey', ['user_id'], 'user', [
       'id',
     ])
-    .execute();
-
-  // Session table
-  await db.schema
-    .createTable('Session')
-    .addColumn('id', 'varchar', (col) => col.primaryKey().notNull())
-    .addColumn('user_id', 'varchar', (col) => col.notNull())
-    .addColumn('session_token', 'varchar', (col) => col.notNull())
-    .addColumn('expires', 'timestamptz', (col) => col.notNull())
-    .addForeignKeyConstraint('Session_user_id_fkey', ['user_id'], 'User', [
-      'id',
-    ])
-    .execute();
-
-  // VerificationToken table
-  await db.schema
-    .createTable('VerificationToken')
-    .addColumn('identifier', 'varchar', (col) => col.notNull())
-    .addColumn('token', 'varchar', (col) => col.notNull())
-    .addColumn('expires', 'timestamptz', (col) => col.notNull())
-    .addPrimaryKeyConstraint('VerificationToken_pkey', ['identifier', 'token'])
+    .addForeignKeyConstraint(
+      'user_session_account_id_fkey',
+      ['account_id'],
+      'account',
+      ['id'],
+    )
     .execute();
 }
 
 // `any` is required here since migrations should be frozen in time. alternatively, keep a "snapshot" db interface.
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('VerificationToken').execute();
-  await db.schema.dropTable('Session').execute();
-  await db.schema.dropTable('Account').execute();
-  await db.schema.dropTable('User').execute();
-  await db.schema.dropTable('ProjectWordingAuditLog').execute();
-  await db.schema.dropTable('ProjectWordingBranchOperation').execute();
-  await db.schema.dropTable('ProjectWordingBranch').execute();
-  await db.schema.dropTable('Project').execute();
+  await db.schema.dropTable('user_session').execute();
+  await db.schema.dropTable('account').execute();
+  await db.schema.dropTable('user').execute();
+  await db.schema.dropTable('project_wording_audit_log').execute();
+  await db.schema.dropTable('project_wording_branch_operation').execute();
+  await db.schema.dropTable('project_wording_branch').execute();
+  await db.schema.dropTable('project').execute();
 }

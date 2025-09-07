@@ -17,7 +17,7 @@ export const ENTRA_ID = {
   createAuthUrl: () => {
     const state = arctic.generateState();
     const codeVerifier = arctic.generateCodeVerifier();
-    const scopes = ['openid', 'profile'];
+    const scopes = ['openid', 'email', 'profile', 'offline_access'];
     const url = entraId.createAuthorizationURL(state, codeVerifier, scopes);
     return {
       url,
@@ -32,10 +32,15 @@ export const ENTRA_ID = {
         code,
         codeVerifier,
       );
+      const idToken = tokens.idToken();
       const accessToken = tokens.accessToken();
       const accessTokenExpiresAt = tokens.accessTokenExpiresAt();
       const refreshToken = tokens.refreshToken();
       return {
+        idToken,
+        get claim() {
+          return arctic.decodeIdToken(idToken);
+        },
         accessToken,
         accessTokenExpiresAt,
         refreshToken,
@@ -83,4 +88,14 @@ export const ENTRA_ID = {
       throw e;
     }
   },
+
+  // getUserProfile: async (accessToken: string) => {
+  //   const response = await fetch('https://graph.microsoft.com/oidc/userinfo', {
+  //     headers: {
+  //       Authorization: `Bearer ${accessToken}`,
+  //     },
+  //   });
+  //   const user = await response.json();
+  //   return user;
+  // },
 };

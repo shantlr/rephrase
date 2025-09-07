@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,21 +7,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { serverAuthStartMicrosoftEntraId } from '@/server-functions/auth';
+import { useServerFn } from '@tanstack/react-start';
 
 export const Route = createFileRoute('/login')({
   component: LoginComponent,
 });
 
 function LoginComponent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement login logic
-    console.log('Login attempt:', { email, password });
+  const startSSO = useServerFn(serverAuthStartMicrosoftEntraId);
+  const handleMicrosoftSignIn = async () => {
+    await startSSO({});
   };
 
   return (
@@ -31,47 +26,37 @@ function LoginComponent() {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
           <CardDescription>
-            Enter your credentials to access your account
+            Sign in to your account using Microsoft Entra ID
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+        <CardContent className="space-y-4">
+          <Button
+            onClick={handleMicrosoftSignIn}
+            className="w-full h-12 text-base font-medium bg-[#0078d4] hover:bg-[#106ebe] text-white border-0"
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              viewBox="0 0 21 21"
+              fill="currentColor"
+            >
+              <path d="M0 0h10v10H0V0zm11 0h10v10H11V0zM0 11h10v10H0V11zm11 0h10v10H11V11z" />
+            </svg>
+            Sign in with Microsoft
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Secure authentication
+              </span>
             </div>
-            <Button type="submit" className="w-full mt-6">
-              Sign in
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            <a href="#" className="text-primary hover:underline">
-              Forgot your password?
-            </a>
           </div>
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <a href="#" className="text-primary hover:underline">
-              Sign up
-            </a>
+
+          <div className="text-center text-sm text-muted-foreground">
+            <p>Your organization uses Microsoft Entra ID for secure access.</p>
           </div>
         </CardContent>
       </Card>

@@ -1,14 +1,14 @@
-import { GeneratedAlways, JSONColumnType } from 'kysely';
+import { GeneratedAlways, JSONColumnType, Selectable } from 'kysely';
 
 export type UserRole = 'admin' | 'default';
 
 export type UserProjectRole = 'admin' | 'reader' | 'maintainer';
 
-export type User = {
+export type UserTable = {
   id: GeneratedAlways<string>;
   name: string | null;
   email: string;
-  global_roles: UserRole[];
+  global_roles: JSONColumnType<UserRole[]>;
   project_roles: JSONColumnType<
     {
       project_id: string;
@@ -16,23 +16,26 @@ export type User = {
     }[]
   >;
 };
-export type Account = {
+export type User = Selectable<UserTable>;
+
+export type AccountProvider = 'microsoft-entra-id';
+export type AccountTable = {
   id: GeneratedAlways<string>;
   user_id: string;
-  type: string;
-  provider: string;
+  provider: AccountProvider;
   provider_account_id: string;
+};
+export type UserSession = {
+  id: GeneratedAlways<string>;
+  user_id: string;
+  account_id: string;
   refresh_token: string | null;
   access_token: string | null;
-  expires_at: number | null;
-  token_type: string | null;
-  scope: string | null;
-  id_token: string | null;
-  session_state: string | null;
+  access_token_expires_at: Date | null;
+  refresh_token_expires_at: Date | null;
+
+  last_activity_at: Date;
+  expires_at: Date;
 };
-export type Session = {
-  id: GeneratedAlways<string>;
-  user_id: string;
-  session_token: string;
-  expires: Date;
-};
+
+export type Account = Selectable<AccountTable>;

@@ -1,16 +1,16 @@
 import { ColumnType, Generated, GeneratedAlways, JSONColumnType } from 'kysely';
 import { WordingData } from './wording.types';
-import { Account, Session, User } from './user.types';
+import { AccountTable, UserSession, UserTable } from './user.types';
 
 export interface Database {
-  Project: Project;
-  ProjectWordingBranch: ProjectWordingBranch;
-  ProjectWordingBranchOperation: ProjectWordingBranchOperation;
-  ProjectWordingAuditLog: ProjectWordingAuditLog;
+  project: Project;
+  project_wording_branch: ProjectWordingBranch;
+  project_wording_branch_operation: ProjectWordingBranchOperation;
+  project_wording_audit_log: ProjectWordingAuditLog;
 
-  User: User;
-  Account: Account;
-  Session: Session;
+  user: UserTable;
+  account: AccountTable;
+  user_session: UserSession;
 }
 
 export interface Project {
