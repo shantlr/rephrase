@@ -6,8 +6,8 @@ import {
 } from '@/server/common/env';
 import { UserRepo } from '@/server/data/repo/user';
 import { User } from '@/server/data/user.types';
-import { createMiddleware } from '@tanstack/react-start';
-import { getCookie, setResponseStatus } from '@tanstack/react-start/server';
+import { createMiddleware, json } from '@tanstack/react-start';
+import { getCookie } from '@tanstack/react-start/server';
 
 type Context = {
   user: {
@@ -29,27 +29,30 @@ type Context = {
 export const $serverAuthenticated = () =>
   createMiddleware({
     type: 'function',
-  }).server<Context>(async ({ next, response }) => {
+  }).server<Context>(async ({ next }) => {
     const sessionId = getCookie(SESSION_COOKIE_NAME);
 
     if (!sessionId) {
-      setResponseStatus(401);
-      return null;
+      throw json('unauthenticated', {
+        status: 401,
+      });
     }
 
     const session =
       await UserRepo.query.getSessionWithUserAndAccount(sessionId);
 
     if (!session) {
-      setResponseStatus(401);
-      return null;
+      throw json('unauthenticated', {
+        status: 401,
+      });
     }
 
     const now = new Date();
 
     if (session.expires_at < now) {
-      setResponseStatus(401);
-      return null;
+      throw json('unauthenticated', {
+        status: 401,
+      });
     }
 
     let accessToken = session.access_token
@@ -66,12 +69,13 @@ export const $serverAuthenticated = () =>
     ) {
       if (
         refreshToken &&
-        session.refresh_token_expires_at &&
-        session.refresh_token_expires_at > now
+        (!session.refresh_token_expires_at ||
+          session.refresh_token_expires_at > now)
       ) {
         try {
           const refreshedTokens =
             await ENTRA_ID.refreshAccessToken(refreshToken);
+          console.log('session access token refreshed');
 
           await UserRepo.mutate.updateSessionTokens({
             sessionId,
@@ -84,14 +88,16 @@ export const $serverAuthenticated = () =>
           refreshToken = refreshedTokens.refreshToken;
         } catch (error) {
           console.error('Failed to refresh access token:', error);
-          setResponseStatus(401);
-          return null;
+          throw json('unauthenticated', {
+            status: 401,
+          });
         }
       } else {
         // await UserRepo.mutate.deleteSession(sessionId);
         console.log('Session access token expired and no valid refresh token');
-        setResponseStatus(401);
-        return null;
+        throw json('unauthenticated', {
+          status: 401,
+        });
       }
     } else {
       // NOTE: we throttle session activity updates to avoid excessive writes

@@ -76,6 +76,7 @@ The project uses Tailwind CSS with additional animation utilities via `tw-animat
 
 ## Instructions
 
-Once you are done doing a batch of editing, run `yarn lint:fix`
-
-All db query should be put in corresponding repo methods
+- Once you are done doing a batch of editing, run `yarn lint:fix`
+- All db query should be put in corresponding repo methods
+- When possible use components from shadcn, you can install new one as needed
+- Any server functions should be prefixed with `server`
