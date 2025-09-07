@@ -1,6 +1,6 @@
-import { ENTRA_ID } from '@/common/auth';
-import { MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX } from '@/common/env/microsoft-entra-id';
-import { redis } from '@/data/redis';
+import { ENTRA_ID } from '@/server/common/auth';
+import { MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX } from '@/server/common/env/microsoft-entra-id';
+import { redis } from '@/server/data/redis';
 import { redirect } from '@tanstack/react-router';
 import { createServerFn, serverOnly } from '@tanstack/react-start';
 import { $serverAuthenticated } from '../_middlewares/auth';

@@ -10,10 +10,10 @@
 
 import { createServerRootRoute } from '@tanstack/react-start/server'
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as IndexRouteImport } from './routes/index'
-import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './routes/api/auth/callback/microsoft-entra-id/index'
+import { Route as rootRouteImport } from './app/routes/__root'
+import { Route as LoginRouteImport } from './app/routes/login'
+import { Route as IndexRouteImport } from './app/routes/index'
+import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
 
 const rootServerRouteImport = createServerRootRoute()
 

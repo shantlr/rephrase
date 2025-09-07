@@ -1,11 +1,11 @@
-import { ENTRA_ID } from '@/common/auth';
+import { ENTRA_ID } from '@/server/common/auth';
 import {
   SESSION_COOKIE_DOMAIN,
   SESSION_COOKIE_SAME_SITE,
   SESSION_COOKIE_SECURE,
   SESSION_COOKIE_NAME,
-} from '@/common/env';
-import { UserRepo } from '@/data/repo/user';
+} from '@/server/common/env';
+import { UserRepo } from '@/server/data/repo/user';
 import { $serverGetAuthSession } from '@/server-functions/auth';
 import { createServerFileRoute, setCookie } from '@tanstack/react-start/server';
 import * as z from 'zod';

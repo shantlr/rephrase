@@ -6,8 +6,10 @@
     "dev": "vite dev",
     "build": "vite build",
     "lint:fix": "eslint --fix ./src",
+    "lint": "eslint",
     "migrate:latest": "dotenvx run -- kysely migrate:latest",
-    "migrate:down": "dotenvx run -- kysely migrate:down"
+    "migrate:down": "dotenvx run -- kysely migrate:down",
+    "ts-check": "tsc --noEmit"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",

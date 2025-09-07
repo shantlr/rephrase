@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/common/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/app/common/ui/card';
 import { serverAuthStartMicrosoftEntraId } from '@/server-functions/auth';
 import { useServerFn } from '@tanstack/react-start';
 

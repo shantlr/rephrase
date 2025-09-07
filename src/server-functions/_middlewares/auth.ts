@@ -1,11 +1,11 @@
-import { ENTRA_ID } from '@/common/auth';
-import { decryptToken } from '@/common/crypto/token-encryption';
+import { ENTRA_ID } from '@/server/common/auth';
+import { decryptToken } from '@/server/common/crypto/token-encryption';
 import {
   SESSION_COOKIE_NAME,
   SESSION_UPDATE_LAST_ACTIVITY_AT_DELAY_MINUTES,
-} from '@/common/env';
-import { UserRepo } from '@/data/repo/user';
-import { User } from '@/data/user.types';
+} from '@/server/common/env';
+import { UserRepo } from '@/server/data/repo/user';
+import { User } from '@/server/data/user.types';
 import { createMiddleware } from '@tanstack/react-start';
 import { getCookie, setResponseStatus } from '@tanstack/react-start/server';
 
