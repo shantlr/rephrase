@@ -1,14 +1,30 @@
-import { useCurrentUser } from '@/app/features/user/use-me';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useCurrentUser } from '../features/user/use-me';
+import { useEffect } from 'react';
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { data } = useCurrentUser();
+  const { data, isPending } = useCurrentUser();
+  const nav = useNavigate();
 
-  console.log(data);
+  useEffect(() => {
+    if (isPending) {
+      return;
+    }
 
-  return <div>Hello</div>;
+    if (!data?.user) {
+      nav({
+        to: '/login',
+      });
+    } else {
+      nav({
+        to: '/dashboard',
+      });
+    }
+  }, [data, isPending, nav]);
+
+  return <div>Loading...</div>;
 }
