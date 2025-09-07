@@ -4,7 +4,10 @@ import { createServerFn, json } from '@tanstack/react-start';
 import { $serverAuthenticated } from '../_middlewares/auth';
 import * as z from 'zod';
 import { LOCALE_OPTIONS, VALID_LOCALE_TAGS } from '@/app/common/data/locales';
-import { isUserAllowedToCreateProject } from '@/server/common/authorization';
+import {
+  isUserAllowedToCreateProject,
+  isUserAllowedToReadProject,
+} from '@/server/common/authorization';
 import { db } from '@/server/data';
 
 const createProjectInputValidator = z.object({
@@ -100,14 +103,50 @@ export const serverGetProjects = createServerFn({
     // For now, get all projects. Later we can filter by user access
     const projects = await ProjectRepo.query.findAll();
 
+    // Get locale codes for each project from the main branch
+    const projectsWithLocales = await Promise.all(
+      projects.map(async (project) => {
+        // Get the main branch data to extract locale codes
+        const mainBranch = await db
+          .selectFrom('project_wording_branch')
+          .select(['data'])
+          .where('project_id', '=', project.id)
+          .where('name', '=', 'main')
+          .where('archived_at', 'is', null)
+          .executeTakeFirst();
+
+        let localeCodes: string[] = [];
+        if (mainBranch?.data) {
+          try {
+            const wordingData =
+              typeof mainBranch.data === 'string'
+                ? JSON.parse(mainBranch.data)
+                : mainBranch.data;
+            localeCodes =
+              wordingData.locales?.map(
+                (locale: { code: string }) => locale.code,
+              ) || [];
+          } catch (error) {
+            console.error(
+              `Error parsing wording data for project ${project.id}:`,
+              error,
+            );
+          }
+        }
+
+        return {
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          createdAt: project.created_at,
+          updatedAt: project.updated_at,
+          localeCodes,
+        };
+      }),
+    );
+
     return {
-      projects: projects.map((project) => ({
-        id: project.id,
-        name: project.name,
-        description: project.description,
-        createdAt: project.created_at,
-        updatedAt: project.updated_at,
-      })),
+      projects: projectsWithLocales,
     };
   });
 
@@ -122,11 +161,44 @@ export const serverGetProject = createServerFn({
     }
     return data;
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (!isUserAllowedToReadProject(context.user, data.id)) {
+      throw json('unauthorized', { status: 403 });
+    }
+
     const project = await ProjectRepo.query.findById(data.id);
 
     if (!project) {
       throw new Error('Project not found');
+    }
+
+    // Get locale information from the main branch
+    const mainBranch = await db
+      .selectFrom('project_wording_branch')
+      .select(['data'])
+      .where('project_id', '=', project.id)
+      .where('name', '=', 'main')
+      .where('archived_at', 'is', null)
+      .executeTakeFirst();
+
+    let locales: { code: string; tag: string }[] = [];
+    if (mainBranch?.data) {
+      try {
+        const wordingData =
+          typeof mainBranch.data === 'string'
+            ? JSON.parse(mainBranch.data)
+            : mainBranch.data;
+        locales =
+          wordingData.locales?.map((locale: { code: string; tag: string }) => ({
+            code: locale.code,
+            tag: locale.tag,
+          })) || [];
+      } catch (error) {
+        console.error(
+          `Error parsing wording data for project ${project.id}:`,
+          error,
+        );
+      }
     }
 
     return {
@@ -135,5 +207,6 @@ export const serverGetProject = createServerFn({
       description: project.description,
       createdAt: project.created_at,
       updatedAt: project.updated_at,
+      locales,
     };
   });

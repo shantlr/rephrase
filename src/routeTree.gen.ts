@@ -16,6 +16,7 @@ import { Route as AuthenticatedRouteRouteImport } from './app/routes/_authentica
 import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './app/routes/_authenticated/dashboard'
 import { Route as AuthenticatedProjectsCreateRouteImport } from './app/routes/_authenticated/projects.create'
+import { Route as AuthenticatedProjectsProjectIdRouteImport } from './app/routes/_authenticated/projects.$projectId'
 import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
 
 const rootServerRouteImport = createServerRootRoute()
@@ -45,6 +46,12 @@ const AuthenticatedProjectsCreateRoute =
     path: '/projects/create',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdRoute =
+  AuthenticatedProjectsProjectIdRouteImport.update({
+    id: '/projects/$projectId',
+    path: '/projects/$projectId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiAuthCallbackMicrosoftEntraIdIndexServerRoute =
   ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport.update({
     id: '/api/auth/callback/microsoft-entra-id/',
@@ -56,12 +63,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
 }
 export interface FileRoutesById {
@@ -70,19 +79,31 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/_authenticated/projects/create': typeof AuthenticatedProjectsCreateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard' | '/projects/create'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/projects/$projectId'
+    | '/projects/create'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/projects/create'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/projects/$projectId'
+    | '/projects/create'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/dashboard'
+    | '/_authenticated/projects/$projectId'
     | '/_authenticated/projects/create'
   fileRoutesById: FileRoutesById
 }
@@ -150,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsCreateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId': {
+      id: '/_authenticated/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 declare module '@tanstack/react-start/server' {
@@ -166,11 +194,13 @@ declare module '@tanstack/react-start/server' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
   AuthenticatedProjectsCreateRoute: typeof AuthenticatedProjectsCreateRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
   AuthenticatedProjectsCreateRoute: AuthenticatedProjectsCreateRoute,
 }
 
