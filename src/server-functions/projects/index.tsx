@@ -1,10 +1,11 @@
 import { ProjectRepo } from '@/server/data/repo/project';
+import { ProjectWordingRepo } from '@/server/data/repo/project-wording';
 import { createServerFn, json } from '@tanstack/react-start';
 import { $serverAuthenticated } from '../_middlewares/auth';
 import * as z from 'zod';
 import { LOCALE_OPTIONS, VALID_LOCALE_TAGS } from '@/app/common/data/locales';
-import { ProjectWordingRepo } from '@/server/data/repo/project-wording';
 import { isUserAllowedToCreateProject } from '@/server/common/authorization';
+import { db } from '@/server/data';
 
 const createProjectInputValidator = z.object({
   name: z.string().min(1, 'Project name is required').trim(),
@@ -39,43 +40,54 @@ export const serverCreateProject = createServerFn({
       throw json('unauthorized', { status: 403 });
     }
 
-    // Create the project
-    const project = await ProjectRepo.mutate.create({
-      name: data.name,
-      description: data.description,
-    });
-    // Create the main wording branch with empty data for the specified locales
-    await ProjectWordingRepo.mutate.createBranch({
-      projectId: project.id,
-      branchName: 'main',
-      data: {
-        config: {
-          enums: {},
-          schema: {
-            type: 'object',
-            description: '',
-            fields: [],
+    const result = await db.transaction().execute(async (trx) => {
+      // Create the project using repository
+      const project = await ProjectRepo.mutate.create(
+        {
+          name: data.name,
+          description: data.description,
+        },
+        trx,
+      );
+
+      // Create the main wording branch with empty data for the specified locales
+      await ProjectWordingRepo.mutate.createBranch(
+        {
+          projectId: project.id,
+          branchName: 'main',
+          data: {
+            config: {
+              enums: {},
+              schema: {
+                type: 'object' as const,
+                description: '',
+                fields: [],
+              },
+            },
+            locales: data.locales.map((localeTag) => {
+              const l = LOCALE_OPTIONS.find((lc) => lc.tag === localeTag)!;
+              return {
+                code: l.code,
+                tag: l.tag,
+                data: [],
+              };
+            }),
           },
         },
-        locales: data.locales.map((localeTag) => {
-          const l = LOCALE_OPTIONS.find((lc) => lc.tag === localeTag)!;
-          return {
-            code: l.code,
-            tag: l.tag,
-            data: [],
-          };
-        }),
-      },
+        trx,
+      );
+
+      return project;
     });
 
     // TODO: Store locale configuration when we implement project settings
     // For now, we'll just validate that locales are provided
 
     return {
-      id: project.id,
-      name: project.name,
-      description: project.description,
-      createdAt: project.created_at,
+      id: result.id,
+      name: result.name,
+      description: result.description,
+      createdAt: result.created_at,
     } as CreateProjectOutput;
   });
 

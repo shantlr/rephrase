@@ -1,6 +1,6 @@
-import { Selectable } from 'kysely';
+import { Selectable, Transaction } from 'kysely';
 import { db } from '..';
-import { Project } from '../db';
+import { Database, Project } from '../db';
 
 export type ProjectCreate = {
   name: string;
@@ -11,8 +11,12 @@ export type ProjectSelect = Selectable<Project>;
 
 export const ProjectRepo = {
   query: {
-    findById: async (id: string): Promise<ProjectSelect | undefined> => {
-      return await db
+    findById: async (
+      id: string,
+      trx?: Transaction<Database>,
+    ): Promise<ProjectSelect | undefined> => {
+      const executor = trx || db;
+      return await executor
         .selectFrom('project')
         .selectAll()
         .where('id', '=', id)
@@ -20,8 +24,9 @@ export const ProjectRepo = {
         .executeTakeFirst();
     },
 
-    findAll: async (): Promise<ProjectSelect[]> => {
-      return await db
+    findAll: async (trx?: Transaction<Database>): Promise<ProjectSelect[]> => {
+      const executor = trx || db;
+      return await executor
         .selectFrom('project')
         .selectAll()
         .where('archived_at', 'is', null)
@@ -29,11 +34,14 @@ export const ProjectRepo = {
         .execute();
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    findByUserId: async (_userId: string): Promise<ProjectSelect[]> => {
+    findByUserId: async (
+      _userId: string,
+      trx?: Transaction<Database>,
+    ): Promise<ProjectSelect[]> => {
       // TODO: Add user-project relationship when implemented
       // For now, return all projects
-      return await db
+      const executor = trx || db;
+      return await executor
         .selectFrom('project')
         .selectAll()
         .where('archived_at', 'is', null)
@@ -43,8 +51,12 @@ export const ProjectRepo = {
   },
 
   mutate: {
-    create: async (data: ProjectCreate): Promise<ProjectSelect> => {
-      const project = await db
+    create: async (
+      data: ProjectCreate,
+      trx?: Transaction<Database>,
+    ): Promise<ProjectSelect> => {
+      const executor = trx || db;
+      const project = await executor
         .insertInto('project')
         .values({
           name: data.name,
@@ -59,8 +71,10 @@ export const ProjectRepo = {
     update: async (
       id: string,
       data: Partial<ProjectCreate>,
+      trx?: Transaction<Database>,
     ): Promise<ProjectSelect | undefined> => {
-      const updatedProject = await db
+      const executor = trx || db;
+      const updatedProject = await executor
         .updateTable('project')
         .set(data)
         .where('id', '=', id)
@@ -71,8 +85,12 @@ export const ProjectRepo = {
       return updatedProject;
     },
 
-    archive: async (id: string): Promise<boolean> => {
-      const result = await db
+    archive: async (
+      id: string,
+      trx?: Transaction<Database>,
+    ): Promise<boolean> => {
+      const executor = trx || db;
+      const result = await executor
         .updateTable('project')
         .set({
           archived_at: new Date(),
@@ -84,8 +102,12 @@ export const ProjectRepo = {
       return result.numUpdatedRows > 0;
     },
 
-    delete: async (id: string): Promise<boolean> => {
-      const result = await db
+    delete: async (
+      id: string,
+      trx?: Transaction<Database>,
+    ): Promise<boolean> => {
+      const executor = trx || db;
+      const result = await executor
         .deleteFrom('project')
         .where('id', '=', id)
         .executeTakeFirst();

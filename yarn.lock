@@ -3052,6 +3052,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/object-hash@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@types/object-hash@npm:3.0.6"
+  checksum: 10c0/a5450cafdbc33c840be2c36fb1ace96cce7aa580177cf68dbdbda80f18938207692d74c76403321c99f43460ac31981c4af7fe8b49eca1570f8e9a4c01eaf33d
+  languageName: node
+  linkType: hard
+
 "@types/pg@npm:^8.15.5":
   version: 8.15.5
   resolution: "@types/pg@npm:8.15.5"
@@ -7904,6 +7911,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"object-hash@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "object-hash@npm:3.0.0"
+  checksum: 10c0/a06844537107b960c1c8b96cd2ac8592a265186bfa0f6ccafe0d34eabdb526f6fa81da1f37c43df7ed13b12a4ae3457a16071603bcd39d8beddb5f08c37b0f47
+  languageName: node
+  linkType: hard
+
 "object-inspect@npm:^1.13.3, object-inspect@npm:^1.13.4":
   version: 1.13.4
   resolution: "object-inspect@npm:1.13.4"
@@ -9046,6 +9060,7 @@ __metadata:
     "@tanstack/react-start": "npm:^1.131.28"
     "@types/getenv": "npm:^1.0.3"
     "@types/lodash-es": "npm:^4"
+    "@types/object-hash": "npm:^3.0.6"
     "@types/pg": "npm:^8.15.5"
     "@types/react": "npm:^19.1.12"
     "@types/react-dom": "npm:^19.1.9"
@@ -9065,6 +9080,7 @@ __metadata:
     lodash-es: "npm:^4.17.21"
     lru-cache: "npm:^11.2.1"
     lucide-react: "npm:^0.542.0"
+    object-hash: "npm:^3.0.0"
     pg: "npm:^8.16.3"
     postcss: "npm:^8.5.6"
     react: "npm:^19.1.1"

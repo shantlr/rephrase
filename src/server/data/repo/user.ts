@@ -67,8 +67,8 @@ export const UserRepo = {
 
           let userId = existingUser?.id;
           if (!existingUser) {
-            const nbAccounts = await trx
-              .selectFrom('account')
+            const nbUsers = await trx
+              .selectFrom('user')
               .select((eb) => [eb.fn.countAll().as('count')])
               .executeTakeFirstOrThrow();
 
@@ -79,7 +79,7 @@ export const UserRepo = {
                 name,
                 global_roles: JSON.stringify(
                   // NOTE: the first user is automatically created as an admin
-                  (nbAccounts.count === 0
+                  (Number(nbUsers.count) === 0
                     ? ['admin']
                     : ['default']) satisfies User['global_roles'],
                 ),

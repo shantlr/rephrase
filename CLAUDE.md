@@ -35,6 +35,7 @@ This is a React application built with **TanStack Start** (React-based full-stac
   - `src/server/data/repo/` - Repository pattern for data access (user, project, project-wording)
   - `src/server/data/*.types.ts` - Type definitions for database schemas and entities
 - `src/server/common/env/` - Environment variable configuration
+- `src/server/common/authorization` - Contains all rbac predicate functions
 - `src/app/common/lib/utils.ts` - Shared utility functions
 - `src/app/features` - Contain features slices
   - any hooks should be a file prefixed with `use-`

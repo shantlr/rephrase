@@ -7,7 +7,7 @@ import {
   PG_PASSWORD,
   PG_PORT,
   PG_USER,
-} from '../src/common/env';
+} from '../src/server/common/env';
 
 export default defineConfig({
   // replace me with a real dialect instance OR a dialect name + `dialectConfig` prop.
