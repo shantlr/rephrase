@@ -7117,9 +7117,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kysely-ctl@npm:^0.18.0":
-  version: 0.18.0
-  resolution: "kysely-ctl@npm:0.18.0"
+"kysely-ctl@npm:^0.19.0":
+  version: 0.19.0
+  resolution: "kysely-ctl@npm:0.19.0"
   dependencies:
     c12: "npm:^3.2.0"
     citty: "npm:^0.1.6"
@@ -7134,13 +7134,19 @@ __metadata:
     tsconfck: "npm:^3.1.6"
   peerDependencies:
     kysely: ">=0.18.1 <0.29.0"
-    kysely-postgres-js: ^2
+    kysely-neon: ^2
+    kysely-postgres-js: ^2 || ^3
+    kysely-prisma-postgres: ^0.1
   peerDependenciesMeta:
+    kysely-neon:
+      optional: true
     kysely-postgres-js:
+      optional: true
+    kysely-prisma-postgres:
       optional: true
   bin:
     kysely: dist/bin.js
-  checksum: 10c0/d489a83dd972316d9de72330291a81f77abe5be8d0370b9dad66282efb0856e1e753992e8502b0fe0363fabc73b4365724b9f6f9bc1c6483a82d5d1871275ac8
+  checksum: 10c0/a641aefee05cf415510214ecc527b6512592b8bc3883bacbed6112af5454995f3d5a944ac9da16eea38b3c24afdecd73621629756cd8e29424c867fac4b68116
   languageName: node
   linkType: hard
 
@@ -9252,7 +9258,7 @@ __metadata:
     globals: "npm:^16.3.0"
     jiti: "npm:^2.5.1"
     kysely: "npm:^0.28.5"
-    kysely-ctl: "npm:^0.18.0"
+    kysely-ctl: "npm:^0.19.0"
     lodash-es: "npm:^4.17.21"
     lru-cache: "npm:^11.2.1"
     lucide-react: "npm:^0.542.0"

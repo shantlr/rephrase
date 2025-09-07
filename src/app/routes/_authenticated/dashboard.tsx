@@ -67,12 +67,15 @@ function RouteComponent() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Your Projects</CardTitle>
-              <Button asChild size="sm">
-                <Link to="/projects/create">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Project
-                </Link>
-              </Button>
+              {projects.length > 0 &&
+                currentUser?.user.permissions.can_create_project && (
+                  <Button asChild size="sm">
+                    <Link to="/projects/create">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Project
+                    </Link>
+                  </Button>
+                )}
             </div>
           </CardHeader>
           <CardContent>
@@ -93,14 +96,18 @@ function RouteComponent() {
                 </div>
                 <h3 className="text-lg font-medium mb-2">No projects yet</h3>
                 <p className="text-muted-foreground mb-6">
-                  Get started by creating your first localization project
+                  {currentUser?.user.permissions.can_create_project
+                    ? 'Get started by creating your first localization project'
+                    : 'No projects have been created yet'}
                 </p>
-                <Button asChild>
-                  <Link to="/projects/create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Project
-                  </Link>
-                </Button>
+                {currentUser?.user.permissions.can_create_project && (
+                  <Button asChild>
+                    <Link to="/projects/create">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Your First Project
+                    </Link>
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -1,4 +1,5 @@
 import { ENTRA_ID } from '@/server/common/auth';
+import { isUserAllowedToCreateProject } from '@/server/common/authorization';
 import { SESSION_COOKIE_NAME } from '@/server/common/env';
 import { MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX } from '@/server/common/env/microsoft-entra-id';
 import { redis } from '@/server/data/redis';
@@ -45,11 +46,19 @@ export const serverGetUserMe = createServerFn({
 })
   .middleware([$serverAuthenticated()])
   .handler(async ({ context }) => {
+    const permissions = {
+      can_create_project: isUserAllowedToCreateProject({
+        globalRoles: context.user.globalRoles,
+        projectRoles: context.user.projectRoles,
+      }),
+    };
+
     return {
       user: {
         id: context.user.id,
         email: context.user.email,
         name: context.user.name,
+        permissions,
       },
     };
   });

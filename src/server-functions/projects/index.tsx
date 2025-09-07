@@ -214,6 +214,12 @@ export const serverGetProject = createServerFn({
       createdAt: project.created_at,
       updatedAt: project.updated_at,
       locales,
+      permissions: {
+        can_delete_project: isUserAllowedToDeleteProject(
+          context.user,
+          project.id,
+        ),
+      },
     };
   });
 
