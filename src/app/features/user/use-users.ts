@@ -1,4 +1,4 @@
-import { serverGetUsers } from '@/server-functions/auth';
+import { serverGetUsers } from '@/server-functions/users';
 import { useQuery } from '@tanstack/react-query';
 
 export const useUsers = () => {
