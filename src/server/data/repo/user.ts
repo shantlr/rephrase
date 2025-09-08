@@ -5,6 +5,20 @@ import { encryptToken } from '../../common/crypto/token-encryption';
 
 export const UserRepo = {
   query: {
+    findAll: async () => {
+      return await db
+        .selectFrom('user')
+        .select([
+          'id',
+          'email',
+          'name',
+          'global_roles',
+          'project_roles',
+          'created_at',
+        ])
+        .orderBy('created_at', 'desc')
+        .execute();
+    },
     getSessionWithUserAndAccount: async (sessionId: string) => {
       return await db
         .selectFrom('user_session')

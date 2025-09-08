@@ -39,6 +39,10 @@ export const isUserAllowedToDeleteProject = (
  * Returns array of project IDs if user has specific project roles.
  * Returns empty array if user has no project access.
  */
+export const isUserAllowedToManageUsers = (user: UserWithRoles) => {
+  return !!user?.globalRoles?.includes('admin');
+};
+
 export const getAllowedProjectIds = (user: UserWithRoles): string[] | null => {
   // Global admin can access all projects
   if (user?.globalRoles?.includes('admin')) {

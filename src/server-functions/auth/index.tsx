@@ -1,11 +1,14 @@
 import { ENTRA_ID } from '@/server/common/auth';
-import { isUserAllowedToCreateProject } from '@/server/common/authorization';
+import {
+  isUserAllowedToCreateProject,
+  isUserAllowedToManageUsers,
+} from '@/server/common/authorization';
 import { SESSION_COOKIE_NAME } from '@/server/common/env';
 import { MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX } from '@/server/common/env/microsoft-entra-id';
 import { redis } from '@/server/data/redis';
 import { UserRepo } from '@/server/data/repo/user';
 import { redirect } from '@tanstack/react-router';
-import { createServerFn, serverOnly } from '@tanstack/react-start';
+import { createServerFn, json, serverOnly } from '@tanstack/react-start';
 import { deleteCookie } from '@tanstack/react-start/server';
 import { $serverAuthenticated } from '../_middlewares/auth';
 
@@ -51,6 +54,10 @@ export const serverGetUserMe = createServerFn({
         globalRoles: context.user.globalRoles,
         projectRoles: context.user.projectRoles,
       }),
+      can_manage_users: isUserAllowedToManageUsers({
+        globalRoles: context.user.globalRoles,
+        projectRoles: context.user.projectRoles,
+      }),
     };
 
     return {
@@ -60,6 +67,35 @@ export const serverGetUserMe = createServerFn({
         name: context.user.name,
         permissions,
       },
+    };
+  });
+
+export const serverGetUsers = createServerFn({
+  method: 'GET',
+  response: 'data',
+})
+  .middleware([$serverAuthenticated()])
+  .handler(async ({ context }) => {
+    if (
+      !isUserAllowedToManageUsers({
+        globalRoles: context.user.globalRoles,
+        projectRoles: context.user.projectRoles,
+      })
+    ) {
+      throw json('unauthorized', { status: 403 });
+    }
+
+    const users = await UserRepo.query.findAll();
+
+    return {
+      users: users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        globalRoles: user.global_roles,
+        projectRoles: user.project_roles,
+        createdAt: user.created_at,
+      })),
     };
   });
 

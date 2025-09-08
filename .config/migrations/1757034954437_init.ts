@@ -130,6 +130,13 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('email', 'varchar', (col) => col.notNull())
     .addColumn('global_roles', 'jsonb', (col) => col.notNull().defaultTo('[]'))
     .addColumn('project_roles', 'jsonb', (col) => col.notNull().defaultTo('[]'))
+    .addColumn('created_at', 'timestamptz', (col) =>
+      col.notNull().defaultTo('NOW()'),
+    )
+    .addColumn('updated_at', 'timestamptz', (col) =>
+      col.notNull().defaultTo('NOW()'),
+    )
+    .addColumn('disabled_at', 'timestamptz')
     .execute();
 
   // account table

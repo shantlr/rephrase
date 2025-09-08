@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Plus, LanguagesIcon, LogOut, User } from 'lucide-react';
+import { Plus, LanguagesIcon, LogOut, User, Users } from 'lucide-react';
 import { Button } from '@/app/common/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/common/ui/card';
 import { Badge } from '@/app/common/ui/badge';
@@ -13,6 +13,7 @@ import {
 import { useProjects } from '@/app/features/projects/use-projects';
 import { useCurrentUser } from '@/app/features/user/use-me';
 import { useLogout } from '@/app/features/user/use-logout';
+import { useUsers } from '@/app/features/user/use-users';
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: RouteComponent,
@@ -23,6 +24,11 @@ function RouteComponent() {
   const projects = data?.projects || [];
   const { data: currentUser } = useCurrentUser();
   const logoutMutation = useLogout();
+  const {
+    data: usersData,
+    isLoading: isUsersLoading,
+    error: usersError,
+  } = useUsers();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -172,6 +178,82 @@ function RouteComponent() {
             )}
           </CardContent>
         </Card>
+
+        {/* Users Management Section - Only visible to users who can manage users */}
+        {currentUser?.user.permissions.can_manage_users && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                User Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isUsersLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Loading users...</p>
+                </div>
+              ) : usersError ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600">
+                    Error loading users: {usersError.message}
+                  </p>
+                </div>
+              ) : !usersData?.users || usersData.users.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No users found</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground mb-4">
+                    Total users: {usersData.users.length}
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {usersData.users.map((user) => (
+                      <Card key={user.id} className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <User className="w-4 h-4 text-muted-foreground" />
+                              <span className="font-medium">
+                                {user.name || user.email}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {user.email}
+                            </p>
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {user.globalRoles.map((role) => (
+                                <Badge
+                                  key={role}
+                                  variant={
+                                    role === 'admin' ? 'default' : 'secondary'
+                                  }
+                                  className="text-xs"
+                                >
+                                  {role}
+                                </Badge>
+                              ))}
+                              {user.projectRoles.length > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{user.projectRoles.length} project roles
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Created{' '}
+                              {new Date(user.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

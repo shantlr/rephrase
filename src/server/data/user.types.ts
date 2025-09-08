@@ -15,6 +15,9 @@ export type UserTable = {
       roles: UserProjectRole[];
     }[]
   >;
+  created_at: GeneratedAlways<Date>;
+  updated_at: GeneratedAlways<Date>;
+  disabled_at: Date | null;
 };
 export type User = Selectable<UserTable>;
 
