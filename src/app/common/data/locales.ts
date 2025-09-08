@@ -96,12 +96,6 @@ export const LOCALE_OPTIONS = [
   },
   {
     code: 'de',
-    tag: 'de-DE',
-    name: 'German (Germany)',
-    nativeName: 'Deutsch (Deutschland)',
-  },
-  {
-    code: 'de',
     tag: 'de-CH',
     name: 'German (Switzerland)',
     nativeName: 'Deutsch (Schweiz)',

@@ -79,3 +79,5 @@ When the app need to do a query, use react-query
 - All db query should be put in corresponding repo methods
 - When possible use components from shadcn, you can install new one as needed
 - Any server functions should be prefixed with `server`
+- Avoid unneccessarily exporting values, for instance avoid exporting a props interface for components, when needed simply use a ComponentProps to extract a component props type
+- Avoid creating barrels files
