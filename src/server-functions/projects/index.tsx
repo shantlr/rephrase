@@ -8,6 +8,7 @@ import {
   isUserAllowedToCreateProject,
   isUserAllowedToReadProject,
   isUserAllowedToDeleteProject,
+  isUserAllowedToEditProjectSchema,
   getAllowedProjectIds,
 } from '@/server/common/authorization';
 import { db } from '@/server/data';
@@ -181,7 +182,7 @@ export const serverGetProject = createServerFn({
     // Get locale information from the main branch
     const mainBranch = await db
       .selectFrom('project_wording_branch')
-      .select(['data'])
+      .select(['id', 'name', 'data'])
       .where('project_id', '=', project.id)
       .where('name', '=', 'main')
       .where('archived_at', 'is', null)
@@ -214,8 +215,18 @@ export const serverGetProject = createServerFn({
       createdAt: project.created_at,
       updatedAt: project.updated_at,
       locales,
+      defaultBranch: mainBranch
+        ? {
+            id: mainBranch.id,
+            name: mainBranch.name,
+          }
+        : null,
       permissions: {
         can_delete_project: isUserAllowedToDeleteProject(
+          context.user,
+          project.id,
+        ),
+        can_edit_schema: isUserAllowedToEditProjectSchema(
           context.user,
           project.id,
         ),

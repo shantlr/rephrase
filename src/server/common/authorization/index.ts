@@ -33,6 +33,20 @@ export const isUserAllowedToDeleteProject = (
   );
 };
 
+export const isUserAllowedToEditProjectSchema = (
+  user: UserWithRoles,
+  projectId: string,
+) => {
+  return (
+    !!user?.globalRoles?.includes('admin') ||
+    !!user?.projectRoles?.some(
+      (pr) =>
+        pr.project_id === projectId &&
+        (pr.roles.includes('admin') || pr.roles.includes('maintainer')),
+    )
+  );
+};
+
 /**
  * Get the project IDs that a user is allowed to access.
  * Returns null if user is global admin (can access all projects).

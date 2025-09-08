@@ -23,7 +23,7 @@ type WordingObjectSchema = WordingBaseSchema<{
   }[];
 }>;
 
-type WordingSchema =
+export type WordingSchema =
   | WordingObjectSchema
   | WordingBaseSchema<{
       type: 'string-template';

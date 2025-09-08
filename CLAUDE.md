@@ -13,6 +13,10 @@ An instance of the service is already started, you don't need to start it
 - `yarn migrate:latest` - Run database migrations
 - `yarn lint:fix` - Fix all auto-fixable errors (such as formatting)
 
+## Project Wording Branch
+
+This project main feature is the project wording branches, if you need works on this, please have a look at `./WORDING_BRANCH.md`
+
 ## Project Architecture
 
 This is a React application built with **TanStack Start** (React-based full-stack framework) using:

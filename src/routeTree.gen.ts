@@ -16,7 +16,8 @@ import { Route as AuthenticatedRouteRouteImport } from './app/routes/_authentica
 import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './app/routes/_authenticated/dashboard'
 import { Route as AuthenticatedProjectsCreateRouteImport } from './app/routes/_authenticated/projects.create'
-import { Route as AuthenticatedProjectsProjectIdRouteImport } from './app/routes/_authenticated/projects.$projectId'
+import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './app/routes/_authenticated/projects.$projectId.index'
+import { Route as AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.schema.edit'
 import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
 
 const rootServerRouteImport = createServerRootRoute()
@@ -46,10 +47,16 @@ const AuthenticatedProjectsCreateRoute =
     path: '/projects/create',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedProjectsProjectIdRoute =
-  AuthenticatedProjectsProjectIdRouteImport.update({
-    id: '/projects/$projectId',
-    path: '/projects/$projectId',
+const AuthenticatedProjectsProjectIdIndexRoute =
+  AuthenticatedProjectsProjectIdIndexRouteImport.update({
+    id: '/projects/$projectId/',
+    path: '/projects/$projectId/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute =
+  AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRouteImport.update({
+    id: '/projects/$projectId/branch/$branchId/schema/edit',
+    path: '/projects/$projectId/branch/$branchId/schema/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ApiAuthCallbackMicrosoftEntraIdIndexServerRoute =
@@ -63,15 +70,17 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/projects/$projectId/branch/$branchId/schema/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/projects/$projectId/branch/$branchId/schema/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,8 +88,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/_authenticated/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/_authenticated/projects/$projectId/branch/$branchId/schema/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -88,23 +98,26 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard'
-    | '/projects/$projectId'
     | '/projects/create'
+    | '/projects/$projectId'
+    | '/projects/$projectId/branch/$branchId/schema/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/dashboard'
-    | '/projects/$projectId'
     | '/projects/create'
+    | '/projects/$projectId'
+    | '/projects/$projectId/branch/$branchId/schema/edit'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/dashboard'
-    | '/_authenticated/projects/$projectId'
     | '/_authenticated/projects/create'
+    | '/_authenticated/projects/$projectId/'
+    | '/_authenticated/projects/$projectId/branch/$branchId/schema/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,11 +184,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsCreateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/projects/$projectId': {
-      id: '/_authenticated/projects/$projectId'
+    '/_authenticated/projects/$projectId/': {
+      id: '/_authenticated/projects/$projectId/'
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId'
-      preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projects/$projectId/branch/$branchId/schema/edit': {
+      id: '/_authenticated/projects/$projectId/branch/$branchId/schema/edit'
+      path: '/projects/$projectId/branch/$branchId/schema/edit'
+      fullPath: '/projects/$projectId/branch/$branchId/schema/edit'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -194,14 +214,18 @@ declare module '@tanstack/react-start/server' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
   AuthenticatedProjectsCreateRoute: typeof AuthenticatedProjectsCreateRoute
+  AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
+  AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute: typeof AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
   AuthenticatedProjectsCreateRoute: AuthenticatedProjectsCreateRoute,
+  AuthenticatedProjectsProjectIdIndexRoute:
+    AuthenticatedProjectsProjectIdIndexRoute,
+  AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute:
+    AuthenticatedProjectsProjectIdBranchBranchIdSchemaEditRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

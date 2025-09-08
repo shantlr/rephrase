@@ -22,11 +22,12 @@ import {
   CalendarIcon,
   LanguagesIcon,
   TrashIcon,
+  EditIcon,
 } from 'lucide-react';
 import { LOCALE_OPTIONS } from '@/app/common/data/locales';
 import { toast } from 'sonner';
 
-export const Route = createFileRoute('/_authenticated/projects/$projectId')({
+export const Route = createFileRoute('/_authenticated/projects/$projectId/')({
   component: RouteComponent,
 });
 
@@ -114,36 +115,54 @@ function RouteComponent() {
           <CardHeader>
             <div className="flex justify-between items-start">
               <CardTitle className="text-2xl">{project.name}</CardTitle>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">
-                    <TrashIcon className="w-4 h-4 mr-2" />
-                    Delete Project
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Project</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete &ldquo;{project.name}
-                      &rdquo;? This action cannot be undone and will permanently
-                      remove all project data including translations.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDelete}
-                      disabled={deleteProject.isPending}
-                      className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                    >
-                      {deleteProject.isPending
-                        ? 'Deleting...'
-                        : 'Delete Project'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex gap-2">
+                {project.permissions?.can_edit_schema &&
+                  project.defaultBranch && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link
+                        to="/projects/$projectId/branch/$branchId/schema/edit"
+                        params={{
+                          projectId: project.id,
+                          branchId: project.defaultBranch.id,
+                        }}
+                      >
+                        <EditIcon className="w-4 h-4 mr-2" />
+                        Edit Schema
+                      </Link>
+                    </Button>
+                  )}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <TrashIcon className="w-4 h-4 mr-2" />
+                      Delete Project
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete &ldquo;{project.name}
+                        &rdquo;? This action cannot be undone and will
+                        permanently remove all project data including
+                        translations.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        disabled={deleteProject.isPending}
+                        className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                      >
+                        {deleteProject.isPending
+                          ? 'Deleting...'
+                          : 'Delete Project'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
