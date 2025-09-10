@@ -141,7 +141,6 @@ function RouteComponent() {
                 {/* Project Description */}
                 <form.AppField
                   name="description"
-                  // rows={3}
                   children={(field) => (
                     <field.FormTextarea
                       label="Description"

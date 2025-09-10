@@ -8,10 +8,7 @@ import {
   useUpdateProjectWordingsBranch,
 } from '@/app/features/project-wording/use-project-wording';
 import { toast } from 'sonner';
-import {
-  SchemaEditor,
-  ObjectSchema,
-} from '@/app/features/project-wording/ui-schema-editor';
+import { SchemaEditor } from '@/app/features/project-wording/ui-schema-editor';
 
 export const Route = createFileRoute(
   '/_authenticated/projects/$projectId/branch/$branchId/schema/edit',
@@ -42,34 +39,6 @@ function RouteComponent() {
     });
     return null;
   }
-
-  const handleSave = async (schema: ObjectSchema) => {
-    try {
-      await updateBranch.mutateAsync({
-        branchId,
-        schema,
-      });
-
-      toast.success('Schema updated successfully!', {
-        description: 'The project schema has been saved.',
-      });
-
-      // Navigate back to project detail page
-      router.navigate({
-        to: '/projects/$projectId',
-        params: { projectId },
-      });
-    } catch (error) {
-      console.error('Failed to update schema:', error);
-
-      toast.error('Failed to update schema', {
-        description:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred. Please try again.',
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -155,7 +124,33 @@ function RouteComponent() {
           <CardContent>
             <SchemaEditor
               schema={branch.schema}
-              onSave={handleSave}
+              onSubmit={async (schema) => {
+                try {
+                  await updateBranch.mutateAsync({
+                    branchId,
+                    schema,
+                  });
+
+                  toast.success('Schema updated successfully!', {
+                    description: 'The project schema has been saved.',
+                  });
+
+                  // Navigate back to project detail page
+                  router.navigate({
+                    to: '/projects/$projectId',
+                    params: { projectId },
+                  });
+                } catch (error) {
+                  console.error('Failed to update schema:', error);
+
+                  toast.error('Failed to update schema', {
+                    description:
+                      error instanceof Error
+                        ? error.message
+                        : 'An unexpected error occurred. Please try again.',
+                  });
+                }
+              }}
               isLoading={updateBranch.isPending}
             />
           </CardContent>
