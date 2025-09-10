@@ -12,6 +12,17 @@ import {
 } from '@/app/common/ui/select';
 import { Button } from '@/app/common/ui/button';
 import { ChevronDownIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/app/common/ui/alert-dialog';
 
 export const SchemaFormField = memo(
   ({
@@ -26,7 +37,16 @@ export const SchemaFormField = memo(
       name: `${name}.type.type` as any,
       form,
     });
+
+    const fieldName = useField({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      name: `${name}.name` as any,
+      form,
+    });
+
     const fieldTypeValue = fieldType.state.value as SchemaField['type']['type'];
+    const fieldNameValue = fieldName.state.value as string;
+
     const isExpandble = useMemo(() => {
       return (
         (fieldTypeValue as SchemaField['type']['type']) === 'array' ||
@@ -47,6 +67,16 @@ export const SchemaFormField = memo(
       return undefined;
     }, []);
 
+    const handleDelete = () => {
+      if (!addBelow) return;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      form.setFieldValue(addBelow.arrayName as any, (prev: unknown[]) => {
+        if (!Array.isArray(prev)) return prev;
+        return prev.filter((_, index) => index !== addBelow.index);
+      });
+    };
+
     return (
       <div className="w-full">
         <div className="group flex gap-1 items-center">
@@ -63,15 +93,45 @@ export const SchemaFormField = memo(
           )}
           <SelectFieldType name={`${name}.type`} form={form} />
           <SchemaFieldName name={name} form={form} />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-5 w-5 p-0 opacity-0 group-hover:opacity-60 hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity focus:opacity-100"
-            // onClick={onDelete}
-            title="Delete field"
-          >
-            <TrashIcon className="w-3 h-3" />
-          </Button>
+          {!fieldNameValue ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 w-5 p-0 opacity-0 group-hover:opacity-60 hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity focus:opacity-100"
+              onClick={handleDelete}
+              title="Delete field"
+            >
+              <TrashIcon className="w-3 h-3" />
+            </Button>
+          ) : (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0 opacity-0 group-hover:opacity-60 hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity focus:opacity-100"
+                  title="Delete field"
+                >
+                  <TrashIcon className="w-3 h-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Field</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete the field &quot;{fieldNameValue}
+                    &quot;? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
         <TypeDetails
           name={`${name}.type`}
