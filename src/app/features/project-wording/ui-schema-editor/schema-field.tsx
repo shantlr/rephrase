@@ -23,6 +23,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/app/common/ui/alert-dialog';
+import { objectSchemaFieldNameValidator } from '@/server-functions/project-wording/validator';
+import { useFormError } from '@/app/common/hooks/use-form-error';
 
 export const SchemaFormField = memo(
   ({
@@ -119,7 +121,8 @@ export const SchemaFormField = memo(
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Field</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete the field &quot;{fieldNameValue}
+                    Are you sure you want to delete the field &quot;
+                    {fieldNameValue}
                     &quot;? This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -230,18 +233,32 @@ const SchemaFieldName = ({
     form,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     name: `${name}.name` as any,
+    validators: {
+      onChange: objectSchemaFieldNameValidator,
+    },
   });
 
+  const error = useFormError(nameField.state.meta.errors);
+
   return (
-    <input
-      value={nameField.state.value as string}
-      onChange={(e) => nameField.setValue(e.target.value)}
-      className={clsx('w-full px-2 text-sm py-1 ', {
-        'border-b border-input rounded focus:border-none':
-          !nameField.state.value,
-        'focus:border-none': !!nameField.state.value,
-      })}
-    />
+    <>
+      <div className="w-full relative">
+        <input
+          value={nameField.state.value as string}
+          onChange={(e) => nameField.setValue(e.target.value)}
+          className={clsx('w-full px-2 text-sm py-1 ', {
+            'border-b border-input rounded focus:border-none':
+              !nameField.state.value,
+            'focus:border-none': !!nameField.state.value,
+          })}
+        />
+        {error && (
+          <div className="absolute bottom-[-15px] left-2 opacity-50 bg-red-500 text-white px-2 rounded z-1 text-sm mt-1">
+            {error}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
