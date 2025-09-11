@@ -10,8 +10,10 @@ import {
 import { toast } from 'sonner';
 import { SchemaEditor } from '@/app/features/project-wording/ui-schema-editor';
 import { EnumsEditor } from '@/app/features/project-wording/ui-enums-editor';
+import { YamlEditor } from '@/app/features/project-wording/ui-yaml-editor';
 import { useProjectWordingForm } from '@/app/features/project-wording/use-project-wording-form';
-import { SaveIcon } from 'lucide-react';
+import { SaveIcon, FileTextIcon, FormInputIcon } from 'lucide-react';
+import { useState } from 'react';
 
 export const Route = createFileRoute(
   '/_authenticated/projects/$projectId/branch/$branchId/config/edit',
@@ -22,6 +24,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { projectId, branchId } = Route.useParams();
   const router = useRouter();
+  const [editMode, setEditMode] = useState<'form' | 'code'>('form');
 
   const { data: project, isLoading: projectLoading } = useProject(projectId);
   const {
@@ -156,14 +159,56 @@ function RouteComponent() {
                     {project.name} • {branch.name} branch
                   </p>
                 </div>
+
+                {/* Mode Toggle */}
+                <div className="flex bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setEditMode('form')}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      editMode === 'form'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <FormInputIcon className="w-4 h-4" />
+                    Form
+                  </button>
+                  <button
+                    onClick={() => setEditMode('code')}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      editMode === 'code'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <FileTextIcon className="w-4 h-4" />
+                    Code
+                  </button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-8">
-              {/* Enums Section */}
-              <EnumsEditor form={form} />
-
-              {/* Schema Section */}
-              <SchemaEditor form={form} />
+              {editMode === 'form' ? (
+                <>
+                  {/* Form Mode - Enums and Schema Editors */}
+                  <EnumsEditor form={form} />
+                  <SchemaEditor form={form} />
+                </>
+              ) : (
+                <>
+                  {/* Code Mode - YAML Editor */}
+                  <YamlEditor
+                    config={{
+                      enums: form.getFieldValue('enums'),
+                      schema: form.getFieldValue('schema'),
+                    }}
+                    onChange={(config) => {
+                      form.setFieldValue('enums', config.enums);
+                      form.setFieldValue('schema', config.schema);
+                    }}
+                  />
+                </>
+              )}
 
               {/* Save button */}
               <div className="flex justify-end pt-6 border-t">
