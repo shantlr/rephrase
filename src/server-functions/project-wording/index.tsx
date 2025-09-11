@@ -14,10 +14,19 @@ const getProjectWordingsBranchValidator = z.object({
 
 const updateProjectWordingsBranchValidator = z.object({
   branchId: z.string().min(1, 'Branch ID is required'),
-  schema: z.object({
-    type: z.literal('object'),
-    description: z.string().default(''),
-    fields: z.array(z.any()),
+  config: z.object({
+    enums: z.array(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        values: z.array(z.string()),
+      }),
+    ),
+    schema: z.object({
+      type: z.literal('object'),
+      description: z.string().default(''),
+      fields: z.array(z.any()),
+    }),
   }),
 });
 
@@ -102,13 +111,10 @@ export const serverUpdateProjectWordingsBranch = createServerFn({
       throw json('Invalid current branch data', { status: 500 });
     }
 
-    // Update the schema while preserving locales data
+    // Update the config while preserving locales data
     const updatedWordingData = {
       ...currentWordingData,
-      config: {
-        ...currentWordingData.config,
-        schema: data.schema,
-      },
+      config: data.config,
     };
 
     // Update the branch using the repository

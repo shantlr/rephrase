@@ -15,7 +15,7 @@ An instance of the service is already started, you don't need to start it
 
 ## Project Wording Branch
 
-This project main feature is the project wording branches, if you need works on this, please have a look at `./WORDING_BRANCH.md`
+This project main feature is the project wording branches, if you need works on this, please have a look at `./docs/WORDING_BRANCH.md`
 
 ## Project Architecture
 
@@ -85,3 +85,10 @@ When the app need to do a query, use react-query
 - Any server functions should be prefixed with `server`
 - Avoid unneccessarily exporting values, for instance avoid exporting a props interface for components, when needed simply use a ComponentProps to extract a component props type
 - Avoid creating barrels files
+
+### Coding guidelines
+
+#### Components
+
+- inline callbacks when callback is used in a single place
+- inline props typing instead of declaring an interface when possible

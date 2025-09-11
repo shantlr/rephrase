@@ -100,3 +100,38 @@ const locales: WordingData['locales'] = [
   }
 ]
 ```
+
+### Enums
+
+in the config, we can define enums that can then be reused in the schema definitions
+
+Example of enum definitions:
+
+```ts
+const configEnums: WordingData['config']['enums'] = {
+  JOB_TYPE: {
+    values: ['WARRIOR', 'ARCHER', 'MAGE'],
+    description: 'list of job types'
+  },
+  STATS: {
+    values: ['STRENGTH', 'AGILITY', 'INTELLIGENCE'],
+    description: ''
+  },
+};
+```
+
+Enum can then be used as param of field name template
+
+```ts
+const schema: WordingData['config']['schema'] = {
+  type: 'object',
+  fields: [
+    {
+      name: {
+        type: 'template';
+        value: `{JOB_TYPE}_DESCRIPTION`
+      },
+    },
+  ],
+};
+```

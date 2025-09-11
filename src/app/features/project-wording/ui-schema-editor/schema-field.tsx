@@ -1,5 +1,5 @@
 import { useField } from '@tanstack/react-form';
-import { useSchemaForm } from './use-schema-form';
+import { useProjectWordingForm } from '../use-project-wording-form';
 import { SchemaField } from './types';
 import clsx from 'clsx';
 import { memo, useMemo, useState } from 'react';
@@ -11,18 +11,8 @@ import {
   SelectValue,
 } from '@/app/common/ui/select';
 import { Button } from '@/app/common/ui/button';
-import { ChevronDownIcon, PlusIcon, TrashIcon } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/app/common/ui/alert-dialog';
+import { ChevronDownIcon, PlusIcon } from 'lucide-react';
+import { DeleteButton } from '../ui-delete-button';
 import { objectSchemaFieldNameValidator } from '@/server-functions/project-wording/validator';
 import { useFormError } from '@/app/common/hooks/use-form-error';
 
@@ -32,7 +22,7 @@ export const SchemaFormField = memo(
     form,
   }: {
     name: string;
-    form: ReturnType<typeof useSchemaForm>['form'];
+    form: ReturnType<typeof useProjectWordingForm>['form'];
   }) => {
     const fieldType = useField({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,11 +60,15 @@ export const SchemaFormField = memo(
     }, []);
 
     const handleDelete = () => {
-      if (!addBelow) return;
+      if (!addBelow) {
+        return;
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       form.setFieldValue(addBelow.arrayName as any, (prev: unknown[]) => {
-        if (!Array.isArray(prev)) return prev;
+        if (!Array.isArray(prev)) {
+          return prev;
+        }
         return prev.filter((_, index) => index !== addBelow.index);
       });
     };
@@ -95,46 +89,12 @@ export const SchemaFormField = memo(
           )}
           <SelectFieldType name={`${name}.type`} form={form} />
           <SchemaFieldName name={name} form={form} />
-          {!fieldNameValue ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-5 w-5 p-0 opacity-0 group-hover:opacity-60 hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity focus:opacity-100"
-              onClick={handleDelete}
-              title="Delete field"
-            >
-              <TrashIcon className="w-3 h-3" />
-            </Button>
-          ) : (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 opacity-0 group-hover:opacity-60 hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity focus:opacity-100"
-                  title="Delete field"
-                >
-                  <TrashIcon className="w-3 h-3" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Field</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete the field &quot;
-                    {fieldNameValue}
-                    &quot;? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+          <DeleteButton
+            onDelete={handleDelete}
+            requireConfirmation={!!fieldNameValue}
+            itemName={fieldNameValue}
+            itemType="field"
+          />
         </div>
         <TypeDetails
           name={`${name}.type`}
@@ -153,7 +113,7 @@ const SelectFieldType = ({
   form,
 }: {
   name: string;
-  form: ReturnType<typeof useSchemaForm>['form'];
+  form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   const fieldType = useField({
     form,
@@ -161,7 +121,8 @@ const SelectFieldType = ({
     name: name as any,
   });
 
-  const fieldTypeValue = fieldType.state.value as SchemaField['type'];
+  const fieldTypeValue = fieldType.state
+    .value as unknown as SchemaField['type'];
 
   const typeOptions: SchemaField['type']['type'][] = [
     'string-template',
@@ -227,7 +188,7 @@ const SchemaFieldName = ({
   form,
 }: {
   name: string;
-  form: ReturnType<typeof useSchemaForm>['form'];
+  form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   const nameField = useField({
     form,
@@ -253,7 +214,7 @@ const SchemaFieldName = ({
           })}
         />
         {error && (
-          <div className="absolute bottom-[-15px] left-2 opacity-50 bg-red-500 text-white px-2 rounded z-1 text-sm mt-1">
+          <div className="absolute top-[20px] left-2 opacity-50 bg-red-500 text-white px-2 rounded z-1 text-sm mt-1">
             {error}
           </div>
         )}
@@ -343,7 +304,7 @@ const TypeDetails = ({
 // eslint-disable-next-line no-empty-pattern
 const StringTemplate = ({}: {
   name: string;
-  form: ReturnType<typeof useSchemaForm>['form'];
+  form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   return null;
 };
@@ -353,7 +314,7 @@ const ArrayField = ({
   form,
 }: {
   name: string;
-  form: ReturnType<typeof useSchemaForm>['form'];
+  form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   return (
     <div className="w-full">
@@ -373,7 +334,7 @@ const ObjectField = ({
   form,
 }: {
   name: string;
-  form: ReturnType<typeof useSchemaForm>['form'];
+  form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   return (
     <div className="w-full pl-4 border-l border-gray-300 ml-4">
@@ -409,7 +370,7 @@ export const ArrayFields = ({
   form,
 }: {
   name: string;
-  form: ReturnType<typeof useSchemaForm>['form'];
+  form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   return (
     <>

@@ -9,9 +9,12 @@ import {
 } from '@/app/features/project-wording/use-project-wording';
 import { toast } from 'sonner';
 import { SchemaEditor } from '@/app/features/project-wording/ui-schema-editor';
+import { EnumsEditor } from '@/app/features/project-wording/ui-enums-editor';
+import { useProjectWordingForm } from '@/app/features/project-wording/use-project-wording-form';
+import { SaveIcon } from 'lucide-react';
 
 export const Route = createFileRoute(
-  '/_authenticated/projects/$projectId/branch/$branchId/schema/edit',
+  '/_authenticated/projects/$projectId/branch/$branchId/config/edit',
 )({
   component: RouteComponent,
 });
@@ -28,6 +31,39 @@ function RouteComponent() {
   } = useProjectWordingsBranch(branchId);
 
   const updateBranch = useUpdateProjectWordingsBranch();
+
+  const { form } = useProjectWordingForm({
+    initialConfig: branch
+      ? { enums: branch.enums, schema: branch.schema }
+      : undefined,
+    onSubmit: async (config) => {
+      try {
+        await updateBranch.mutateAsync({
+          branchId,
+          config,
+        });
+
+        toast.success('Configuration updated successfully!', {
+          description: 'The project configuration has been saved.',
+        });
+
+        // Navigate back to project detail page
+        router.navigate({
+          to: '/projects/$projectId',
+          params: { projectId },
+        });
+      } catch (error) {
+        console.error('Failed to update configuration:', error);
+
+        toast.error('Failed to update configuration', {
+          description:
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred. Please try again.',
+        });
+      }
+    },
+  });
 
   const isLoading = projectLoading || branchLoading;
 
@@ -110,51 +146,41 @@ function RouteComponent() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-2xl">Edit Schema</CardTitle>
-                <p className="text-muted-foreground mt-1">
-                  {project.name} • {branch.name} branch
-                </p>
+        <form.AppForm>
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl">Edit Configuration</CardTitle>
+                  <p className="text-muted-foreground mt-1">
+                    {project.name} • {branch.name} branch
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <SchemaEditor
-              schema={branch.schema}
-              onSubmit={async (schema) => {
-                try {
-                  await updateBranch.mutateAsync({
-                    branchId,
-                    schema,
-                  });
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Enums Section */}
+              <EnumsEditor form={form} />
 
-                  toast.success('Schema updated successfully!', {
-                    description: 'The project schema has been saved.',
-                  });
+              {/* Schema Section */}
+              <SchemaEditor form={form} />
 
-                  // Navigate back to project detail page
-                  router.navigate({
-                    to: '/projects/$projectId',
-                    params: { projectId },
-                  });
-                } catch (error) {
-                  console.error('Failed to update schema:', error);
-
-                  toast.error('Failed to update schema', {
-                    description:
-                      error instanceof Error
-                        ? error.message
-                        : 'An unexpected error occurred. Please try again.',
-                  });
-                }
-              }}
-              isLoading={updateBranch.isPending}
-            />
-          </CardContent>
-        </Card>
+              {/* Save button */}
+              <div className="flex justify-end pt-6 border-t">
+                <form.FormSubmitButton>
+                  {updateBranch.isPending ? (
+                    'Saving...'
+                  ) : (
+                    <>
+                      <SaveIcon className="w-4 h-4 mr-2" />
+                      Save Configuration
+                    </>
+                  )}
+                </form.FormSubmitButton>
+              </div>
+            </CardContent>
+          </Card>
+        </form.AppForm>
       </div>
     </div>
   );

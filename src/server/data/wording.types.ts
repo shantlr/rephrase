@@ -53,11 +53,10 @@ export type WordingData = {
      * Define enums that can be reused in schemas (templated field name)
      */
     enums: {
-      [name: string]: {
-        values: string[];
-        description: string;
-      };
-    };
+      name: string;
+      values: string[];
+      description: string;
+    }[];
     schema: WordingObjectSchema;
   };
   locales: {

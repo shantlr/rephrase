@@ -120,14 +120,14 @@ function RouteComponent() {
                   project.defaultBranch && (
                     <Button asChild variant="outline" size="sm">
                       <Link
-                        to="/projects/$projectId/branch/$branchId/schema/edit"
+                        to="/projects/$projectId/branch/$branchId/config/edit"
                         params={{
                           projectId: project.id,
                           branchId: project.defaultBranch.id,
                         }}
                       >
                         <EditIcon className="w-4 h-4 mr-2" />
-                        Edit Schema
+                        Edit Configuration
                       </Link>
                     </Button>
                   )}

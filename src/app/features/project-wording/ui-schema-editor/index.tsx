@@ -1,31 +1,20 @@
 import { Button } from '@/app/common/ui/button';
-import { PlusIcon, SaveIcon } from 'lucide-react';
-import { useSchemaForm } from './use-schema-form';
+import { PlusIcon } from 'lucide-react';
 import { SchemaFormField } from './schema-field';
-import { Schema, SchemaField } from './types';
+import { SchemaField } from './types';
+import { useProjectWordingForm } from '../use-project-wording-form';
 
 export const SchemaEditor = ({
-  schema: initialSchema,
-  onSubmit,
-  isLoading = false,
+  form,
 }: {
-  schema: Schema;
-  onSubmit: (schema: Schema) => void;
-  isLoading?: boolean;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
-  const { form } = useSchemaForm({
-    initialSchema,
-    onSubmit: (values) => {
-      return onSubmit(values);
-    },
-  });
-
   return (
     <form.AppForm>
       <div className="space-y-6">
         {/* Root schema description */}
         <form.AppField
-          name="description"
+          name="schema.description"
           children={(field) => (
             <field.FormTextarea
               label="Schema Description"
@@ -41,13 +30,13 @@ export const SchemaEditor = ({
           <h3 className="text-lg font-semibold mb-4">Fields</h3>
 
           <form.AppField
-            name="fields"
+            name="schema.fields"
             children={(field) => (
               <>
                 {field.state.value.map((f, index) => (
                   <SchemaFormField
                     key={index}
-                    name={`fields.${index}`}
+                    name={`schema.fields.${index}`}
                     form={form}
                   />
                 ))}
@@ -57,7 +46,7 @@ export const SchemaEditor = ({
                     size="sm"
                     className="text-blue-600 hover:text-blue-700 opacity-40 group-hover/end-add:opacity-100 transition-opacity"
                     onClick={() => {
-                      form.setFieldValue('fields', (prev) => [
+                      form.setFieldValue('schema.fields', (prev) => [
                         ...prev,
                         {
                           name: '',
@@ -73,20 +62,6 @@ export const SchemaEditor = ({
               </>
             )}
           />
-        </div>
-
-        {/* Save button */}
-        <div className="flex justify-end">
-          <form.FormSubmitButton>
-            {isLoading ? (
-              'Saving...'
-            ) : (
-              <>
-                <SaveIcon className="w-4 h-4 mr-2" />
-                Save Schema
-              </>
-            )}
-          </form.FormSubmitButton>
         </div>
       </div>
     </form.AppForm>
