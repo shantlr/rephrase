@@ -2,16 +2,21 @@ import { useField } from '@tanstack/react-form';
 import { useProjectWordingForm } from '../use-project-wording-form';
 import { SchemaField } from './types';
 import clsx from 'clsx';
-import { memo, useMemo, useState } from 'react';
+import { memo, ReactNode, useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/app/common/ui/select';
 import { Button } from '@/app/common/ui/button';
-import { ChevronDownIcon, PlusIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  PlusIcon,
+  TypeIcon,
+  PackageIcon,
+  ListIcon,
+} from 'lucide-react';
 import { DeleteButton } from '../ui-delete-button';
 import { objectSchemaFieldNameValidator } from '@/server-functions/project-wording/validator';
 import { useFormError } from '@/app/common/hooks/use-form-error';
@@ -124,11 +129,34 @@ const SelectFieldType = ({
   const fieldTypeValue = fieldType.state
     .value as unknown as SchemaField['type'];
 
-  const typeOptions: SchemaField['type']['type'][] = [
-    'string-template',
-    'object',
-    'array',
-  ];
+  const typeOptions = useMemo(() => {
+    return [
+      {
+        value: 'string-template',
+        label: 'String Template',
+        icon: <TypeIcon />,
+      },
+      {
+        value: 'object',
+        label: 'Object',
+        icon: <PackageIcon />,
+      },
+      {
+        value: 'array',
+        label: 'Array',
+        icon: <ListIcon />,
+      },
+    ] as {
+      value: SchemaField['type']['type'];
+      label: string;
+      icon: ReactNode;
+    }[];
+  }, []);
+
+  const currentOption = useMemo(() => {
+    return typeOptions.find((option) => option.value === fieldTypeValue?.type);
+  }, [fieldTypeValue?.type, typeOptions]);
+
   return (
     <Select
       value={fieldTypeValue?.type}
@@ -168,16 +196,22 @@ const SelectFieldType = ({
     >
       <SelectTrigger
         size="sm"
-        // className="w-20 min-h-0 text-xs border-0 bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border px-2 py-0 flex items-center"
+        className="flex items-center justify-center"
+        hideChevron
       >
-        <SelectValue />
+        {currentOption?.icon}
       </SelectTrigger>
       <SelectContent>
-        {typeOptions.map((option) => (
-          <SelectItem key={option} value={option}>
-            {option}
-          </SelectItem>
-        ))}
+        {typeOptions.map((option) => {
+          return (
+            <SelectItem key={option.value} value={option.value}>
+              <div className="flex items-center gap-2">
+                {option.icon}
+                <span>{option.label}</span>
+              </div>
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );
@@ -230,7 +264,7 @@ const TypeDetails = ({
   addBelow,
 }: {
   name: string;
-  form: ReturnType<typeof useSchemaForm>['form'];
+  form: ReturnType<typeof useProjectWordingForm>['form'];
   show: boolean;
   addBelow?: { arrayName: string; index: number } | null;
 }) => {
