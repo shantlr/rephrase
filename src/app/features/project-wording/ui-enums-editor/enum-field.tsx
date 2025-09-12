@@ -1,10 +1,61 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Button } from '@/app/common/ui/button';
 import { PlusIcon, ChevronDownIcon } from 'lucide-react';
 import { useProjectWordingForm } from '../use-project-wording-form';
 import { DeleteButton } from '../ui-delete-button';
 import clsx from 'clsx';
 import { useField, useStore } from '@tanstack/react-form';
+import { get, range } from 'lodash-es';
+
+const EnumValueItemField = memo(
+  ({
+    arrayName,
+    index,
+    form,
+  }: {
+    arrayName: `enums[${number}].values`;
+    index: number;
+    form: ReturnType<typeof useProjectWordingForm>['form'];
+  }) => {
+    const name = `${arrayName}[${index}]` as const;
+    const field = useField({
+      form,
+      name,
+    });
+
+    const value = field.state.value;
+
+    return (
+      <div className="group/value flex gap-1 items-center py-0.5">
+        <span className="text-xs text-gray-400 w-3">•</span>
+        <form.AppField
+          name={name}
+          children={(field) => (
+            <input
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              className="flex-1 px-1 py-0.5 text-sm border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none bg-transparent min-w-0"
+              placeholder="value"
+            />
+          )}
+        />
+        <DeleteButton
+          onDelete={() => {
+            form.setFieldValue(arrayName, (prev) => {
+              return prev.filter((_, i) => i !== index);
+            });
+          }}
+          requireConfirmation={!!value}
+          itemName={value}
+          itemType="value"
+          className="h-4 w-4 p-0 opacity-0 group-hover/value:opacity-60 hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity"
+          size="sm"
+        />
+      </div>
+    );
+  },
+);
+EnumValueItemField.displayName = 'EnumValueItemField';
 
 const EnumValuesField = ({
   name,
@@ -13,40 +64,19 @@ const EnumValuesField = ({
   name: `enums[${number}].values`;
   form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
-  const valuesField = useField({
-    form,
-    name,
+  const length = useStore(form.store, (s) => {
+    return get(s.values, name)?.length ?? 0;
   });
 
   return (
     <>
-      {valuesField.state.value.map((value, index) => (
-        <div key={index} className="group/value flex gap-1 items-center py-0.5">
-          <span className="text-xs text-gray-400 w-3">•</span>
-          <form.AppField
-            name={`${name}[${index}]` as const}
-            children={(field) => (
-              <input
-                value={value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                className="flex-1 px-1 py-0.5 text-sm border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none bg-transparent min-w-0"
-                placeholder="value"
-              />
-            )}
-          />
-          <DeleteButton
-            onDelete={() => {
-              form.setFieldValue(name, (prev: string[]) =>
-                prev.filter((_, i: number) => i !== index),
-              );
-            }}
-            requireConfirmation={!!value.trim()}
-            itemName={value}
-            itemType="value"
-            className="h-4 w-4 p-0 opacity-0 group-hover/value:opacity-60 hover:opacity-100 text-red-500 hover:text-red-600 transition-opacity"
-            size="sm"
-          />
-        </div>
+      {range(0, length).map((value, index) => (
+        <EnumValueItemField
+          key={index}
+          arrayName={name}
+          index={index}
+          form={form}
+        />
       ))}
     </>
   );
