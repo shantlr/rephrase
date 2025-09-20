@@ -13,6 +13,7 @@ import { StringTemplateWordingValueInput } from './wording-values/string-templat
 import { SchemaStringTemplateNode } from '@/server/data/wording.types';
 import { useEffect, useMemo } from 'react';
 import { Badge } from '@/app/common/ui/badge';
+import { extractParams } from './_util-extract-params';
 
 const Wording = ({
   pathToField,
@@ -65,12 +66,7 @@ export const useExtractParamsFromWordingValues = ({
       uniq(
         values
           .flatMap((v) => {
-            // Extract params name from string template
-            // E.g: `hello {firstName} {lastName}`
-            return (
-              v?.match(/{(.*?)}/g)?.map((m) => m.replace(/[{}]/g, '').trim()) ||
-              []
-            );
+            return extractParams(v);
           })
           .filter((v) => !!v),
       ),

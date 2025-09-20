@@ -6,7 +6,7 @@ import {
   useProjectWordingForm,
   useTypePath,
 } from '../../use-project-wording-form';
-import { Fragment } from 'react';
+import { Fragment, useCallback } from 'react';
 import { useStore } from '@tanstack/react-form';
 import { get, range } from 'lodash-es';
 import { InlineAppend } from '../_inline-append';
@@ -28,27 +28,43 @@ export const WordingArrayInput = ({
     pathToType,
     form,
   });
+  const itemType = useFieldType({
+    pathToType: pathToItem,
+    form,
+  });
 
   const count = useStore(
     form.store,
     (s) => (get(s.values, pathToValue) as unknown[] | undefined)?.length ?? 0,
   );
 
+  const onInsertValue = useCallback((index: number) => {
+    const newValue =
+      itemType === 'string-template' ? '' : itemType === 'array' ? [] : {};
+
+    form.setFieldValue(
+      pathToValue as `${PathToType}.${string}`,
+      (prev: unknown) => {
+        if (!!prev && !Array.isArray(prev)) {
+          return prev;
+        }
+
+        const current = (prev ?? []) as unknown[];
+
+        return [
+          ...current.slice(0, index + 1),
+          newValue,
+          ...current.slice(index + 1),
+        ];
+      },
+    );
+  }, []);
+
   return (
     <Card className="gap-0 py-2 px-2 w-full">
       <InlineAppend
         onClick={() => {
-          form.setFieldValue(
-            pathToValue as `${PathToType}.${string}`,
-            (prev: unknown) => {
-              if (!!prev && !Array.isArray(prev)) {
-                return prev;
-              }
-              const current = (prev ?? []) as unknown[];
-
-              return ['', ...current];
-            },
-          );
+          onInsertValue(-1);
         }}
       />
       {range(count).map((index) => (
@@ -81,22 +97,7 @@ export const WordingArrayInput = ({
           </div>
           <InlineAppend
             onClick={() => {
-              form.setFieldValue(
-                pathToValue as `${PathToType}.${string}`,
-                (prev: unknown) => {
-                  if (!!prev && !Array.isArray(prev)) {
-                    return prev;
-                  }
-
-                  const current = (prev ?? []) as unknown[];
-
-                  return [
-                    ...current.slice(0, index + 1),
-                    '',
-                    ...current.slice(index + 1),
-                  ];
-                },
-              );
+              onInsertValue(index);
             }}
           />
         </Fragment>

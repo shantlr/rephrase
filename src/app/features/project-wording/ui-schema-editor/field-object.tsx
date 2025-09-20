@@ -124,7 +124,7 @@ export const SchemaObjectFieldsList = ({
     <>
       <InlineAppend
         onClick={() => {
-          onInsertField(0);
+          onInsertField(-1);
         }}
       />
       {range(0, fieldCount).map((_, index) => (

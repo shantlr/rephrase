@@ -11,6 +11,10 @@ import * as z from 'zod';
 export const useFormError = (errors: unknown[]): string | null => {
   return useMemo(() => {
     for (const error of errors) {
+      if (typeof error === 'string') {
+        return error;
+      }
+
       const e = error as z.core.$ZodIssue;
       if (e && typeof e.message === 'string') {
         return e.message;

@@ -46,10 +46,18 @@ export type SchemaObjectNode = BaseSchemaNode<
       | {
           typeId: string;
           name: string;
+          params?: never;
+          instances?: never;
         }
       | {
-          template: string;
           typeId: string;
+          name: string;
+          params: {
+            [name: string]: {
+              type: 'constant';
+              name: string;
+            };
+          };
           instances?: {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             [locale: string]: Record<string, any>;

@@ -72,10 +72,9 @@ const Wording = ({
       trigger={
         itemType === 'string-template' ? (
           <>
-            {value?.map((v) => (
-              <Badge key={v as string} variant="secondary">
-                {' '}
-                {v as string}{' '}
+            {value?.map((v, index) => (
+              <Badge key={index} variant="secondary">
+                {v as string}
               </Badge>
             ))}
           </>
