@@ -6,6 +6,9 @@ import { DeleteButton } from '../ui-delete-button';
 import clsx from 'clsx';
 import { useField, useStore } from '@tanstack/react-form';
 import { get, range } from 'lodash-es';
+import { MinimalistInput } from '../ui-schema-editor/_minimalist-input';
+
+type ConstantOptionsPath = `constants[${number}].options`;
 
 const EnumValueItemField = memo(
   ({
@@ -13,7 +16,7 @@ const EnumValueItemField = memo(
     index,
     form,
   }: {
-    arrayName: `enums[${number}].values`;
+    arrayName: ConstantOptionsPath;
     index: number;
     form: ReturnType<typeof useProjectWordingForm>['form'];
   }) => {
@@ -31,11 +34,31 @@ const EnumValueItemField = memo(
         <form.AppField
           name={name}
           children={(field) => (
-            <input
+            <MinimalistInput
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
-              className="flex-1 px-1 py-0.5 text-sm border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none bg-transparent min-w-0"
+              className="ml-2"
               placeholder="value"
+              onKeyDown={(event) => {
+                if (event.key === 'Backspace') {
+                  if (field.state.value === '') {
+                    form.setFieldValue(arrayName, (prev) => {
+                      return [
+                        ...prev.slice(0, index),
+                        ...prev.slice(index + 1),
+                      ];
+                    });
+                  }
+                } else if (event.key === 'Enter') {
+                  form.setFieldValue(arrayName, (prev) => {
+                    return [
+                      ...prev.slice(0, index + 1),
+                      '',
+                      ...prev.slice(index + 1),
+                    ];
+                  });
+                }
+              }}
             />
           )}
         />
@@ -61,7 +84,7 @@ const EnumValuesField = ({
   name,
   form,
 }: {
-  name: `enums[${number}].values`;
+  name: ConstantOptionsPath;
   form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   const length = useStore(form.store, (s) => {
@@ -82,19 +105,19 @@ const EnumValuesField = ({
   );
 };
 
-export const EnumFormField = ({
-  enumIndex,
+export const EnumConstantField = ({
+  constantIndex,
   form,
 }: {
-  enumIndex: number;
+  constantIndex: number;
   form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
   const [showValues, setShowValues] = useState(true);
-  const name = `enums[${enumIndex}]` as const;
+  const constantPath = `constants[${constantIndex}]` as const;
 
   const hasName = useStore(
     form.store,
-    (s) => !!s.values.enums[enumIndex]?.name,
+    (s) => !!s.values.constants[constantIndex]?.name,
   );
 
   return (
@@ -114,20 +137,28 @@ export const EnumFormField = ({
 
         {/* Enum name input */}
         <form.AppField
-          name={`${name}.name`}
+          name={`${constantPath}.name`}
           children={(field) => (
             <input
               value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
+              onChange={(e) => field.handleChange(e.target.value.toUpperCase())}
               className="font-medium text-sm px-2 py-1 border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none bg-transparent min-w-0 w-32"
               placeholder="Name"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  form.setFieldValue(`${constantPath}.options`, (prev) => [
+                    '',
+                    ...prev,
+                  ]);
+                }
+              }}
             />
           )}
         />
 
         {/* Description input - inline */}
         <form.AppField
-          name={`${name}.description`}
+          name={`${constantPath}.description`}
           children={(field) => (
             <input
               value={field.state.value}
@@ -141,8 +172,8 @@ export const EnumFormField = ({
         {/* Delete enum button */}
         <DeleteButton
           onDelete={() => {
-            form.setFieldValue('enums', (prev) =>
-              prev.filter((_, i) => i !== enumIndex),
+            form.setFieldValue('constants', (prev) =>
+              prev.filter((_, i) => i !== constantIndex),
             );
           }}
           requireConfirmation={hasName}
@@ -153,7 +184,7 @@ export const EnumFormField = ({
       {/* Values - compact inline list (collapsible) */}
       {showValues && (
         <div className="ml-6 space-y-0">
-          <EnumValuesField name={`${name}.values`} form={form} />
+          <EnumValuesField name={`${constantPath}.options`} form={form} />
           {/* Add value button */}
           <div className="group/add-value py-0.5">
             <Button
@@ -161,7 +192,10 @@ export const EnumFormField = ({
               size="sm"
               className="h-4 text-blue-600 hover:text-blue-700 text-xs opacity-40 group-hover/add-value:opacity-100 transition-opacity px-1"
               onClick={() => {
-                form.setFieldValue(`${name}.values`, (prev) => [...prev, '']);
+                form.setFieldValue(`${constantPath}.options`, (prev) => [
+                  ...prev,
+                  '',
+                ]);
               }}
             >
               <PlusIcon className="w-2.5 h-2.5 mr-1" />

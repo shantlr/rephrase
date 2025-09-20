@@ -1,70 +1,78 @@
-type WordingBaseSchema<T extends { type: string }> = {
-  /**
-   * Describe wording usage
-   */
-  description: string;
+export type WordingEnumConstant = {
+  name: string;
+  type: 'enum';
+  description?: string;
+  options: string[];
+};
+export type WordingStringConstant = {
+  name: string;
+  description?: string;
+  type: 'string';
+  value: string;
+};
+
+type BaseSchemaNode<Type extends string, T> = {
+  type: Type;
+  id: string;
+  description?: string;
 } & T;
-
-type WordingObjectSchema = WordingBaseSchema<{
-  type: 'object';
-  fields: {
-    name: // field with a static name
-    | string
-      | {
-          /**
-           * field with templated name field can use enums (see `WordingData.config.enums`)
-           *
-           * e.g: `{{optionType}}Description`
-           */
-          type: 'template';
-          value: string;
-        };
-    type: WordingSchema;
-  }[];
-}>;
-
-export type WordingSchema =
-  | WordingObjectSchema
-  | WordingBaseSchema<{
-      type: 'string-template';
-      variants?: {
-        type: 'plural';
+export type SchemaStringTemplateNode = BaseSchemaNode<
+  'string-template',
+  {
+    params?: {
+      [paramName: string]: {
+        type: 'string';
       };
-      params?: {
-        name: string;
-        type: {
-          type: 'string';
-          options?: string[];
-        };
-        description: string;
-      }[];
-    }>
-  | WordingBaseSchema<{
-      type: 'array';
-      item: WordingSchema;
-    }>;
+    };
+    instances?: {
+      [localeTag: string]: string;
+    };
+  }
+>;
+export type SchemaArrayNode = BaseSchemaNode<
+  'array',
+  {
+    itemTypeId: string;
+    instances?: {
+      [locale: string]: string[] | {}[];
+    };
+  }
+>;
+export type SchemaObjectNode = BaseSchemaNode<
+  'object',
+  {
+    fields: (
+      | {
+          typeId: string;
+          name: string;
+        }
+      | {
+          template: string;
+          typeId: string;
+          instances?: {
+            [locale: string]: {};
+          };
+        }
+    )[];
+  }
+>;
+
+export type SchemaNode =
+  | SchemaStringTemplateNode
+  | SchemaArrayNode
+  | SchemaObjectNode;
 
 export type WordingData = {
-  /**
-   * Define the schemas that all locales should respect
-   */
-  config: {
-    /**
-     * Define enums that can be reused in schemas (templated field name)
-     */
-    enums: {
-      name: string;
-      values: string[];
-      description: string;
-    }[];
-    schema: WordingObjectSchema;
+  constants: (WordingEnumConstant | WordingStringConstant)[];
+
+  schema: {
+    nodes: {
+      [id: string]: SchemaNode;
+    };
+    root: SchemaObjectNode;
   };
+
   locales: {
-    code: string;
     tag: string;
-    data: {
-      key: string;
-      value: string;
-    }[];
   }[];
 };

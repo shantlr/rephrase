@@ -24,7 +24,6 @@ import {
   TrashIcon,
   EditIcon,
 } from 'lucide-react';
-import { LOCALE_OPTIONS } from '@/app/common/data/locales';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_authenticated/projects/$projectId/')({
@@ -208,39 +207,17 @@ function RouteComponent() {
                 <LanguagesIcon className="w-4 h-4" />
                 <span>Supported Locales ({project.locales?.length || 0})</span>
               </div>
-              {project.locales && project.locales.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {!!project.locales && project.locales.length > 0 ? (
+                <div className="flex gap-3">
                   {project.locales.map((locale) => {
-                    const localeInfo = LOCALE_OPTIONS.find(
-                      (l) => l.tag === locale.tag,
-                    );
                     return (
-                      <div
-                        key={locale.tag}
-                        className="flex items-center justify-between p-3 border rounded-lg"
+                      <Badge
+                        key={locale}
+                        variant="secondary"
+                        className="text-xs font-mono"
                       >
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="secondary"
-                              className="text-xs font-mono"
-                            >
-                              {locale.code.toUpperCase()}
-                            </Badge>
-                            <span className="text-sm font-medium">
-                              {localeInfo?.name || locale.tag}
-                            </span>
-                          </div>
-                          {localeInfo?.nativeName && (
-                            <span className="text-xs text-muted-foreground mt-1">
-                              {localeInfo.nativeName}
-                            </span>
-                          )}
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {locale.tag}
-                        </Badge>
-                      </div>
+                        {locale}
+                      </Badge>
                     );
                   })}
                 </div>

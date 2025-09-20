@@ -136,33 +136,32 @@ function RouteComponent() {
                         </p>
 
                         {/* Locale codes display */}
-                        {project.localeCodes &&
-                          project.localeCodes.length > 0 && (
-                            <div className="mb-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <LanguagesIcon className="w-4 h-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">
-                                  Locales ({project.localeCodes.length})
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                {project.localeCodes.slice(0, 5).map((code) => (
-                                  <Badge
-                                    key={code}
-                                    variant="secondary"
-                                    className="text-xs"
-                                  >
-                                    {code.toUpperCase()}
-                                  </Badge>
-                                ))}
-                                {project.localeCodes.length > 5 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{project.localeCodes.length - 5}
-                                  </Badge>
-                                )}
-                              </div>
+                        {project.locales && project.locales.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <LanguagesIcon className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                Locales ({project.locales.length})
+                              </span>
                             </div>
-                          )}
+                            <div className="flex flex-wrap gap-1">
+                              {project.locales.slice(0, 5).map((locale) => (
+                                <Badge
+                                  key={locale}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {locale.toUpperCase()}
+                                </Badge>
+                              ))}
+                              {project.locales.length > 5 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{project.locales.length - 5}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex justify-between items-center text-sm text-muted-foreground">
                           <span>

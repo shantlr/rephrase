@@ -1,38 +1,71 @@
 import { useAppForm } from '@/app/common/hooks/use-app-form';
-import { WordingData } from '@/server/data/wording.types';
+import { SchemaNode, WordingData } from '@/server/data/wording.types';
+import { useStore } from '@tanstack/react-form';
+import { get } from 'lodash-es';
 
-export type ProjectWordingConfig = WordingData['config'];
+export type PathToType = `schema.nodes.${string}`;
+
+export type PathToField =
+  | `schema.root.fields[${number}]`
+  | `${PathToType}.fields[${number}]`;
+
+type FormValues = {
+  constants: WordingData['constants'];
+  schema: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    nodes: any;
+    root: WordingData['schema']['root'];
+  };
+  selectedLocale: string | null;
+  locales: string[];
+};
 
 export const useProjectWordingForm = ({
-  initialConfig,
+  initialValues: inputInitialValues,
   onSubmit,
 }: {
-  initialConfig?: ProjectWordingConfig;
-  onSubmit: (values: ProjectWordingConfig) => void;
+  initialValues?: Partial<FormValues>;
+  onSubmit: (values: Pick<WordingData, 'constants' | 'schema'>) => void;
 }) => {
   const form = useAppForm({
     defaultValues: {
-      enums: Array.isArray(initialConfig?.enums) ? initialConfig.enums : [],
-      schema: {
-        type: initialConfig?.schema?.type ?? 'object',
-        description: initialConfig?.schema?.description ?? '',
-        fields: initialConfig?.schema?.fields ?? [],
-      },
-    } as {
-      enums: Array<{ name: string; values: string[]; description: string }>;
-      schema: {
-        type: string;
-        description: string;
-        // NOTE: as of now fields typing seems to be too complex for tanstack form type inference which leads to ts performance issues
-        fields: unknown[];
-      };
-    },
+      constants: inputInitialValues?.constants ?? [],
+      schema: inputInitialValues?.schema ?? {},
+      locales: inputInitialValues?.locales ?? [],
+      selectedLocale: inputInitialValues?.locales?.[0] ?? null,
+    } as FormValues,
     onSubmit: ({ value }) => {
-      onSubmit(value as ProjectWordingConfig);
+      onSubmit({
+        constants: value.constants,
+        schema: value.schema,
+      });
     },
   });
 
   return {
     form,
   };
+};
+
+export const useTypePath = (fieldId: string): PathToType => {
+  return `schema.nodes.${fieldId}` as const;
+};
+
+export const useFieldType = ({
+  pathToType,
+  form,
+}: {
+  pathToType: PathToType;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  return useStore(
+    form.store,
+    (s) => (get(s.values, pathToType) as SchemaNode)?.type,
+  );
+};
+
+export const useFormSelectedLocale = (
+  form: ReturnType<typeof useProjectWordingForm>['form'],
+) => {
+  return useStore(form.store, (s) => s.values.selectedLocale);
 };

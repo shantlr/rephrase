@@ -3,7 +3,7 @@ import { ProjectWordingRepo } from '@/server/data/repo/project-wording';
 import { createServerFn, json } from '@tanstack/react-start';
 import { $serverAuthenticated } from '../_middlewares/auth';
 import * as z from 'zod';
-import { LOCALE_OPTIONS, VALID_LOCALE_TAGS } from '@/app/common/data/locales';
+import { VALID_LOCALE_TAGS } from '@/app/common/data/locales';
 import {
   isUserAllowedToCreateProject,
   isUserAllowedToReadProject,
@@ -62,22 +62,18 @@ export const serverCreateProject = createServerFn({
           projectId: project.id,
           branchName: 'main',
           data: {
-            config: {
-              enums: {},
-              schema: {
-                type: 'object' as const,
-                description: '',
+            constants: [],
+            schema: {
+              nodes: {},
+              root: {
+                id: '_root',
+                type: 'object',
                 fields: [],
               },
             },
-            locales: data.locales.map((localeTag) => {
-              const l = LOCALE_OPTIONS.find((lc) => lc.tag === localeTag)!;
-              return {
-                code: l.code,
-                tag: l.tag,
-                data: [],
-              };
-            }),
+            locales: data.locales.map((localeTag) => ({
+              tag: localeTag,
+            })),
           },
         },
         trx,
@@ -122,17 +118,11 @@ export const serverGetProjects = createServerFn({
           .where('archived_at', 'is', null)
           .executeTakeFirst();
 
-        let localeCodes: string[] = [];
+        let locales: string[] = [];
         if (mainBranch?.data) {
           try {
-            const wordingData =
-              typeof mainBranch.data === 'string'
-                ? JSON.parse(mainBranch.data)
-                : mainBranch.data;
-            localeCodes =
-              wordingData.locales?.map(
-                (locale: { code: string }) => locale.code,
-              ) || [];
+            locales =
+              mainBranch.data.locales?.map((locale) => locale.tag) || [];
           } catch (error) {
             console.error(
               `Error parsing wording data for project ${project.id}:`,
@@ -147,7 +137,7 @@ export const serverGetProjects = createServerFn({
           description: project.description,
           createdAt: project.created_at,
           updatedAt: project.updated_at,
-          localeCodes,
+          locales,
         };
       }),
     );
@@ -188,33 +178,13 @@ export const serverGetProject = createServerFn({
       .where('archived_at', 'is', null)
       .executeTakeFirst();
 
-    let locales: { code: string; tag: string }[] = [];
-    if (mainBranch?.data) {
-      try {
-        const wordingData =
-          typeof mainBranch.data === 'string'
-            ? JSON.parse(mainBranch.data)
-            : mainBranch.data;
-        locales =
-          wordingData.locales?.map((locale: { code: string; tag: string }) => ({
-            code: locale.code,
-            tag: locale.tag,
-          })) || [];
-      } catch (error) {
-        console.error(
-          `Error parsing wording data for project ${project.id}:`,
-          error,
-        );
-      }
-    }
-
     return {
       id: project.id,
       name: project.name,
       description: project.description,
       createdAt: project.created_at,
       updatedAt: project.updated_at,
-      locales,
+      locales: mainBranch?.data?.locales?.map((l) => l.tag) ?? [],
       defaultBranch: mainBranch
         ? {
             id: mainBranch.id,

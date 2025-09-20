@@ -7,25 +7,49 @@ import {
   isUserAllowedToEditProjectSchema,
 } from '@/server/common/authorization';
 import { db } from '@/server/data';
+import { WordingData } from '@/server/data/wording.types';
 
-const getProjectWordingsBranchValidator = z.object({
-  branchId: z.string().min(1, 'Branch ID is required'),
-});
+const constantNameValidator = z.string().regex(/^[A-Z0-9_]+$/);
 
 const updateProjectWordingsBranchValidator = z.object({
   branchId: z.string().min(1, 'Branch ID is required'),
   config: z.object({
-    enums: z.array(
-      z.object({
-        name: z.string(),
-        description: z.string(),
-        values: z.array(z.string()),
-      }),
+    constants: z.array(
+      z.discriminatedUnion('type', [
+        z.object({
+          type: z.literal('enum'),
+          get name() {
+            return constantNameValidator;
+          },
+          description: z.string().optional(),
+          options: z.array(z.string()),
+        }),
+        z.object({
+          type: z.literal('string'),
+          get name() {
+            return constantNameValidator;
+          },
+          description: z.string().optional(),
+          value: z.string(),
+        }),
+      ]),
     ),
     schema: z.object({
-      type: z.literal('object'),
-      description: z.string().default(''),
-      fields: z.array(z.any()),
+      nodes: z.record(
+        z.string(),
+        z.looseObject({
+          id: z.string(),
+          type: z.string(),
+        }),
+      ),
+      root: z.object({
+        type: z.literal('object'),
+        fields: z.array(
+          z.looseObject({
+            typeId: z.string(),
+          }),
+        ),
+      }),
     }),
   }),
 });
@@ -35,7 +59,11 @@ export const serverGetProjectWordingsBranch = createServerFn({
   response: 'data',
 })
   .middleware([$serverAuthenticated()])
-  .validator(getProjectWordingsBranchValidator)
+  .validator(
+    z.object({
+      branchId: z.string().min(1, 'Branch ID is required'),
+    }),
+  )
   .handler(async ({ data, context }) => {
     // Get the branch first to check project ownership and authorization
     const branch = await db
@@ -54,22 +82,14 @@ export const serverGetProjectWordingsBranch = createServerFn({
       throw json('unauthorized', { status: 403 });
     }
 
-    // Parse the wording data
-    let wordingData;
-    try {
-      wordingData =
-        typeof branch.data === 'string' ? JSON.parse(branch.data) : branch.data;
-    } catch {
-      throw json('Invalid branch data', { status: 500 });
-    }
-
     return {
       id: branch.id,
       projectId: branch.project_id,
       name: branch.name,
       locked: branch.locked,
-      schema: wordingData.config.schema,
-      enums: wordingData.config.enums,
+      schema: branch.data.schema,
+      constants: branch.data.constants,
+      locales: branch.data.locales?.map((l) => l.tag) || [],
     };
   });
 
@@ -111,10 +131,10 @@ export const serverUpdateProjectWordingsBranch = createServerFn({
       throw json('Invalid current branch data', { status: 500 });
     }
 
-    // Update the config while preserving locales data
-    const updatedWordingData = {
+    // Update the config and locales data
+    const updatedWordingData: WordingData = {
       ...currentWordingData,
-      config: data.config,
+      ...data.config,
     };
 
     // Update the branch using the repository
@@ -127,8 +147,8 @@ export const serverUpdateProjectWordingsBranch = createServerFn({
       id: branch.id,
       projectId: branch.project_id,
       name: branch.name,
-      locked: branch.locked,
-      schema: updatedWordingData.config.schema,
-      enums: updatedWordingData.config.enums,
+      schema: branch.data.schema,
+      constants: branch.data.constants,
+      locales: branch.data.locales?.map((l) => l.tag) || [],
     };
   });

@@ -9,10 +9,9 @@ import {
 } from '@/app/features/project-wording/use-project-wording';
 import { toast } from 'sonner';
 import { SchemaEditor } from '@/app/features/project-wording/ui-schema-editor';
-import { EnumsEditor } from '@/app/features/project-wording/ui-enums-editor';
-import { YamlEditor } from '@/app/features/project-wording/ui-yaml-editor';
+import { ConstantsField } from '@/app/features/project-wording/ui-constants-field';
 import { useProjectWordingForm } from '@/app/features/project-wording/use-project-wording-form';
-import { SaveIcon, FileTextIcon, FormInputIcon } from 'lucide-react';
+import { SaveIcon } from 'lucide-react';
 import { useState } from 'react';
 
 export const Route = createFileRoute(
@@ -36,24 +35,23 @@ function RouteComponent() {
   const updateBranch = useUpdateProjectWordingsBranch();
 
   const { form } = useProjectWordingForm({
-    initialConfig: branch
-      ? { enums: branch.enums, schema: branch.schema }
-      : undefined,
-    onSubmit: async (config) => {
+    initialValues: {
+      constants: branch?.constants,
+      schema: branch?.schema,
+      locales: branch?.locales,
+    },
+    onSubmit: async ({ constants, schema }) => {
       try {
         await updateBranch.mutateAsync({
           branchId,
-          config,
+          config: {
+            constants,
+            schema,
+          },
         });
 
         toast.success('Configuration updated successfully!', {
           description: 'The project configuration has been saved.',
-        });
-
-        // Navigate back to project detail page
-        router.navigate({
-          to: '/projects/$projectId',
-          params: { projectId },
         });
       } catch (error) {
         console.error('Failed to update configuration:', error);
@@ -161,7 +159,7 @@ function RouteComponent() {
                 </div>
 
                 {/* Mode Toggle */}
-                <div className="flex bg-gray-100 p-1 rounded-lg">
+                {/* <div className="flex bg-gray-100 p-1 rounded-lg">
                   <button
                     onClick={() => setEditMode('form')}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -184,20 +182,20 @@ function RouteComponent() {
                     <FileTextIcon className="w-4 h-4" />
                     Code
                   </button>
-                </div>
+                </div> */}
               </div>
             </CardHeader>
             <CardContent className="space-y-8">
               {editMode === 'form' ? (
                 <>
                   {/* Form Mode - Enums and Schema Editors */}
-                  <EnumsEditor form={form} />
+                  <ConstantsField form={form} />
                   <SchemaEditor form={form} />
                 </>
               ) : (
                 <>
                   {/* Code Mode - YAML Editor */}
-                  <YamlEditor
+                  {/* <YamlEditor
                     config={{
                       enums: form.getFieldValue('enums'),
                       schema: form.getFieldValue('schema'),
@@ -206,12 +204,12 @@ function RouteComponent() {
                       form.setFieldValue('enums', config.enums);
                       form.setFieldValue('schema', config.schema);
                     }}
-                  />
+                  /> */}
                 </>
               )}
 
               {/* Save button */}
-              <div className="flex justify-end pt-6 border-t">
+              <div className="flex justify-end">
                 <form.FormSubmitButton>
                   {updateBranch.isPending ? (
                     'Saving...'

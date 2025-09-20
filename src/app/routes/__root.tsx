@@ -33,6 +33,12 @@ export const Route = createRootRoute({
         href: appCss,
       },
     ],
+    scripts: [
+      // {
+      //   crossOrigin: 'anonymous',
+      //   src: '//unpkg.com/react-scan/dist/auto.global.js',
+      // },
+    ],
   }),
   component: RootComponent,
 });

@@ -1,35 +1,43 @@
 import { Button } from '@/app/common/ui/button';
 import { PlusIcon } from 'lucide-react';
-import { EnumFormField } from './enum-field';
+import { EnumConstantField } from './enum-field';
 import { useProjectWordingForm } from '../use-project-wording-form';
-import { EnumDefinition } from './types';
 import { memo } from 'react';
 import { useStore } from '@tanstack/react-form';
 import { range } from 'lodash-es';
+import { WordingEnumConstant } from '@/server/data/wording.types';
 
-const EnumItemField = memo(
+const ConstantItemField = memo(
   ({
-    enumIndex: index,
+    constantIndex: index,
     form,
   }: {
-    enumIndex: number;
+    constantIndex: number;
     form: ReturnType<typeof useProjectWordingForm>['form'];
   }) => {
+    const constantType = useStore(
+      form.store,
+      (s) => s.values.constants[index]?.type,
+    );
     return (
       <div key={index} className="group/item">
-        <EnumFormField enumIndex={index} form={form} />
+        {constantType === 'enum' ? (
+          <EnumConstantField constantIndex={index} form={form} />
+        ) : (
+          <span>Unhandled constant type</span>
+        )}
         {/* Subtle add line between enums */}
         <div className="group/add-line h-px bg-transparent hover:bg-gray-50 relative">
           <div className="absolute inset-0 flex items-center justify-start pl-3 opacity-0 group-hover/add-line:opacity-100 transition-opacity">
             <Button
               onClick={() => {
-                form.setFieldValue('enums', (prev) => [
+                form.setFieldValue('constants', (prev) => [
                   ...prev.slice(0, index + 1),
                   {
-                    name: `enum_${Date.now()}`,
-                    description: '',
-                    values: [],
-                  },
+                    type: 'enum',
+                    name: '',
+                    options: [],
+                  } satisfies WordingEnumConstant,
                   ...prev.slice(index + 1),
                 ]);
               }}
@@ -46,24 +54,25 @@ const EnumItemField = memo(
     );
   },
 );
-EnumItemField.displayName = 'EnumItemField';
+ConstantItemField.displayName = 'ConstantItemField';
 
-export const EnumsEditor = ({
+export const ConstantsField = ({
   form,
 }: {
   form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
-  const enumCount = useStore(form.store, (s) => s.values.enums?.length ?? 0);
+  const constantCount = useStore(
+    form.store,
+    (s) => s.values.constants?.length ?? 0,
+  );
 
   return (
     <div className="space-y-6">
       <div className="">
-        <h3 className="text-lg font-semibold mb-4">Enums</h3>
+        <h3 className="text-lg font-semibold mb-4">Constants</h3>
 
-        {range(0, enumCount).map((_, index) => (
-          <>
-            <EnumItemField key={index} enumIndex={index} form={form} />
-          </>
+        {range(0, constantCount).map((_, index) => (
+          <ConstantItemField key={index} constantIndex={index} form={form} />
         ))}
         {/* Add enum at the end */}
         <div className="py-2 text-center group/end-add">
@@ -72,18 +81,18 @@ export const EnumsEditor = ({
             size="sm"
             className="text-blue-600 hover:text-blue-700 opacity-40 group-hover/end-add:opacity-100 transition-opacity"
             onClick={() => {
-              form.setFieldValue('enums', (prev) => [
+              form.setFieldValue('constants', (prev) => [
                 ...prev,
                 {
+                  type: 'enum',
                   name: '',
-                  description: '',
-                  values: [],
-                } satisfies EnumDefinition,
+                  options: [],
+                } satisfies WordingEnumConstant,
               ]);
             }}
           >
             <PlusIcon className="w-3 h-3 mr-2" />
-            Add enum
+            Add constant
           </Button>
         </div>
       </div>

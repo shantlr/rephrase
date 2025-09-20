@@ -3,7 +3,6 @@ import {
   serverUpdateProjectWordingsBranch,
 } from '@/server-functions/project-wording';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ProjectWordingConfig } from './use-project-wording-form';
 
 export const useProjectWordingsBranch = (branchId: string) => {
   return useQuery({
@@ -17,8 +16,12 @@ export const useUpdateProjectWordingsBranch = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { branchId: string; config: ProjectWordingConfig }) =>
-      serverUpdateProjectWordingsBranch({ data: input }),
+    mutationFn: (
+      input: Parameters<typeof serverUpdateProjectWordingsBranch>[0]['data'],
+    ) =>
+      serverUpdateProjectWordingsBranch({
+        data: input,
+      }),
     onSuccess: (data) => {
       // Invalidate and refetch the specific branch
       queryClient.invalidateQueries({
