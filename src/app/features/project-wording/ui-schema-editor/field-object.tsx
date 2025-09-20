@@ -40,7 +40,7 @@ export const SchemaObjectField = ({
         selectType,
         deleteButton,
       }) => (
-        <div>
+        <div className="group">
           <div className="group w-full flex gap-1">
             {expandButton}
             {selectType}
@@ -50,7 +50,7 @@ export const SchemaObjectField = ({
           </div>
 
           {!!expanded && (
-            <div className="ml-[12px] pl-[24px] border-l">
+            <div className="ml-[12px] pl-[24px] border-l group-hover:border-primary">
               <SchemaObjectFieldsList
                 pathToFieldList={`${pathToType}.fields`}
                 form={form}

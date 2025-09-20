@@ -49,5 +49,7 @@ export const SchemaType = ({
     return null;
   }
 
-  return <div className="pl-[24px] border-l">{elem}</div>;
+  return (
+    <div className="pl-[24px] border-l group-hover:border-primary">{elem}</div>
+  );
 };

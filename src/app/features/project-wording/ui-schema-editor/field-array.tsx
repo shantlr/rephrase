@@ -130,7 +130,7 @@ export const SchemaArrayField = ({
         selectType,
         deleteButton,
       }) => (
-        <div>
+        <div className="group">
           <div className="group w-full flex gap-1">
             {expandButton}
             {selectType}
@@ -169,7 +169,7 @@ export const SchemaArrayItem = ({
 
   return (
     <div className="w-full flex flex-col pl-[12px]">
-      <div className="w-full border-l border-gray-300 pl-4">
+      <div className="w-full border-l border-gray-300 pl-4 group-hover:border-primary">
         <div className="flex items-center gap-2 text-sm">
           Item type
           <SelectFieldType pathToType={pathToItem} form={form} />
