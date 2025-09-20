@@ -1,14 +1,18 @@
 import { useStore } from '@tanstack/react-form';
 import {
   PathToField,
+  PathToType,
   useFormSelectedLocale,
   useProjectWordingForm,
 } from '../use-project-wording-form';
 import { SchemaBaseField, usePathToTypeFromPathToField } from './_base-field';
 import { BaseWordingValuesDialog } from './_base-wording-values-dialog';
-import { get } from 'lodash-es';
+import { get, map, sortBy, uniq } from 'lodash-es';
 import { BaseEditLocales } from './wording-values/_base-edit-locales';
 import { StringTemplateWordingValueInput } from './wording-values/string-template';
+import { SchemaStringTemplateNode } from '@/server/data/wording.types';
+import { useEffect, useMemo } from 'react';
+import { Badge } from '@/app/common/ui/badge';
 
 const Wording = ({
   pathToField,
@@ -44,39 +48,91 @@ const Wording = ({
   );
 };
 
-// export const useStringTemplateParamsFromLocaleData = ({
-//   pathToType,
-//   form,
-// }: {
-//   pathToType: PathToType;
-//   form: ReturnType<typeof useProjectWordingForm>['form'];
-// }) => {
-//   const values = [];
-//   // const values = useStore(form.store, (s) => {
-//   //   const res = s.values.locales.flatMap((l) => l.data[fieldId]?.values);
+export const useExtractParamsFromWordingValues = ({
+  pathToType,
+  form,
+}: {
+  pathToType: PathToType;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  const values = useStore(form.store, (s) => {
+    const type = get(s.values, pathToType) as SchemaStringTemplateNode;
+    return map(type?.instances);
+  });
 
-//   //   return res;
-//   // });
+  const params = useMemo(() => {
+    return sortBy(
+      uniq(
+        values
+          .flatMap((v) => {
+            // Extract params name from string template
+            // E.g: `hello {firstName} {lastName}`
+            return (
+              v?.match(/{(.*?)}/g)?.map((m) => m.replace(/[{}]/g, '').trim()) ||
+              []
+            );
+          })
+          .filter((v) => !!v),
+      ),
+    );
+  }, [values]);
 
-//   const params = useMemo(() => {
-//     return sortBy(
-//       uniq(
-//         values
-//           .flatMap((v) => {
-//             // Extract params name from string template
-//             // E.g: `hello {firstName} {lastName}`
-//             return (
-//               v?.match(/{(.*?)}/g)?.map((m) => m.replace(/[{}]/g, '').trim()) ||
-//               []
-//             );
-//           })
-//           .filter((v) => !!v),
-//       ),
-//     );
-//   }, [values]);
+  return params;
+};
 
-//   return params;
-// };
+const Params = ({
+  pathToField,
+  form,
+}: {
+  pathToField: PathToField;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  const { pathToType } = usePathToTypeFromPathToField({
+    pathToField,
+    form,
+  });
+
+  const currentParams = useStore(form.store, (s) => {
+    const type = get(s.values, pathToType) as SchemaStringTemplateNode;
+    return type?.params;
+  });
+
+  const extractedParams = useExtractParamsFromWordingValues({
+    pathToType,
+    form,
+  });
+
+  // sync
+  useEffect(() => {
+    if (!extractedParams.length) {
+      if (currentParams) {
+        form.setFieldValue(`${pathToType}.params`, undefined);
+      }
+    } else if ((currentParams?.length ?? 0) !== extractedParams.length) {
+      const nextParams: typeof currentParams = {};
+      extractedParams.forEach((p) => {
+        nextParams[p] = currentParams?.[p] ?? { type: 'string' };
+      });
+
+      form.setFieldValue(`${pathToType}.params`, nextParams);
+    }
+  }, [currentParams, extractedParams]);
+
+  if (!currentParams) {
+    return null;
+  }
+
+  return (
+    <div className="flex gap-2">
+      <div className="text-sm">Params:</div>
+      {map(currentParams, (param, name) => (
+        <Badge key={name} variant="outline">
+          {name}
+        </Badge>
+      ))}
+    </div>
+  );
+};
 
 export const SchemaStringTemplateField = ({
   pathToField,
@@ -90,21 +146,26 @@ export const SchemaStringTemplateField = ({
   wordingEditable: boolean;
 }) => {
   return (
-    <SchemaBaseField
-      pathToField={pathToField}
-      form={form}
-      expandable={false}
-      onDelete={onDelete}
-      children={({ fieldName, selectType, deleteButton }) => (
-        <div className="w-full flex gap-1 group">
-          {selectType}
-          {fieldName}
-          {!!wordingEditable && (
-            <Wording pathToField={pathToField} form={form} />
-          )}
-          {deleteButton}
-        </div>
-      )}
-    />
+    <>
+      <SchemaBaseField
+        pathToField={pathToField}
+        form={form}
+        expandable={false}
+        onDelete={onDelete}
+        children={({ fieldName, selectType, deleteButton }) => (
+          <div>
+            <div className="w-full flex gap-1 group">
+              {selectType}
+              {fieldName}
+              {!!wordingEditable && (
+                <Wording pathToField={pathToField} form={form} />
+              )}
+              {deleteButton}
+            </div>
+            <Params pathToField={pathToField} form={form} />
+          </div>
+        )}
+      />
+    </>
   );
 };
