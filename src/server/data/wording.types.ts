@@ -34,7 +34,8 @@ export type SchemaArrayNode = BaseSchemaNode<
   {
     itemTypeId: string;
     instances?: {
-      [locale: string]: string[] | {}[];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [locale: string]: string[] | any[];
     };
   }
 >;
@@ -50,7 +51,8 @@ export type SchemaObjectNode = BaseSchemaNode<
           template: string;
           typeId: string;
           instances?: {
-            [locale: string]: {};
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            [locale: string]: Record<string, any>;
           };
         }
     )[];

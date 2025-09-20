@@ -7,7 +7,7 @@ import {
 } from '../use-project-wording-form';
 import { SchemaBaseField, usePathToTypeFromPathToField } from './_base-field';
 import { BaseWordingValuesDialog } from './_base-wording-values-dialog';
-import { get, map, sortBy, uniq } from 'lodash-es';
+import { get, isEqual, map, sortBy, uniq } from 'lodash-es';
 import { BaseEditLocales } from './wording-values/_base-edit-locales';
 import { StringTemplateWordingValueInput } from './wording-values/string-template';
 import { SchemaStringTemplateNode } from '@/server/data/wording.types';
@@ -108,7 +108,14 @@ const Params = ({
       if (currentParams) {
         form.setFieldValue(`${pathToType}.params`, undefined);
       }
-    } else if ((currentParams?.length ?? 0) !== extractedParams.length) {
+    } else if (
+      (Object.keys(currentParams || {}).length ?? 0) !==
+        extractedParams.length ||
+      !isEqual(
+        sortBy(Object.keys(currentParams || {})),
+        sortBy(extractedParams),
+      )
+    ) {
       const nextParams: typeof currentParams = {};
       extractedParams.forEach((p) => {
         nextParams[p] = currentParams?.[p] ?? { type: 'string' };
