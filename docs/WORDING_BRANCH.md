@@ -1,137 +1,230 @@
 # Project Wordings branch
 
-This project is about having a GUI to manipulate localization wordings
+This project provides a GUI to manage localization wordings
 
-User can create multiple projects. Each project have at least one wordings branch called `main`
+Users can create multiple projects. Each project has at least one wording branch called `main`
 
 See `src/server/data/db.ts` and `src/server/data/wording.types.ts` to have a look at table column and types details
 
-Each branch should define `data.schema` that describes the schema of the wordings that each locale should implements
-Each branch should define `data.locales` that is a list of locale that the project support and associated wordings that should respect the wordings schema
+Each branch should define `data.schema` that describes the schema of the wordings that each locale should implement
+Each branch should define `data.locales` that is a list of locales that the project supports and associated wordings that should respect the wording schema
+
+This document explains the core idea of how a project localization schema is defined, and how each locale may define values for each schema field
+
+The schema GUI editor is a complex part of this project and can be found in the folder `/src/app/features/project-wording`
 
 ## Schema
 
-Schema root is an object
-Object type, may contains multiple fields
-Each field should have a name, and associated type
+Projects must define a schema to provide localization. Each locale must implement this schema to provide the wording values.
 
-One very basic schema exemple
+Schema definition is a complex part of this project. It has some similarity to a typing system, and can allow for example to define records with keys that should respect a given pattern.
+
+`config.schema.root` is always an object
+Object fields have a name, and a typeId that references a key in the `config.schema.nodes` record
+
+One very basic schema example
 
 ```ts
 const config: WordingData['config'] = {
-  enums: {},
+  constants: [],
   schema: {
-    type: 'object';
-    fields: [
-      {
-        name: 'title';
-        type: {
-          type: 'string-template';
+    nodes: {
+      '1': {
+        type: 'string-template',
+        instances: {
+          'en-GB': 'Welcome to our App'
+        },
+      },
+      '2': {
+        type: 'string-template',
+        instances: {
+          'en-GB': 'Get started in seconds'
         }
       },
-      {
-        name: 'subtitle';
-        type: {
-          type: 'string-template';
+      '3': {
+        type: 'string-template',
+        instances: {
+          'en-GB': 'Manage your tasks efficiently with our powerful project management tools.'
         }
       },
-      {
-        name: 'description';
-        type: {
-          type: 'string-template';
+      '4': {
+        type: 'object',
+        fields: [
+          {
+            name: 'title',
+            typeId: '5',
+          },
+          {
+            name: 'quickActions',
+            typeId: '6',
+          }
+        ],
+      },
+      '5': {
+        type: 'string-template',
+        instances: {
+          'en-GB': 'Contact Support'
         }
       },
-      {
-        name: 'footer',
-        type: {
-          type: 'object',
-          fields: [
-            {
-              name: 'title',
-              type: {
-                type: 'string-template'
-              }
-            },
-            {
-              name: 'note',
-              type: {
-                type: 'string-template'
-              }
-            }
-          ]
+      '6': {
+        type: 'array',
+        itemTypeId: '7',
+        instances: {
+          'en-GB': ['Create new project', 'Invite team members', 'Set up notifications']
         }
+      },
+      '7': {
+        type: 'string-template'
       }
-    ]
+    },
+    root: {
+      type: 'object',
+      fields: [
+        {
+          name: 'title',
+          typeId: '1',
+        },
+        {
+          name: 'subtitle',
+          typeId: '2',
+        },
+        {
+          name: 'description',
+          typeId: '3',
+        },
+        {
+          name: 'sidebar',
+          typeId: '4',
+        }
+      ]
+    }
   },
+  locales: [
+    {
+      tag: 'en-GB',
+    }
+  ],
 }
 ```
 
-Then each locale data should associate key (wich is the field path separated with '.' for nested fields) with value that respect defined field type
+For each defined locale in `config.locales`, each type may define `instances` that will contain values corresponding to each locale.
+When a type has no defined wording, instances will be undefined.
+Wording values are not required to be defined for each locale in `instances`.
 
-Associated locales would looks like that:
+### String Template Parameters
+
+String template types can define parameters that can be used within the locale instances. These parameters act as placeholders that can be dynamically replaced with values at runtime.
+
+When a string-template type defines `params`, the locale instances can reference these parameters using curly brace syntax like `{paramName}`.
 
 ```ts
-const locales: WordingData['locales'] = [
-  {
-    code: 'en',
-    tag: 'en-GB',
-    data: [
-      {
-        key: 'title',
-        value: 'Welcome',
-      },
-      {
-        key: 'subtitle',
-        value: 'Take your time',
-      },
-      {
-        key: 'description',
-        value: 'Consequat elit eu non enim nostrud aliquip labore aliquip excepteur velit consectetur ut.'
-      },
-      {
-        key: 'footer.title',
-        value: 'This is the footer'
-      },
-      {
-        key: 'footer.note',
-        value: 'Dolor mollit aliquip incididunt non consectetur Lorem anim aute est Lorem id occaecat ex officia.',
+const config: WordingData = {
+  constants: [],
+  schema: {
+    nodes: {
+      '1': {
+        type: 'string-template',
+        params: {
+          firstName: {
+            type: 'string'
+          },
+          itemCount: {
+            type: 'string'
+          }
+        },
+        instances: {
+          'en-GB': 'Hello {firstName}, you have {itemCount} items',
+          'fr-FR': 'Bonjour {firstName}, vous avez {itemCount} éléments'
+        }
       }
-    ]
-  }
-]
+    },
+    root: {
+      type: 'object',
+      fields: [
+        {
+          name: 'greeting',
+          typeId: '1'
+        }
+      ]
+    }
+  },
+  locales: [
+    { tag: 'en-GB' },
+    { tag: 'fr-FR' }
+  ]
+}
 ```
 
-### Enums
+In this example, the string template defines two parameters (`firstName` and `itemCount`) that can be used in the locale instances. At runtime, these placeholders would be replaced with actual values.
 
-in the config, we can define enums that can then be reused in the schema definitions
+### Constants
+
+In the config, we can define constants that can then be reused in the schema definitions
 
 Example of enum definitions:
 
 ```ts
-const configEnums: WordingData['config']['enums'] = {
-  JOB_TYPE: {
-    values: ['WARRIOR', 'ARCHER', 'MAGE'],
-    description: 'list of job types'
-  },
-  STATS: {
-    values: ['STRENGTH', 'AGILITY', 'INTELLIGENCE'],
-    description: ''
-  },
-};
-```
-
-Enum can then be used as param of field name template
-
-```ts
-const schema: WordingData['config']['schema'] = {
-  type: 'object',
-  fields: [
+const config: WordingData = {
+  constants: [
     {
-      name: {
-        type: 'template';
-        value: `{JOB_TYPE}_DESCRIPTION`
-      },
+      name: 'JOB_TYPE',
+      type: 'enum',
+      options: ['WARRIOR', 'ARCHER', 'MAGE']
+    },
+    {
+      name: 'STATS',
+      type: 'enum',
+      options: ['STRENGTH', 'AGILITY', 'INTELLIGENCE'],
     },
   ],
+  // ...
 };
 ```
+
+### Object field templating
+
+Objects may either have a static field name, or a templated name
+
+Templated field names can currently only use defined constants
+
+Once a field is templated, locale instances should be defined in the field instead of the type, this is due to the fact that templated fields may contain multiple values, one for each possible template value
+
+```ts
+const config: WordingData = {
+  constants: [
+    {
+      name: 'JOB_TYPE',
+      type: 'enum',
+      options: ['WARRIOR', 'ARCHER', 'MAGE']
+    },
+  ],
+  schema: {
+    nodes: {
+      type: 'string-template',
+    },
+    root: {
+      type: 'object',
+      fields: [
+        {
+          name: '${JOB_TYPE}_DESCRIPTION',
+          params: {
+            JOB_TYPE: {
+              type: 'constant',
+              name: 'JOB_TYPE'
+            },
+          },
+          instances: {
+            'en-GB': {
+              'WARRIOR_DESCRIPTION': 'Strong melee fighter with high defense and powerful sword attacks.',
+              'ARCHER_DESCRIPTION': 'Agile ranged combatant with precise bow skills and stealth abilities.',
+              'MAGE_DESCRIPTION': 'Mystical spellcaster wielding elemental magic and powerful enchantments.',
+            }
+          },
+        },
+      ],
+    },
+  },
+  locales: [{ tag: 'en-GB' }],
+}
+```
+
