@@ -13,7 +13,7 @@ import { useStore } from '@tanstack/react-form';
 import { get, range } from 'lodash-es';
 import { InlineAppend } from '../_inline-append';
 import { useArrayItemPathToType } from '../field-array';
-import { DeleteButton } from '../../ui-delete-button';
+import { DeleteButton } from '../../_ui-delete-button';
 import { Card } from '@/app/common/ui/card';
 import { SchemaObjectNode } from '@/server/data/wording.types';
 import { useFieldHasParams } from '../_base-field';

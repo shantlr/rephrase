@@ -13,7 +13,7 @@ import { forEach, get, isEqual, map, sortBy } from 'lodash-es';
 import { SchemaObjectNode } from '@/server/data/wording.types';
 import { ChevronDownIcon } from 'lucide-react';
 import { cn } from '@/app/common/lib/utils';
-import { DeleteButton } from '../ui-delete-button';
+import { DeleteButton } from '../_ui-delete-button';
 import { SelectFieldType } from './_select-field-type';
 import { extractParams } from './_util-extract-params';
 

@@ -2,7 +2,7 @@ import { memo, useState } from 'react';
 import { Button } from '@/app/common/ui/button';
 import { PlusIcon, ChevronDownIcon } from 'lucide-react';
 import { useProjectWordingForm } from '../use-project-wording-form';
-import { DeleteButton } from '../ui-delete-button';
+import { DeleteButton } from '../_ui-delete-button';
 import clsx from 'clsx';
 import { useField, useStore } from '@tanstack/react-form';
 import { get, range } from 'lodash-es';
