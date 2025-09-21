@@ -7,7 +7,11 @@ import {
   useProjectWordingForm,
   useTypePath,
 } from '../use-project-wording-form';
-import { SchemaBaseField, usePathToTypeFromPathToField } from './_base-field';
+import {
+  SchemaBaseField,
+  useFieldHasParams,
+  usePathToTypeFromPathToField,
+} from './_base-field';
 import { get } from 'lodash-es';
 import { SchemaArrayNode } from '@/server/data/wording.types';
 import { SelectFieldType } from './_select-field-type';
@@ -16,6 +20,7 @@ import { BaseWordingValuesDialog } from './_base-wording-values-dialog';
 import { BaseEditLocales } from './wording-values/_base-edit-locales';
 import { Badge } from '@/app/common/ui/badge';
 import { WordingArrayInput } from './wording-values';
+import { FieldTemplateWordingDialog } from './field-template-wording-dialog';
 
 export const useArrayItemPathToType = ({
   pathToType,
@@ -116,6 +121,11 @@ export const SchemaArrayField = ({
     form,
   });
 
+  const hasParams = useFieldHasParams({
+    pathToField,
+    form,
+  });
+
   return (
     <SchemaBaseField
       pathToField={pathToField}
@@ -134,9 +144,15 @@ export const SchemaArrayField = ({
             {expandButton}
             {selectType}
             {fieldName}
-            {wordingEditable && (
-              <Wording pathToField={pathToField} form={form} />
-            )}
+            {wordingEditable &&
+              (hasParams ? (
+                <FieldTemplateWordingDialog
+                  form={form}
+                  pathToField={pathToField}
+                />
+              ) : (
+                <Wording pathToField={pathToField} form={form} />
+              ))}
             {deleteButton}
           </div>
 

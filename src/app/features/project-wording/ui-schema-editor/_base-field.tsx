@@ -2,6 +2,8 @@ import { useField, useStore } from '@tanstack/react-form';
 import {
   PathToField,
   useProjectWordingForm,
+  useStoreObjectField,
+  useStoreObjectFieldName,
   useTypePath,
 } from '../use-project-wording-form';
 import { useFormError } from '@/app/common/hooks/use-form-error';
@@ -15,6 +17,22 @@ import { DeleteButton } from '../ui-delete-button';
 import { SelectFieldType } from './_select-field-type';
 import { extractParams } from './_util-extract-params';
 
+export const useFieldHasParams = ({
+  pathToField,
+  form,
+}: {
+  pathToField: PathToField;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  return useStoreObjectField({
+    pathToField,
+    form,
+    select: (field) => {
+      return !!field?.params;
+    },
+  });
+};
+
 export const usePathToTypeFromPathToField = ({
   pathToField,
   form,
@@ -22,12 +40,11 @@ export const usePathToTypeFromPathToField = ({
   pathToField: PathToField;
   form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
-  const typeId = useStore(
-    form.store,
-    (s) =>
-      (get(s.values, pathToField) as SchemaObjectNode['fields'][number])
-        ?.typeId,
-  );
+  const typeId = useStoreObjectField({
+    form,
+    pathToField,
+    select: (field) => field?.typeId,
+  });
 
   return {
     typeId,
@@ -42,19 +59,14 @@ const SchemaNameTemplateExemple = ({
   pathToField: PathToField;
   form: ReturnType<typeof useProjectWordingForm>['form'];
 }) => {
-  const template = useStore(form.store, (s) => {
-    const field = get(
-      s.values,
-      pathToField,
-    ) as SchemaObjectNode['fields'][number];
-    return field.name;
+  const template = useStoreObjectFieldName({
+    pathToField,
+    form,
   });
-  const params = useStore(form.store, (s) => {
-    const field = get(
-      s.values,
-      pathToField,
-    ) as SchemaObjectNode['fields'][number];
-    return field.params;
+  const params = useStoreObjectField({
+    pathToField,
+    form,
+    select: (field) => field?.params,
   });
   const constants = useStore(form.store, (s) => s.values.constants);
 
@@ -119,12 +131,10 @@ export const SchemaFieldName = ({
 
   const error = useFormError(paramField.state.meta.errors);
 
-  const currentParams = useStore(form.store, (s) => {
-    const field = get(
-      s.values,
-      pathToField,
-    ) as SchemaObjectNode['fields'][number];
-    return field?.params;
+  const currentParams = useStoreObjectField({
+    form,
+    pathToField,
+    select: (field) => field?.params,
   });
   const extractedParams = useMemo(() => {
     const res = extractParams(nameField.state.value as string);

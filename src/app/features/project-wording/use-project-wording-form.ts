@@ -1,7 +1,12 @@
 import { useAppForm } from '@/app/common/hooks/use-app-form';
-import { SchemaNode, WordingData } from '@/server/data/wording.types';
+import {
+  SchemaNode,
+  SchemaObjectNode,
+  WordingData,
+} from '@/server/data/wording.types';
 import { useStore } from '@tanstack/react-form';
-import { get } from 'lodash-es';
+import { get, map } from 'lodash-es';
+import { useMemo } from 'react';
 
 export type PathToType = `schema.nodes.${string}`;
 
@@ -68,4 +73,98 @@ export const useFormSelectedLocale = (
   form: ReturnType<typeof useProjectWordingForm>['form'],
 ) => {
   return useStore(form.store, (s) => s.values.selectedLocale);
+};
+
+export function useStoreObjectField<T>({
+  pathToField,
+  form,
+  select,
+}: {
+  pathToField: PathToField;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+  select: (field: SchemaObjectNode['fields'][number]) => T;
+}) {
+  return useStore(form.store, (s) => {
+    return select?.(get(s.values, pathToField));
+  });
+}
+
+export const useStoreObjectFieldName = ({
+  pathToField,
+  form,
+}: {
+  pathToField: PathToField;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  return useStoreObjectField({
+    pathToField,
+    form,
+    select: (field) => {
+      return field?.name;
+    },
+  });
+};
+
+/**
+ * Handle field name that contains params
+ * Compute all possible field name
+ */
+export const useObjectFieldNamePossibilities = ({
+  pathToField,
+  form,
+}: {
+  pathToField: PathToField;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  const template = useStoreObjectFieldName({
+    pathToField,
+    form,
+  });
+  const params = useStoreObjectField({
+    pathToField,
+    form,
+    select: (field) => field?.params,
+  });
+
+  const constants = useStore(form.store, (s) => s.values.constants);
+
+  return useMemo(() => {
+    const compute = (
+      temp: string,
+      leftParams: {
+        name: string;
+        def: NonNullable<typeof params>[string];
+      }[],
+    ): string[] => {
+      if (!leftParams.length) {
+        return [temp];
+      }
+
+      const [p, ...others] = leftParams;
+      if (p.def.type === 'constant') {
+        const constant = constants.find((c) => c.name === p.def.name);
+        if (!constant) {
+          // not found, should not trigger warn in that case
+          return [];
+        }
+
+        if (constant?.type === 'enum') {
+          return constant.options.flatMap((option) => {
+            const nextTemp = template.replaceAll(`{${p.name}}`, option);
+            return compute(nextTemp, others);
+          });
+        }
+      }
+      console.warn(`Unhandled param`, p);
+      return [];
+    };
+
+    return compute(
+      template,
+      map(params, (p, name) => ({
+        name,
+        def: p,
+      })),
+    );
+  }, [constants, template, params]);
 };

@@ -3,7 +3,9 @@ import {
   PathToField,
   PathToType,
   useFieldType,
+  useObjectFieldNamePossibilities,
   useProjectWordingForm,
+  useStoreObjectField,
   useTypePath,
 } from '../../use-project-wording-form';
 import { Fragment, useCallback } from 'react';
@@ -14,6 +16,8 @@ import { useArrayItemPathToType } from '../field-array';
 import { DeleteButton } from '../../ui-delete-button';
 import { Card } from '@/app/common/ui/card';
 import { SchemaObjectNode } from '@/server/data/wording.types';
+import { useFieldHasParams } from '../_base-field';
+import { cn } from '@/app/common/lib/utils';
 
 export const WordingArrayInput = ({
   pathToType,
@@ -106,7 +110,55 @@ export const WordingArrayInput = ({
   );
 };
 
-const WordingObjectFieldInput = ({
+const WordingObjectTemplateFieldInput = ({
+  pathToField,
+  form,
+  pathToParentValue,
+}: {
+  pathToField: PathToField;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+  pathToParentValue: string;
+}) => {
+  const possibleFieldNames = useObjectFieldNamePossibilities({
+    form,
+    pathToField,
+  });
+
+  const fieldTypeId = useStoreObjectField({
+    pathToField,
+    form,
+    select: (field) => field?.typeId,
+  });
+  const pathToFieldType = useTypePath(fieldTypeId);
+  const fieldType = useFieldType({
+    pathToType: pathToFieldType,
+    form,
+  });
+
+  return (
+    <>
+      {possibleFieldNames.map((name) => (
+        <div
+          key={name}
+          className={cn(
+            'w-full',
+            fieldType === 'string-template' && name.length < 80 && `flex gap-2`,
+          )}
+        >
+          <div className="py-2">{name}</div>
+          <div className={cn(fieldType !== 'string-template' && 'pl-4')}>
+            <WordingValueInput
+              pathToType={pathToFieldType}
+              form={form}
+              pathToValue={`${pathToParentValue}.${name}`}
+            />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+};
+export const WordingObjectFieldInput = ({
   pathToField,
   form,
   pathToParentValue,
@@ -119,14 +171,27 @@ const WordingObjectFieldInput = ({
     form.store,
     (s) => (get(s.values, `${pathToField}.name`) as string) || '',
   );
+  const isTemplateField = useFieldHasParams({
+    pathToField,
+    form,
+  });
 
-  const fieldTypeId = useStore(
-    form.store,
-    (s) =>
-      (get(s.values, pathToField) as SchemaObjectNode['fields'][number])
-        .typeId as string,
-  );
+  const fieldTypeId = useStoreObjectField({
+    pathToField,
+    form,
+    select: (field) => field?.typeId,
+  });
   const pathToFieldType = useTypePath(fieldTypeId);
+
+  if (isTemplateField) {
+    return (
+      <WordingObjectTemplateFieldInput
+        pathToField={pathToField}
+        form={form}
+        pathToParentValue={pathToParentValue}
+      />
+    );
+  }
 
   return (
     <div className="w-full flex gap-2">

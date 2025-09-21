@@ -31,7 +31,7 @@ export const BaseWordingValuesDialog = ({
           <DialogDescription>{children}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose>
+          <DialogClose asChild>
             <Button>Close</Button>
           </DialogClose>
         </DialogFooter>

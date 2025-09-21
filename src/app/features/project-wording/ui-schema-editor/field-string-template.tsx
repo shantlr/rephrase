@@ -5,7 +5,11 @@ import {
   useFormSelectedLocale,
   useProjectWordingForm,
 } from '../use-project-wording-form';
-import { SchemaBaseField, usePathToTypeFromPathToField } from './_base-field';
+import {
+  SchemaBaseField,
+  useFieldHasParams,
+  usePathToTypeFromPathToField,
+} from './_base-field';
 import { BaseWordingValuesDialog } from './_base-wording-values-dialog';
 import { get, isEqual, map, sortBy, uniq } from 'lodash-es';
 import { BaseEditLocales } from './wording-values/_base-edit-locales';
@@ -14,6 +18,7 @@ import { SchemaStringTemplateNode } from '@/server/data/wording.types';
 import { useEffect, useMemo } from 'react';
 import { Badge } from '@/app/common/ui/badge';
 import { extractParams } from './_util-extract-params';
+import { FieldTemplateWordingDialog } from './field-template-wording-dialog';
 
 const Wording = ({
   pathToField,
@@ -148,6 +153,11 @@ export const SchemaStringTemplateField = ({
   onDelete?: (pathToField: PathToField) => void;
   wordingEditable: boolean;
 }) => {
+  const hasParams = useFieldHasParams({
+    pathToField,
+    form,
+  });
+
   return (
     <>
       <SchemaBaseField
@@ -160,9 +170,15 @@ export const SchemaStringTemplateField = ({
             <div className="w-full flex gap-1 group">
               {selectType}
               {fieldName}
-              {!!wordingEditable && (
-                <Wording pathToField={pathToField} form={form} />
-              )}
+              {!!wordingEditable &&
+                (hasParams ? (
+                  <FieldTemplateWordingDialog
+                    form={form}
+                    pathToField={pathToField}
+                  />
+                ) : (
+                  <Wording pathToField={pathToField} form={form} />
+                ))}
               {deleteButton}
             </div>
             <Params pathToField={pathToField} form={form} />

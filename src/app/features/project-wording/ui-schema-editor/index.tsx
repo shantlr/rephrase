@@ -68,7 +68,7 @@ export const SchemaEditor = ({
         {/* Fields */}
         <div className="w-full flex flex-col overflow-hidden">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Fields</h3>
+            <h3 className="text-lg font-semibold">Wordings</h3>
             <SelectLocale form={form} />
           </div>
 

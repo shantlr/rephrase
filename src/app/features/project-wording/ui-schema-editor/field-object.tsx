@@ -4,13 +4,18 @@ import {
   PathToType,
   useProjectWordingForm,
 } from '../use-project-wording-form';
-import { SchemaBaseField, usePathToTypeFromPathToField } from './_base-field';
+import {
+  SchemaBaseField,
+  useFieldHasParams,
+  usePathToTypeFromPathToField,
+} from './_base-field';
 import { get, range } from 'lodash-es';
 import { useCallback } from 'react';
 import { nanoid } from 'nanoid';
 import { SchemaNode, SchemaObjectNode } from '@/server/data/wording.types';
 import { InlineAppend } from './_inline-append';
 import { SchemaFormField } from './schema-field';
+import { FieldTemplateWordingDialog } from './field-template-wording-dialog';
 
 export const SchemaObjectField = ({
   pathToField,
@@ -27,6 +32,11 @@ export const SchemaObjectField = ({
     pathToField,
     form,
   });
+  const hasParams = useFieldHasParams({
+    pathToField,
+    form,
+  });
+
   return (
     <SchemaBaseField
       pathToField={pathToField}
@@ -45,7 +55,12 @@ export const SchemaObjectField = ({
             {expandButton}
             {selectType}
             {fieldName}
-            {/* <Wording pathToField={pathToField} form={form} /> */}
+            {wordingEditable && hasParams && (
+              <FieldTemplateWordingDialog
+                form={form}
+                pathToField={pathToField}
+              />
+            )}
             {deleteButton}
           </div>
 
@@ -54,7 +69,7 @@ export const SchemaObjectField = ({
               <SchemaObjectFieldsList
                 pathToFieldList={`${pathToType}.fields`}
                 form={form}
-                wordingEditable={wordingEditable}
+                wordingEditable={wordingEditable && !hasParams}
               />
             </div>
           )}
