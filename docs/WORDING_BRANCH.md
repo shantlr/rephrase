@@ -157,6 +157,61 @@ const config: WordingData = {
 
 In this example, the string template defines two parameters (`firstName` and `itemCount`) that can be used in the locale instances. At runtime, these placeholders would be replaced with actual values.
 
+### String Template Pluralization
+
+String template types support pluralization for handling singular and plural forms of text. When the `variant: 'pluralized'` option is set, instances store both singular (`one`) and plural (`other`) forms for each locale.
+
+Pluralized string templates automatically include a `count` parameter of type `number` that is used to determine which form to display at runtime.
+
+```ts
+const config: WordingData = {
+  constants: [],
+  schema: {
+    nodes: {
+      '1': {
+        type: 'string-template',
+        variant: 'pluralized',
+        params: {
+          count: {
+            type: 'number'
+          },
+          itemName: {
+            type: 'string'
+          }
+        },
+        instances: {
+          'en-GB': {
+            one: 'You have {count} {itemName}',
+            other: 'You have {count} {itemName}s'
+          },
+          'fr-FR': {
+            one: 'Vous avez {count} {itemName}',
+            other: 'Vous avez {count} {itemName}s'
+          }
+        }
+      }
+    },
+    root: {
+      type: 'object',
+      fields: [
+        {
+          name: 'itemMessage',
+          typeId: '1'
+        }
+      ]
+    }
+  },
+  locales: [
+    { tag: 'en-GB' },
+    { tag: 'fr-FR' }
+  ]
+}
+```
+
+In the schema editor GUI, you can toggle between basic string templates and pluralized variants using the "Pluralization" switch in the wording dialog. When switching:
+- **To Pluralized**: Existing string values become the singular (`one`) form, with plural (`other`) starting empty. A `count` parameter of type `number` is automatically added.
+- **To Basic**: The singular (`one`) value becomes the new string value. The `count` parameter is automatically removed (other parameters are preserved).
+
 ### Constants
 
 In the config, we can define constants that can then be reused in the schema definitions

@@ -55,6 +55,7 @@ const Wording = ({
 
   const handleVariantToggle = (checked: boolean) => {
     const currentInstances = currentNode?.instances || {};
+    const currentParams = currentNode?.params || {};
 
     if (checked) {
       const convertedInstances: Record<string, { one: string; other: string }> =
@@ -66,7 +67,13 @@ const Wording = ({
         };
       });
 
+      const updatedParams = {
+        ...currentParams,
+        count: { type: 'number' as const },
+      };
+
       form.setFieldValue(`${pathToType}.variant`, 'pluralized');
+      form.setFieldValue(`${pathToType}.params`, updatedParams);
       if (Object.keys(convertedInstances).length) {
         form.setFieldValue(`${pathToType}.instances`, convertedInstances);
       }
@@ -77,7 +84,16 @@ const Wording = ({
           typeof value === 'object' && value?.one ? value.one : '';
       });
 
+      const updatedParams = { ...currentParams };
+      if (updatedParams.count?.type === 'number') {
+        delete updatedParams.count;
+      }
+
       form.setFieldValue(`${pathToType}.variant`, undefined);
+      form.setFieldValue(
+        `${pathToType}.params`,
+        Object.keys(updatedParams).length > 0 ? updatedParams : undefined,
+      );
       if (Object.keys(convertedInstances).length) {
         form.setFieldValue(`${pathToType}.instances`, convertedInstances);
       }
@@ -181,24 +197,39 @@ const Params = ({
 
   // sync
   useEffect(() => {
-    if (!extractedParams.length) {
+    const numberParams = Object.fromEntries(
+      Object.entries(currentParams || {}).filter(
+        ([, param]) => param.type === 'number',
+      ),
+    );
+
+    if (!extractedParams.length && Object.keys(numberParams).length === 0) {
       if (currentParams) {
         form.setFieldValue(`${pathToType}.params`, undefined);
       }
-    } else if (
-      (Object.keys(currentParams || {}).length ?? 0) !==
-        extractedParams.length ||
-      !isEqual(
-        sortBy(Object.keys(currentParams || {})),
-        sortBy(extractedParams),
-      )
-    ) {
-      const nextParams: typeof currentParams = {};
-      extractedParams.forEach((p) => {
-        nextParams[p] = currentParams?.[p] ?? { type: 'string' };
-      });
+    } else {
+      const allParams = [...extractedParams, ...Object.keys(numberParams)];
+      const uniqueParams = [...new Set(allParams)];
 
-      form.setFieldValue(`${pathToType}.params`, nextParams);
+      if (
+        (Object.keys(currentParams || {}).length ?? 0) !==
+          uniqueParams.length ||
+        !isEqual(sortBy(Object.keys(currentParams || {})), sortBy(uniqueParams))
+      ) {
+        const nextParams: typeof currentParams = {};
+
+        // Add extracted params (string type by default)
+        extractedParams.forEach((p) => {
+          nextParams[p] = currentParams?.[p] ?? { type: 'string' };
+        });
+
+        // Preserve existing number params
+        Object.entries(numberParams).forEach(([name, param]) => {
+          nextParams[name] = param;
+        });
+
+        form.setFieldValue(`${pathToType}.params`, nextParams);
+      }
     }
   }, [currentParams, extractedParams]);
 
@@ -211,7 +242,7 @@ const Params = ({
       <div className="text-sm">Params:</div>
       {map(currentParams, (param, name) => (
         <Badge key={name} variant="outline">
-          {name}
+          {name} ({param.type})
         </Badge>
       ))}
     </div>

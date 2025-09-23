@@ -21,7 +21,7 @@ export type SchemaStringTemplateNode = BaseSchemaNode<
   {
     params?: {
       [paramName: string]: {
-        type: 'string';
+        type: 'string' | 'number';
       };
     };
   } & (
