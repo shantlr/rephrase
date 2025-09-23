@@ -4,6 +4,7 @@ import {
   useProject,
   useDeleteProject,
 } from '@/app/features/projects/use-projects';
+import { useProjectWordingsBranch } from '@/app/features/project-wording/use-project-wording';
 import { Badge } from '@/app/common/ui/badge';
 import { Button } from '@/app/common/ui/button';
 import {
@@ -23,6 +24,7 @@ import {
   LanguagesIcon,
   TrashIcon,
   EditIcon,
+  UploadIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -34,7 +36,16 @@ function RouteComponent() {
   const { projectId } = Route.useParams();
   const router = useRouter();
   const { data: project, isLoading, error } = useProject(projectId);
+  const { data: projectWording } = useProjectWordingsBranch(
+    project?.defaultBranch?.id || '',
+  );
   const deleteProject = useDeleteProject();
+
+  // Check if schema is empty (no fields and no nodes)
+  const isSchemaEmpty = projectWording?.schema
+    ? projectWording.schema.root.fields.length === 0 &&
+      Object.keys(projectWording.schema.nodes).length === 0
+    : false;
 
   const handleDelete = async () => {
     try {
@@ -115,6 +126,21 @@ function RouteComponent() {
             <div className="flex justify-between items-start">
               <CardTitle className="text-2xl">{project.name}</CardTitle>
               <div className="flex gap-2">
+                {project.permissions?.can_edit_schema &&
+                  project.defaultBranch &&
+                  isSchemaEmpty && (
+                    <Button asChild variant="default" size="sm">
+                      <Link
+                        to="/projects/$projectId/import"
+                        params={{
+                          projectId: project.id,
+                        }}
+                      >
+                        <UploadIcon className="w-4 h-4 mr-2" />
+                        Import
+                      </Link>
+                    </Button>
+                  )}
                 {project.permissions?.can_edit_schema &&
                   project.defaultBranch && (
                     <Button asChild variant="outline" size="sm">

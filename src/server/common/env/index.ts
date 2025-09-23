@@ -1,6 +1,6 @@
 import getenv from 'getenv';
 
-export const PG_DATABASE = getenv('PG_DATABASE', 'rewrite');
+export const PG_DATABASE = getenv('PG_DATABASE', 'rephrase');
 export const PG_HOST = getenv('PG_HOST', 'localhost');
 export const PG_USER = getenv('PG_USER', 'admin');
 export const PG_PASSWORD = getenv('PG_PASSWORD', '');
@@ -9,7 +9,7 @@ export const PG_PORT = getenv.int('PG_PORT', 5432);
 export const REDIS_HOST = getenv('REDIS_HOST', 'localhost');
 export const REDIS_PORT = getenv.int('REDIS_PORT', 6379);
 
-export const COOKIE_PREFIX = getenv('COOKIE_PREFIX', 'rewrite_');
+export const COOKIE_PREFIX = getenv('COOKIE_PREFIX', 'rephrase_');
 
 export const SESSION_EXPIRATION_DAYS = getenv.int(
   'SESSION_EXPIRATION_DAYS',

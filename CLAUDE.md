@@ -79,16 +79,9 @@ When the app need to do a query, use react-query
 
 ## Instructions
 
+- Before any code generation, please read `docs/CODING_RULES.md`
 - Once you are done doing a batch of editing, run `yarn lint:fix`
 - All db query should be put in corresponding repo methods
 - When possible use components from shadcn, you can install new one as needed
 - Any server functions should be prefixed with `server`
-- Avoid unneccessarily exporting values, for instance avoid exporting a props interface for components, when needed simply use a ComponentProps to extract a component props type
-- Avoid creating barrels files
 
-### Coding guidelines
-
-#### Components
-
-- inline callbacks when callback is used in a single place
-- inline props typing instead of declaring an interface when possible

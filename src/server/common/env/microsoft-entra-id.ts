@@ -22,5 +22,5 @@ export const MICROSOFT_ENTRA_ID_REDIRECT_URI = getenv(
 
 export const MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX = getenv(
   'MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX',
-  '@rewrite/entra-id/sso',
+  '@rephrase/entra-id/sso',
 );

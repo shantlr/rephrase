@@ -8,9 +8,9 @@ services:
     image: postgres:15
     restart: unless-stopped
     environment:
-      POSTGRES_USER: rewrite
-      POSTGRES_PASSWORD: rewrite
-      POSTGRES_DB: rewrite
+      POSTGRES_USER: rephrase
+      POSTGRES_PASSWORD: rephrase
+      POSTGRES_DB: rephrase
     ports:
       - '5432:5432'
     volumes:

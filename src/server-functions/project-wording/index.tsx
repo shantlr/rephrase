@@ -152,3 +152,76 @@ export const serverUpdateProjectWordingsBranch = createServerFn({
       locales: branch.data.locales?.map((l) => l.tag) || [],
     };
   });
+
+const importSchemaValidator = z.object({
+  projectId: z.string().min(1, 'Project ID is required'),
+  schema: z.object({
+    constants: z.array(z.any()),
+    schema: z.object({
+      nodes: z.record(z.string(), z.any()),
+      root: z.object({
+        type: z.literal('object'),
+        fields: z.array(z.any()),
+      }),
+    }),
+    locales: z.array(
+      z.object({
+        tag: z.string(),
+      }),
+    ),
+  }),
+});
+
+export const serverImportSchema = createServerFn({
+  method: 'POST',
+  response: 'data',
+})
+  .middleware([$serverAuthenticated()])
+  .validator(importSchemaValidator)
+  .handler(async ({ data, context }) => {
+    // Check if user has schema edit permission for the project
+    if (!isUserAllowedToEditProjectSchema(context.user, data.projectId)) {
+      throw json('unauthorized', { status: 403 });
+    }
+
+    // Get the main branch for the project
+    const mainBranch = await db
+      .selectFrom('project_wording_branch')
+      .select(['id', 'project_id', 'name', 'data', 'locked'])
+      .where('project_id', '=', data.projectId)
+      .where('name', '=', 'main')
+      .where('archived_at', 'is', null)
+      .executeTakeFirst();
+
+    if (!mainBranch) {
+      throw json('Main branch not found', { status: 404 });
+    }
+
+    // Check if branch is locked
+    if (mainBranch.locked) {
+      throw json('Branch is locked and cannot be modified', { status: 400 });
+    }
+
+    // Check if schema is empty before allowing import
+    const currentData = mainBranch.data;
+    if (
+      currentData.schema.root.fields.length > 0 ||
+      Object.keys(currentData.schema.nodes).length > 0
+    ) {
+      throw json(
+        'Schema is not empty. Import is only allowed on empty schemas.',
+        { status: 400 },
+      );
+    }
+
+    // Update the branch with the imported schema
+    await ProjectWordingRepo.mutate.updateBranch({
+      branchId: mainBranch.id,
+      data: data.schema as WordingData,
+    });
+
+    return {
+      success: true,
+      branchId: mainBranch.id,
+    };
+  });

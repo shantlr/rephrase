@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './app/routes/_authenticated/dashboard'
 import { Route as AuthenticatedProjectsCreateRouteImport } from './app/routes/_authenticated/projects.create'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './app/routes/_authenticated/projects.$projectId.index'
+import { Route as AuthenticatedProjectsProjectIdImportRouteImport } from './app/routes/_authenticated/projects.$projectId.import'
 import { Route as AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.config.edit'
 import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
 
@@ -53,6 +54,12 @@ const AuthenticatedProjectsProjectIdIndexRoute =
     path: '/projects/$projectId/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdImportRoute =
+  AuthenticatedProjectsProjectIdImportRouteImport.update({
+    id: '/projects/$projectId/import',
+    path: '/projects/$projectId/import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute =
   AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRouteImport.update({
     id: '/projects/$projectId/branch/$branchId/config/edit',
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
@@ -79,6 +87,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/_authenticated/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/_authenticated/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/projects/create'
+    | '/projects/$projectId/import'
     | '/projects/$projectId'
     | '/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/projects/create'
+    | '/projects/$projectId/import'
     | '/projects/$projectId'
     | '/projects/$projectId/branch/$branchId/config/edit'
   id:
@@ -116,6 +128,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/dashboard'
     | '/_authenticated/projects/create'
+    | '/_authenticated/projects/$projectId/import'
     | '/_authenticated/projects/$projectId/'
     | '/_authenticated/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesById: FileRoutesById
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/import': {
+      id: '/_authenticated/projects/$projectId/import'
+      path: '/projects/$projectId/import'
+      fullPath: '/projects/$projectId/import'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/branch/$branchId/config/edit': {
       id: '/_authenticated/projects/$projectId/branch/$branchId/config/edit'
       path: '/projects/$projectId/branch/$branchId/config/edit'
@@ -215,6 +235,7 @@ declare module '@tanstack/react-start/server' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProjectsCreateRoute: typeof AuthenticatedProjectsCreateRoute
+  AuthenticatedProjectsProjectIdImportRoute: typeof AuthenticatedProjectsProjectIdImportRoute
   AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
   AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute: typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
@@ -222,6 +243,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProjectsCreateRoute: AuthenticatedProjectsCreateRoute,
+  AuthenticatedProjectsProjectIdImportRoute:
+    AuthenticatedProjectsProjectIdImportRoute,
   AuthenticatedProjectsProjectIdIndexRoute:
     AuthenticatedProjectsProjectIdIndexRoute,
   AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute:
