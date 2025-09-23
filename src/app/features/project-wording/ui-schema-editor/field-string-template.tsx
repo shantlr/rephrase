@@ -11,12 +11,14 @@ import {
   usePathToTypeFromPathToField,
 } from './_base-field';
 import { BaseWordingValuesDialog } from './_base-wording-values-dialog';
-import { get, isEqual, map, sortBy, uniq } from 'lodash-es';
+import { flatMap, get, isEqual, map, sortBy, uniq } from 'lodash-es';
 import { BaseEditLocales } from './wording-values/_base-edit-locales';
 import { StringTemplateWordingValueInput } from './wording-values/string-template';
+import { PluralizationWordingValueInput } from './wording-values/pluralization';
 import { SchemaStringTemplateNode } from '@/server/data/wording.types';
 import { useEffect, useMemo } from 'react';
 import { Badge } from '@/app/common/ui/badge';
+import { Switch } from '@/app/common/ui/switch';
 import { extractParams } from './_util-extract-params';
 import { FieldTemplateWordingDialog } from './field-template-wording-dialog';
 
@@ -33,21 +35,89 @@ const Wording = ({
   });
   const selectedLocale = useFormSelectedLocale(form);
 
-  const value = useStore(form.store, (s) =>
-    get(s.values, `${pathToType}.instances.${selectedLocale}`),
+  const currentNode = useStore(
+    form.store,
+    (s) => get(s.values, pathToType) as SchemaStringTemplateNode,
   );
+
+  const isPluralized = currentNode?.variant === 'pluralized';
+
+  const value = useStore(form.store, (s) => {
+    const instances = get(
+      s.values,
+      `${pathToType}.instances.${selectedLocale}`,
+    );
+    if (isPluralized && instances) {
+      return `${instances.one || ''} / ${instances.other || ''}`;
+    }
+    return instances;
+  });
+
+  const handleVariantToggle = (checked: boolean) => {
+    const currentInstances = currentNode?.instances || {};
+
+    if (checked) {
+      const convertedInstances: Record<string, { one: string; other: string }> =
+        {};
+      Object.entries(currentInstances).forEach(([locale, value]) => {
+        convertedInstances[locale] = {
+          one: typeof value === 'string' ? value : '',
+          other: '',
+        };
+      });
+
+      form.setFieldValue(`${pathToType}.variant`, 'pluralized');
+      if (Object.keys(convertedInstances).length) {
+        form.setFieldValue(`${pathToType}.instances`, convertedInstances);
+      }
+    } else {
+      const convertedInstances: Record<string, string> = {};
+      Object.entries(currentInstances).forEach(([locale, value]) => {
+        convertedInstances[locale] =
+          typeof value === 'object' && value?.one ? value.one : '';
+      });
+
+      form.setFieldValue(`${pathToType}.variant`, undefined);
+      if (Object.keys(convertedInstances).length) {
+        form.setFieldValue(`${pathToType}.instances`, convertedInstances);
+      }
+    }
+  };
+
   return (
     <BaseWordingValuesDialog
-      trigger={value || ''}
+      trigger={value || <span className="text-gray-400">{'<empty>'}</span>}
       children={
         <BaseEditLocales
           form={form}
-          children={(locale) => (
-            <StringTemplateWordingValueInput
-              form={form}
-              pathToValue={`${pathToType}.instances.${locale}`}
-            />
-          )}
+          beforeLocales={
+            <div className="flex items-center space-x-2 p-2 border-b">
+              <Switch
+                id="pluralization-toggle"
+                checked={isPluralized}
+                onCheckedChange={handleVariantToggle}
+              />
+              <label
+                htmlFor="pluralization-toggle"
+                className="text-sm font-medium"
+              >
+                Pluralization
+              </label>
+            </div>
+          }
+          children={(locale) =>
+            isPluralized ? (
+              <PluralizationWordingValueInput
+                form={form}
+                pathToValue={`${pathToType}.instances.${locale}`}
+              />
+            ) : (
+              <StringTemplateWordingValueInput
+                form={form}
+                pathToValue={`${pathToType}.instances.${locale}`}
+              />
+            )
+          }
         />
       }
     />
@@ -63,6 +133,12 @@ export const useExtractParamsFromWordingValues = ({
 }) => {
   const values = useStore(form.store, (s) => {
     const type = get(s.values, pathToType) as SchemaStringTemplateNode;
+    if (type.variant === 'pluralized') {
+      return flatMap(type?.instances, (v) => [
+        v.one ?? '',
+        v.other ?? '',
+      ]).filter((v) => !!v);
+    }
     return map(type?.instances);
   });
 

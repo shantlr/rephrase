@@ -24,10 +24,23 @@ export type SchemaStringTemplateNode = BaseSchemaNode<
         type: 'string';
       };
     };
-    instances?: {
-      [localeTag: string]: string;
-    };
-  }
+  } & (
+    | {
+        variant: 'pluralized';
+        instances?: {
+          [localeTag: string]: {
+            one: string;
+            other: string;
+          };
+        };
+      }
+    | {
+        variant?: never;
+        instances?: {
+          [localeTag: string]: string;
+        };
+      }
+  )
 >;
 export type SchemaArrayNode = BaseSchemaNode<
   'array',
