@@ -60,6 +60,14 @@ export type SchemaNumberNode = BaseSchemaNode<
     };
   }
 >;
+export type SchemaBooleanNode = BaseSchemaNode<
+  'boolean',
+  {
+    instances?: {
+      [localeTag: string]: boolean;
+    };
+  }
+>;
 export type SchemaObjectNode = BaseSchemaNode<
   'object',
   {
@@ -92,6 +100,7 @@ export type SchemaNode =
   | SchemaStringTemplateNode
   | SchemaArrayNode
   | SchemaNumberNode
+  | SchemaBooleanNode
   | SchemaObjectNode;
 
 export type WordingData = {

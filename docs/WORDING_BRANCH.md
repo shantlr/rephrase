@@ -22,6 +22,7 @@ Schema definition is a complex part of this project. It has some similarity to a
 The wording schema supports the following field types:
 - **String Template**: Text fields with support for parameters and pluralization
 - **Number**: Numeric values for quantities, prices, scores, etc.
+- **Boolean**: True/false values for feature flags, settings, or binary options
 - **Object**: Nested structures containing multiple fields
 - **Array**: Lists of items of a specific type
 
@@ -87,6 +88,12 @@ const config: WordingData['config'] = {
         instances: {
           'en-GB': 42
         }
+      },
+      '9': {
+        type: 'boolean',
+        instances: {
+          'en-GB': true
+        }
       }
     },
     root: {
@@ -111,6 +118,10 @@ const config: WordingData['config'] = {
         {
           name: 'maxUsers',
           typeId: '8',
+        },
+        {
+          name: 'isFeatureEnabled',
+          typeId: '9',
         }
       ]
     }
@@ -222,6 +233,56 @@ const config: WordingData = {
 ```
 
 In this example, `maxItemsPerUser` might be the same across locales (100), while `subscriptionPrice` varies by region to account for different currencies and pricing strategies.
+
+### Boolean Fields
+
+Boolean fields store true/false values that may vary by locale. They are useful for feature flags, settings, or any binary configuration that might differ across regions or languages.
+
+```ts
+const config: WordingData = {
+  constants: [],
+  schema: {
+    nodes: {
+      '1': {
+        type: 'boolean',
+        instances: {
+          'en-US': true,
+          'en-GB': true,
+          'fr-FR': false
+        }
+      },
+      '2': {
+        type: 'boolean',
+        instances: {
+          'en-US': false,
+          'en-GB': false,
+          'fr-FR': true
+        }
+      }
+    },
+    root: {
+      type: 'object',
+      fields: [
+        {
+          name: 'enableBetaFeature',
+          typeId: '1'
+        },
+        {
+          name: 'requireGDPRConsent',
+          typeId: '2'
+        }
+      ]
+    }
+  },
+  locales: [
+    { tag: 'en-US' },
+    { tag: 'en-GB' },
+    { tag: 'fr-FR' }
+  ]
+}
+```
+
+In this example, `enableBetaFeature` might be enabled for English locales but disabled for French, while `requireGDPRConsent` might be disabled for US but enabled for European locales due to regulatory differences.
 
 ### String Template Pluralization
 

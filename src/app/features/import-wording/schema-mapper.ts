@@ -4,6 +4,7 @@ import {
   SchemaStringTemplateNode,
   SchemaArrayNode,
   SchemaNumberNode,
+  SchemaBooleanNode,
 } from '@/server/data/wording.types';
 import { isPlainObject } from 'lodash-es';
 import { nanoid } from 'nanoid';
@@ -17,6 +18,8 @@ export function inferSchemaFromValue(value: unknown) {
     return inferStringTemplateNodeFromValue(value);
   } else if (typeof value === 'number') {
     return inferNumberNodeFromValue();
+  } else if (typeof value === 'boolean') {
+    return inferBooleanNodeFromValue();
   }
 
   return null;
@@ -45,6 +48,20 @@ const inferNumberNodeFromValue = () => {
   const node: SchemaNumberNode = {
     id: nanoid(),
     type: 'number',
+  };
+
+  return {
+    nodes: {
+      [node.id]: node,
+    } as Record<string, SchemaNode>,
+    rootId: node.id,
+  };
+};
+
+const inferBooleanNodeFromValue = () => {
+  const node: SchemaBooleanNode = {
+    id: nanoid(),
+    type: 'boolean',
   };
 
   return {

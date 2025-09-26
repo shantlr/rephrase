@@ -3,7 +3,13 @@ import { PathToType, useProjectWordingForm } from '../use-project-wording-form';
 import { useStore } from '@tanstack/react-form';
 import { get } from 'lodash-es';
 import { SchemaNode } from '@/server/data/wording.types';
-import { HashIcon, ListIcon, PackageIcon, TypeIcon } from 'lucide-react';
+import {
+  CheckSquareIcon,
+  HashIcon,
+  ListIcon,
+  PackageIcon,
+  TypeIcon,
+} from 'lucide-react';
 import { DistributiveOmit } from '@/ts-utils';
 import {
   Select,
@@ -40,6 +46,11 @@ export const SelectFieldType = memo(
           value: 'number',
           label: 'Number',
           icon: <HashIcon />,
+        },
+        {
+          value: 'boolean',
+          label: 'Boolean',
+          icon: <CheckSquareIcon />,
         },
         {
           value: 'object',
@@ -134,6 +145,14 @@ export const SelectFieldType = memo(
               replaceType({
                 node: {
                   type: 'number',
+                },
+              });
+              break;
+            }
+            case 'boolean': {
+              replaceType({
+                node: {
+                  type: 'boolean',
                 },
               });
               break;

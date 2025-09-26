@@ -1,5 +1,6 @@
 import { StringTemplateWordingValueInput } from './string-template';
 import { Input } from '@/app/common/ui/input';
+import { Switch } from '@/app/common/ui/switch';
 import {
   PathToField,
   PathToType,
@@ -49,9 +50,11 @@ export const WordingArrayInput = ({
         ? ''
         : itemType === 'number'
           ? 0
-          : itemType === 'array'
-            ? []
-            : {};
+          : itemType === 'boolean'
+            ? false
+            : itemType === 'array'
+              ? []
+              : {};
 
     form.setFieldValue(
       pathToValue as `${PathToType}.${string}`,
@@ -265,6 +268,31 @@ const NumberWordingValueInput = ({
   );
 };
 
+const BooleanWordingValueInput = ({
+  pathToValue,
+  form,
+}: {
+  pathToValue: string;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  const value = useStore(
+    form.store,
+    (s) => get(s.values, pathToValue) as boolean | undefined,
+  );
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Switch
+        checked={value ?? false}
+        onCheckedChange={(checked) => {
+          form.setFieldValue(pathToValue as `${PathToType}.${string}`, checked);
+        }}
+      />
+      <span className="text-sm">{value ? 'True' : 'False'}</span>
+    </div>
+  );
+};
+
 export const WordingValueInput = ({
   pathToType,
   form,
@@ -290,6 +318,9 @@ export const WordingValueInput = ({
     }
     case 'number': {
       return <NumberWordingValueInput pathToValue={pathToValue} form={form} />;
+    }
+    case 'boolean': {
+      return <BooleanWordingValueInput pathToValue={pathToValue} form={form} />;
     }
     case 'array': {
       return (

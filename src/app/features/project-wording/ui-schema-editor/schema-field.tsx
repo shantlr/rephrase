@@ -6,6 +6,7 @@ import {
 import { memo } from 'react';
 import { SchemaStringTemplateField } from './field-string-template';
 import { SchemaNumberField } from './field-number';
+import { SchemaBooleanField } from './field-boolean';
 import { SchemaArrayField } from './field-array';
 import { SchemaObjectField } from './field-object';
 import { usePathToTypeFromPathToField } from './_base-field';
@@ -45,6 +46,16 @@ export const SchemaFormField = memo(
       case 'number': {
         return (
           <SchemaNumberField
+            pathToField={pathToField}
+            form={form}
+            onDelete={onDelete}
+            wordingEditable={wordingEditable}
+          />
+        );
+      }
+      case 'boolean': {
+        return (
+          <SchemaBooleanField
             pathToField={pathToField}
             form={form}
             onDelete={onDelete}

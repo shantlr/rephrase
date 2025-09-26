@@ -34,6 +34,15 @@ Once we open the locale instances dialog, we get a number input to edit the valu
 
 Number fields are straightforward - they store numeric values that can vary by locale. This is useful for quantities, prices, configuration values, or any other numeric data that might differ across regions or languages.
 
+### Boolean Fields
+
+`field-boolean.tsx` implement the `boolean` schema node
+
+Field of type `boolean` show current selected locale associated boolean value as preview (true/false).
+Once we open the locale instances dialog, we get a switch toggle to edit the true/false value for each locale.
+
+Boolean fields are useful for feature flags, settings, or any binary configuration that might differ across regions or languages. The switch provides an intuitive way to toggle between true and false values.
+
 ### Object Fields
 
 `field-object.tsx` implement the `object` schema node.
@@ -97,6 +106,7 @@ Different input components handle different field types:
 
 - `StringTemplateWordingValueInput` - Basic string input
 - `NumberWordingValueInput` - Number input for numeric values
+- `BooleanWordingValueInput` - Switch toggle for true/false values
 - `PluralizationWordingValueInput` - Dual inputs for singular/plural forms
 - `WordingArrayInput` - Dynamic array management with add/remove controls
 - `WordingObjectInput` - Handles nested object structures

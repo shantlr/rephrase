@@ -17,6 +17,8 @@ An instance of the service is already started, you don't need to start it
 
 This project main feature is the project wording branches, if you need works on this, please have a look at `./docs/WORDING_BRANCH.md`
 
+If you plan to edit the app schema editor please have a look at `./docs/WORDING_SCHEMA_STUDIO.md` 
+
 ## Project Architecture
 
 This is a React application built with **TanStack Start** (React-based full-stack framework) using:
