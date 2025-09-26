@@ -52,6 +52,14 @@ export type SchemaArrayNode = BaseSchemaNode<
     };
   }
 >;
+export type SchemaNumberNode = BaseSchemaNode<
+  'number',
+  {
+    instances?: {
+      [localeTag: string]: number;
+    };
+  }
+>;
 export type SchemaObjectNode = BaseSchemaNode<
   'object',
   {
@@ -83,6 +91,7 @@ export type SchemaObjectNode = BaseSchemaNode<
 export type SchemaNode =
   | SchemaStringTemplateNode
   | SchemaArrayNode
+  | SchemaNumberNode
   | SchemaObjectNode;
 
 export type WordingData = {

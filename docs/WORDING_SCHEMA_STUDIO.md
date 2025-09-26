@@ -25,6 +25,15 @@ Once we open the locale instances dialog, we can toggle between pluralized varia
 The `field-string-template` automatically infer params from locale instances and sync it with the field params.
 When switching to pluralized variant, a `count` parameter of type `number` is automatically added.
 
+### Number Fields
+
+`field-number.tsx` implement the `number` schema node
+
+Field of type `number` show current selected locale associated numeric value as preview.
+Once we open the locale instances dialog, we get a number input to edit the value for each locale.
+
+Number fields are straightforward - they store numeric values that can vary by locale. This is useful for quantities, prices, configuration values, or any other numeric data that might differ across regions or languages.
+
 ### Object Fields
 
 `field-object.tsx` implement the `object` schema node.
@@ -87,6 +96,7 @@ Parameters are displayed as badges showing both name and type: `paramName (type)
 Different input components handle different field types:
 
 - `StringTemplateWordingValueInput` - Basic string input
+- `NumberWordingValueInput` - Number input for numeric values
 - `PluralizationWordingValueInput` - Dual inputs for singular/plural forms
 - `WordingArrayInput` - Dynamic array management with add/remove controls
 - `WordingObjectInput` - Handles nested object structures

@@ -19,6 +19,12 @@ Projects must define a schema to provide localization. Each locale must implemen
 
 Schema definition is a complex part of this project. It has some similarity to a typing system, and can allow for example to define records with keys that should respect a given pattern.
 
+The wording schema supports the following field types:
+- **String Template**: Text fields with support for parameters and pluralization
+- **Number**: Numeric values for quantities, prices, scores, etc.
+- **Object**: Nested structures containing multiple fields
+- **Array**: Lists of items of a specific type
+
 `config.schema.root` is always an object
 Object fields have a name, and a typeId that references a key in the `config.schema.nodes` record
 
@@ -75,6 +81,12 @@ const config: WordingData['config'] = {
       },
       '7': {
         type: 'string-template'
+      },
+      '8': {
+        type: 'number',
+        instances: {
+          'en-GB': 42
+        }
       }
     },
     root: {
@@ -95,6 +107,10 @@ const config: WordingData['config'] = {
         {
           name: 'sidebar',
           typeId: '4',
+        },
+        {
+          name: 'maxUsers',
+          typeId: '8',
         }
       ]
     }
@@ -156,6 +172,56 @@ const config: WordingData = {
 ```
 
 In this example, the string template defines two parameters (`firstName` and `itemCount`) that can be used in the locale instances. At runtime, these placeholders would be replaced with actual values.
+
+### Number Fields
+
+Number fields are used to store numeric values that may vary by locale, such as quantities, prices, scores, or configuration values. Each locale can define its own numeric value for a number field.
+
+```ts
+const config: WordingData = {
+  constants: [],
+  schema: {
+    nodes: {
+      '1': {
+        type: 'number',
+        instances: {
+          'en-US': 100,
+          'en-GB': 100,
+          'fr-FR': 150
+        }
+      },
+      '2': {
+        type: 'number',
+        instances: {
+          'en-US': 29.99,
+          'en-GB': 24.99,
+          'fr-FR': 27.50
+        }
+      }
+    },
+    root: {
+      type: 'object',
+      fields: [
+        {
+          name: 'maxItemsPerUser',
+          typeId: '1'
+        },
+        {
+          name: 'subscriptionPrice',
+          typeId: '2'
+        }
+      ]
+    }
+  },
+  locales: [
+    { tag: 'en-US' },
+    { tag: 'en-GB' },
+    { tag: 'fr-FR' }
+  ]
+}
+```
+
+In this example, `maxItemsPerUser` might be the same across locales (100), while `subscriptionPrice` varies by region to account for different currencies and pricing strategies.
 
 ### String Template Pluralization
 

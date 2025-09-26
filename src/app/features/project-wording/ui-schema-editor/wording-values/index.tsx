@@ -1,4 +1,5 @@
 import { StringTemplateWordingValueInput } from './string-template';
+import { Input } from '@/app/common/ui/input';
 import {
   PathToField,
   PathToType,
@@ -44,7 +45,13 @@ export const WordingArrayInput = ({
 
   const onInsertValue = useCallback((index: number) => {
     const newValue =
-      itemType === 'string-template' ? '' : itemType === 'array' ? [] : {};
+      itemType === 'string-template'
+        ? ''
+        : itemType === 'number'
+          ? 0
+          : itemType === 'array'
+            ? []
+            : {};
 
     form.setFieldValue(
       pathToValue as `${PathToType}.${string}`,
@@ -231,6 +238,33 @@ const WordingObjectInput = ({
   );
 };
 
+const NumberWordingValueInput = ({
+  pathToValue,
+  form,
+}: {
+  pathToValue: string;
+  form: ReturnType<typeof useProjectWordingForm>['form'];
+}) => {
+  const value = useStore(
+    form.store,
+    (s) => get(s.values, pathToValue) as number | undefined,
+  );
+
+  return (
+    <Input
+      type="number"
+      value={value?.toString() ?? ''}
+      onChange={(e) => {
+        const numValue =
+          e.target.value === '' ? undefined : parseFloat(e.target.value);
+        form.setFieldValue(pathToValue as `${PathToType}.${string}`, numValue);
+      }}
+      placeholder="Enter number"
+      className="w-full"
+    />
+  );
+};
+
 export const WordingValueInput = ({
   pathToType,
   form,
@@ -253,6 +287,9 @@ export const WordingValueInput = ({
           form={form}
         />
       );
+    }
+    case 'number': {
+      return <NumberWordingValueInput pathToValue={pathToValue} form={form} />;
     }
     case 'array': {
       return (

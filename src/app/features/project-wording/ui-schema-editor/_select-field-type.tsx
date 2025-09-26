@@ -3,7 +3,7 @@ import { PathToType, useProjectWordingForm } from '../use-project-wording-form';
 import { useStore } from '@tanstack/react-form';
 import { get } from 'lodash-es';
 import { SchemaNode } from '@/server/data/wording.types';
-import { ListIcon, PackageIcon, TypeIcon } from 'lucide-react';
+import { HashIcon, ListIcon, PackageIcon, TypeIcon } from 'lucide-react';
 import { DistributiveOmit } from '@/ts-utils';
 import {
   Select,
@@ -35,6 +35,11 @@ export const SelectFieldType = memo(
           value: 'string-template',
           label: 'String Template',
           icon: <TypeIcon />,
+        },
+        {
+          value: 'number',
+          label: 'Number',
+          icon: <HashIcon />,
         },
         {
           value: 'object',
@@ -121,6 +126,14 @@ export const SelectFieldType = memo(
               replaceType({
                 node: {
                   type: 'string-template',
+                },
+              });
+              break;
+            }
+            case 'number': {
+              replaceType({
+                node: {
+                  type: 'number',
                 },
               });
               break;

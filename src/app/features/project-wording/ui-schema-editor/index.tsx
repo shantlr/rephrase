@@ -35,7 +35,7 @@ const SelectLocale = ({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">Show values for:</span>
+      <span className="text-sm text-muted-foreground">Preview values for:</span>
       <Select
         value={selectedLocale || ''}
         onValueChange={(value) => {

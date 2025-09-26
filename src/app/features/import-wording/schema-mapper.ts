@@ -3,6 +3,7 @@ import {
   SchemaObjectNode,
   SchemaStringTemplateNode,
   SchemaArrayNode,
+  SchemaNumberNode,
 } from '@/server/data/wording.types';
 import { isPlainObject } from 'lodash-es';
 import { nanoid } from 'nanoid';
@@ -14,6 +15,8 @@ export function inferSchemaFromValue(value: unknown) {
     return inferObjectSchemaFromValue(value as Record<string, unknown>);
   } else if (typeof value === 'string') {
     return inferStringTemplateNodeFromValue(value);
+  } else if (typeof value === 'number') {
+    return inferNumberNodeFromValue();
   }
 
   return null;
@@ -29,6 +32,20 @@ const inferStringTemplateNodeFromValue = (str: string) => {
   if (Object.keys(params).length > 0) {
     node.params = params;
   }
+
+  return {
+    nodes: {
+      [node.id]: node,
+    } as Record<string, SchemaNode>,
+    rootId: node.id,
+  };
+};
+
+const inferNumberNodeFromValue = () => {
+  const node: SchemaNumberNode = {
+    id: nanoid(),
+    type: 'number',
+  };
 
   return {
     nodes: {
