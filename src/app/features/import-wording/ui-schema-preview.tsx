@@ -91,18 +91,6 @@ export function SchemaPreview({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Locales */}
-            <div>
-              <h4 className="font-medium mb-2">Supported Locales:</h4>
-              <div className="flex gap-2">
-                {/* {preview.locales?.map((locale: any) => (
-                  <Badge key={locale.tag} variant="secondary">
-                    {locale.tag}
-                  </Badge>
-                ))} */}
-              </div>
-            </div>
-
             {/* Constants */}
             {/* {preview.constants && preview.constants.length > 0 && (
               <div>
@@ -230,6 +218,20 @@ function StructureNode({
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+  if (currentNode.type === 'number') {
+    return (
+      <div style={{ paddingLeft: indent }} className="text-sm text-green-700">
+        <span className="text-blue-600 font-mono">number</span>
+      </div>
+    );
+  }
+  if (currentNode.type === 'boolean') {
+    return (
+      <div style={{ paddingLeft: indent }} className="text-sm text-purple-700">
+        <span className="text-blue-600 font-mono">boolean</span>
       </div>
     );
   }

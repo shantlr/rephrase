@@ -48,7 +48,9 @@ const Wording = ({
       `${pathToType}.instances.${selectedLocale}`,
     );
     if (isPluralized && instances) {
-      return `${instances.one || ''} / ${instances.other || ''}`;
+      const singularValue = instances.one || '<no-singular>';
+      const pluralValue = instances.other || '<no-plural>';
+      return `${singularValue} / ${pluralValue}`;
     }
     return instances;
   });
