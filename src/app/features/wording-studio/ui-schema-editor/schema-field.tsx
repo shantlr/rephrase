@@ -1,43 +1,34 @@
-import {
-  useProjectWordingForm,
-  PathToField,
-  useFieldType,
-} from '../use-project-wording-form';
+import { PathToField } from '../use-project-wording-form';
 import { memo } from 'react';
 import { SchemaStringTemplateField } from './field-string-template';
 import { SchemaNumberField } from './field-number';
 import { SchemaBooleanField } from './field-boolean';
 import { SchemaArrayField } from './field-array';
 import { SchemaObjectField } from './field-object';
-import { usePathToTypeFromPathToField } from './_base-field';
+import { useWordingStudioStore } from '../ui-wording-studio-context';
+import { useReadStoreField } from '../store';
 
 export const SchemaFormField = memo(
   ({
     pathToField,
-    form,
     onDelete,
     wordingEditable,
   }: {
     pathToField: PathToField;
-    form: ReturnType<typeof useProjectWordingForm>['form'];
     onDelete?: (pathToField: PathToField) => void;
     wordingEditable: boolean;
   }) => {
-    const { pathToType } = usePathToTypeFromPathToField({
-      pathToField,
-      form,
-    });
-    const type = useFieldType({
-      pathToType,
-      form,
-    });
+    const store = useWordingStudioStore();
 
-    switch (type) {
+    const typeId = useReadStoreField(store, `${pathToField}.typeId`);
+    const pathToType = `schema.nodes.${typeId}` as const;
+    const fieldType = useReadStoreField(store, `${pathToType}.type`);
+
+    switch (fieldType) {
       case 'string-template': {
         return (
           <SchemaStringTemplateField
             pathToField={pathToField}
-            form={form}
             onDelete={onDelete}
             wordingEditable={wordingEditable}
           />
@@ -47,7 +38,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaNumberField
             pathToField={pathToField}
-            form={form}
             onDelete={onDelete}
             wordingEditable={wordingEditable}
           />
@@ -57,7 +47,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaBooleanField
             pathToField={pathToField}
-            form={form}
             onDelete={onDelete}
             wordingEditable={wordingEditable}
           />
@@ -67,7 +56,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaArrayField
             pathToField={pathToField}
-            form={form}
             onDelete={onDelete}
             wordingEditable={wordingEditable}
           />
@@ -77,7 +65,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaObjectField
             pathToField={pathToField}
-            form={form}
             onDelete={onDelete}
             wordingEditable={wordingEditable}
           />

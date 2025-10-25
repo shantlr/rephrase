@@ -4,7 +4,7 @@ import {
   useProject,
   useDeleteProject,
 } from '@/app/features/projects/use-projects';
-import { useProjectWordingsBranch } from '@/app/features/project-wording/use-project-wording';
+import { useProjectWordingsBranch } from '@/app/features/wording-studio/use-project-wording';
 import { Badge } from '@/app/common/ui/badge';
 import { Button } from '@/app/common/ui/button';
 import {
@@ -152,7 +152,7 @@ function RouteComponent() {
                         }}
                       >
                         <EditIcon className="w-4 h-4 mr-2" />
-                        Edit Configuration
+                        Studio
                       </Link>
                     </Button>
                   )}

@@ -6,9 +6,9 @@ import {
   WordingEnumConstant,
   WordingStringConstant,
 } from '@/server/data/wording.types';
-import { SchemaEditor } from '@/app/features/project-wording/ui-schema-editor';
-import { ConstantsField } from '@/app/features/project-wording/ui-constants-field';
-import { useProjectWordingForm } from '@/app/features/project-wording/use-project-wording-form';
+import { SchemaEditor } from '@/app/features/wording-studio/ui-schema-editor';
+import { ConstantsField } from '@/app/features/wording-studio/ui-constants-field';
+import { useProjectWordingForm } from '@/app/features/wording-studio/use-project-wording-form';
 
 interface EditInferredSchemaStepProps {
   initialSchema: WordingData['schema'];

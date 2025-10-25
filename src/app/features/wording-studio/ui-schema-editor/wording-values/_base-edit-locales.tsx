@@ -1,17 +1,16 @@
 import { ReactNode } from 'react';
-import { useProjectWordingForm } from '../../use-project-wording-form';
-import { useStore } from '@tanstack/react-form';
+import { useReadStoreField } from '../../store';
+import { useWordingStudioStore } from '../../ui-wording-studio-context';
 
 export const BaseEditLocales = ({
-  form,
   beforeLocales,
   children,
 }: {
-  form: ReturnType<typeof useProjectWordingForm>['form'];
   beforeLocales?: ReactNode;
   children: (locale: string) => ReactNode;
 }) => {
-  const locales = useStore(form.store, (s) => s.values.locales);
+  const store = useWordingStudioStore();
+  const locales = useReadStoreField(store, 'locales');
 
   return (
     <div className="flex flex-col gap-2">

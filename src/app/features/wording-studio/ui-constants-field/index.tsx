@@ -1,28 +1,22 @@
 import { Button } from '@/app/common/ui/button';
 import { PlusIcon } from 'lucide-react';
 import { EnumConstantField } from './enum-field';
-import { useProjectWordingForm } from '../use-project-wording-form';
 import { memo } from 'react';
-import { useStore } from '@tanstack/react-form';
 import { range } from 'lodash-es';
 import { WordingEnumConstant } from '@/server/data/wording.types';
+import { useWordingStudioStore } from '../ui-wording-studio-context';
+import { useReadStoreField, useSelectStoreField } from '../store';
 
 const ConstantItemField = memo(
-  ({
-    constantIndex: index,
-    form,
-  }: {
-    constantIndex: number;
-    form: ReturnType<typeof useProjectWordingForm>['form'];
-  }) => {
-    const constantType = useStore(
-      form.store,
-      (s) => s.values.constants[index]?.type,
-    );
+  ({ constantIndex: index }: { constantIndex: number }) => {
+    const store = useWordingStudioStore();
+
+    const constantType = useReadStoreField(store, `constants.${index}.type`);
+
     return (
       <div key={index} className="group/item">
         {constantType === 'enum' ? (
-          <EnumConstantField constantIndex={index} form={form} />
+          <EnumConstantField constantIndex={index} />
         ) : (
           <span>Unhandled constant type</span>
         )}
@@ -31,7 +25,7 @@ const ConstantItemField = memo(
           <div className="absolute inset-0 flex items-center justify-start pl-3 opacity-0 group-hover/add-line:opacity-100 transition-opacity">
             <Button
               onClick={() => {
-                form.setFieldValue('constants', (prev) => [
+                store?.setField('constants', (prev) => [
                   ...prev.slice(0, index + 1),
                   {
                     type: 'enum',
@@ -56,14 +50,12 @@ const ConstantItemField = memo(
 );
 ConstantItemField.displayName = 'ConstantItemField';
 
-export const ConstantsField = ({
-  form,
-}: {
-  form: ReturnType<typeof useProjectWordingForm>['form'];
-}) => {
-  const constantCount = useStore(
-    form.store,
-    (s) => s.values.constants?.length ?? 0,
+export const ConstantsField = () => {
+  const store = useWordingStudioStore();
+  const constantCount = useSelectStoreField(
+    store,
+    'constants',
+    (c) => c?.length ?? 0,
   );
 
   return (
@@ -72,7 +64,7 @@ export const ConstantsField = ({
         <h3 className="text-lg font-semibold mb-4">Constants</h3>
 
         {range(0, constantCount).map((_, index) => (
-          <ConstantItemField key={index} constantIndex={index} form={form} />
+          <ConstantItemField key={index} constantIndex={index} />
         ))}
         {/* Add enum at the end */}
         <div className="py-2 text-center group/end-add">
@@ -81,14 +73,16 @@ export const ConstantsField = ({
             size="sm"
             className="text-blue-600 hover:text-blue-700 opacity-40 group-hover/end-add:opacity-100 transition-opacity"
             onClick={() => {
-              form.setFieldValue('constants', (prev) => [
-                ...prev,
-                {
-                  type: 'enum',
-                  name: '',
-                  options: [],
-                } satisfies WordingEnumConstant,
-              ]);
+              store?.setField('constants', (prev) => {
+                return [
+                  ...prev,
+                  {
+                    type: 'enum',
+                    name: '',
+                    options: [],
+                  } satisfies WordingEnumConstant,
+                ];
+              });
             }}
           >
             <PlusIcon className="w-3 h-3 mr-2" />

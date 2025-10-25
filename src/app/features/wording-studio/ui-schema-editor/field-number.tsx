@@ -1,27 +1,21 @@
-import { useStore } from '@tanstack/react-form';
 import {
   PathToField,
-  PathToType,
-  useFormSelectedLocale,
-  useProjectWordingForm,
+  PathToWordingInstanceValue,
 } from '../use-project-wording-form';
-import { SchemaBaseField, usePathToTypeFromPathToField } from './_base-field';
+import { SchemaBaseField } from './_base-field';
 import { BaseWordingValuesDialog } from './_base-wording-values-dialog';
-import { get } from 'lodash-es';
 import { BaseEditLocales } from './wording-values/_base-edit-locales';
 import { Input } from '@/app/common/ui/input';
+import { useWordingStudioStore } from '../ui-wording-studio-context';
+import { useReadStoreField } from '../store';
 
 const NumberWordingValueInput = ({
   pathToValue,
-  form,
 }: {
-  pathToValue: string;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
+  pathToValue: PathToWordingInstanceValue;
 }) => {
-  const value = useStore(
-    form.store,
-    (s) => get(s.values, pathToValue) as number | undefined,
-  );
+  const store = useWordingStudioStore();
+  const value = useReadStoreField(store, pathToValue) as number | undefined;
 
   return (
     <Input
@@ -30,43 +24,36 @@ const NumberWordingValueInput = ({
       onChange={(e) => {
         const numValue =
           e.target.value === '' ? undefined : parseFloat(e.target.value);
-        form.setFieldValue(pathToValue as `${PathToType}.${string}`, numValue);
+        store?.setField(pathToValue, numValue);
       }}
       placeholder="Enter number"
     />
   );
 };
 
-const Wording = ({
-  pathToField,
-  form,
-}: {
-  pathToField: PathToField;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
-}) => {
-  const { pathToType } = usePathToTypeFromPathToField({
-    pathToField,
-    form,
-  });
-  const selectedLocale = useFormSelectedLocale(form);
+const Wording = ({ pathToField }: { pathToField: PathToField }) => {
+  const store = useWordingStudioStore();
+  const typeId = useReadStoreField(store, `${pathToField}.typeId`);
+  const pathToType = `schema.nodes.${typeId}` as const;
 
-  const value = useStore(form.store, (s) => {
-    const numValue = get(
-      s.values,
-      `${pathToType}.instances.${selectedLocale}`,
-    ) as number | undefined;
-    return numValue?.toString();
-  });
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+
+  const value = useReadStoreField(
+    store,
+    `${pathToType}.instances.${selectedLocale}`,
+  ) as number | undefined;
 
   return (
     <BaseWordingValuesDialog
-      trigger={value || <span className="text-gray-400">{'<empty>'}</span>}
+      trigger={
+        (value as number | undefined) || (
+          <span className="text-gray-400">{'<empty>'}</span>
+        )
+      }
       children={
         <BaseEditLocales
-          form={form}
           children={(locale) => (
             <NumberWordingValueInput
-              form={form}
               pathToValue={`${pathToType}.instances.${locale}`}
             />
           )}
@@ -78,28 +65,23 @@ const Wording = ({
 
 export const SchemaNumberField = ({
   pathToField,
-  form,
   onDelete,
   wordingEditable,
 }: {
   pathToField: PathToField;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
   onDelete?: (pathToField: PathToField) => void;
   wordingEditable: boolean;
 }) => {
   return (
     <SchemaBaseField
       pathToField={pathToField}
-      form={form}
       expandable={false}
       onDelete={onDelete}
       children={({ fieldName, selectType, deleteButton }) => (
         <div className="w-full flex gap-1 group">
           {selectType}
           {fieldName}
-          {!!wordingEditable && (
-            <Wording pathToField={pathToField} form={form} />
-          )}
+          {!!wordingEditable && <Wording pathToField={pathToField} />}
           {deleteButton}
         </div>
       )}

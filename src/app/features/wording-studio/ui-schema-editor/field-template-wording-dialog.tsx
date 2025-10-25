@@ -1,52 +1,42 @@
 import {
   PathToField,
-  useFormSelectedLocale,
   useObjectFieldNamePossibilities,
-  useProjectWordingForm,
-  useStoreObjectField,
 } from '../use-project-wording-form';
 import { BaseWordingValuesDialog } from './_base-wording-values-dialog';
 import { BaseEditLocales } from './wording-values/_base-edit-locales';
 import { memo } from 'react';
 import { Badge } from '@/app/common/ui/badge';
 import { WordingObjectFieldInput } from './wording-values';
+import { useWordingStudioStore } from '../ui-wording-studio-context';
+import { useReadStoreField, useSelectStoreField } from '../store';
 
 /**
  * Wording values dialog when field name contain params
  */
 export const FieldTemplateWordingDialog = memo(
-  ({
-    pathToField,
-    form,
-  }: {
-    pathToField: PathToField;
-    form: ReturnType<typeof useProjectWordingForm>['form'];
-  }) => {
+  ({ pathToField }: { pathToField: PathToField }) => {
+    const store = useWordingStudioStore();
     const possibleFieldNames = useObjectFieldNamePossibilities({
+      store,
       pathToField,
-      form,
     });
 
-    const selectedLocale = useFormSelectedLocale(form);
-    const values = useStoreObjectField({
-      pathToField,
-      form,
-      select: (field) => {
-        const localeInstances = field.instances?.[selectedLocale!];
-
-        if (!localeInstances) {
+    const selectedLocale = useReadStoreField(store, 'selectedLocale');
+    const values = useSelectStoreField(
+      store,
+      `${pathToField}.instances.${selectedLocale}`,
+      (v) => {
+        if (!v) {
           return null;
         }
 
-        const result = possibleFieldNames.filter(
-          (fieldName) => fieldName in localeInstances!,
-        );
+        const result = possibleFieldNames.filter((fieldName) => fieldName in v);
         if (!result.length) {
           return null;
         }
         return result;
       },
-    });
+    );
 
     return (
       <BaseWordingValuesDialog
@@ -65,11 +55,9 @@ export const FieldTemplateWordingDialog = memo(
         }
         children={
           <BaseEditLocales
-            form={form}
             children={(locale) => (
               <WordingObjectFieldInput
                 pathToField={pathToField}
-                form={form}
                 pathToParentValue={`${pathToField}.instances.${locale}`}
               />
             )}

@@ -6,13 +6,13 @@ import { useProject } from '@/app/features/projects/use-projects';
 import {
   useProjectWordingsBranch,
   useUpdateProjectWordingsBranch,
-} from '@/app/features/project-wording/use-project-wording';
+} from '@/app/features/wording-studio/use-project-wording';
 import { toast } from 'sonner';
-import { SchemaEditor } from '@/app/features/project-wording/ui-schema-editor';
-import { ConstantsField } from '@/app/features/project-wording/ui-constants-field';
-import { useProjectWordingForm } from '@/app/features/project-wording/use-project-wording-form';
+import { SchemaEditor } from '@/app/features/wording-studio/ui-schema-editor';
+import { ConstantsField } from '@/app/features/wording-studio/ui-constants-field';
+import { useProjectWordingForm } from '@/app/features/wording-studio/use-project-wording-form';
 import { SaveIcon } from 'lucide-react';
-import { useState } from 'react';
+import { WordingStudioProvider } from '@/app/features/wording-studio/ui-wording-studio-context';
 
 export const Route = createFileRoute(
   '/_authenticated/projects/$projectId/branch/$branchId/config/edit',
@@ -20,21 +20,17 @@ export const Route = createFileRoute(
   component: RouteComponent,
 });
 
-function RouteComponent() {
-  const { projectId, branchId } = Route.useParams();
-  const router = useRouter();
-  const [editMode, setEditMode] = useState<'form' | 'code'>('form');
-
-  const { data: project, isLoading: projectLoading } = useProject(projectId);
-  const {
-    data: branch,
-    isLoading: branchLoading,
-    error: branchError,
-  } = useProjectWordingsBranch(branchId);
-
+const Studio = ({
+  branch,
+}: {
+  branch: NonNullable<
+    ReturnType<typeof useUpdateProjectWordingsBranch>['data']
+  >;
+}) => {
   const updateBranch = useUpdateProjectWordingsBranch();
 
-  const { form } = useProjectWordingForm({
+  const { data: project } = useProject(branch.projectId);
+  const { store } = useProjectWordingForm({
     initialValues: {
       constants: branch?.constants,
       schema: branch?.schema,
@@ -43,7 +39,7 @@ function RouteComponent() {
     onSubmit: async ({ constants, schema }) => {
       try {
         await updateBranch.mutateAsync({
-          branchId,
+          branchId: branch.id,
           config: {
             constants,
             schema,
@@ -65,6 +61,65 @@ function RouteComponent() {
       }
     },
   });
+
+  return (
+    <WordingStudioProvider store={store}>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Back button */}
+          <div className="mb-6">
+            <Button asChild variant="ghost" className="pl-0">
+              <Link
+                to="/projects/$projectId"
+                params={{ projectId: branch.projectId }}
+              >
+                <ArrowLeftIcon className="w-4 h-4 mr-2" />
+                Back to Project
+              </Link>
+            </Button>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl">Edit Configuration</CardTitle>
+                  <p className="text-muted-foreground mt-1">
+                    {project?.name} • {branch.name} branch
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Form Mode - Enums and Schema Editors */}
+              <ConstantsField />
+              <SchemaEditor />
+
+              {/* Save button */}
+              <div className="flex justify-end">
+                <Button type="submit">
+                  <SaveIcon className="w-4 h-4 mr-2" />
+                  Save Configuration
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </WordingStudioProvider>
+  );
+};
+
+function RouteComponent() {
+  const { projectId, branchId } = Route.useParams();
+  const router = useRouter();
+
+  const { data: project, isLoading: projectLoading } = useProject(projectId);
+  const {
+    data: branch,
+    isLoading: branchLoading,
+    error: branchError,
+  } = useProjectWordingsBranch(branchId);
 
   const isLoading = projectLoading || branchLoading;
 
@@ -134,97 +189,5 @@ function RouteComponent() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Back button */}
-        <div className="mb-6">
-          <Button asChild variant="ghost" className="pl-0">
-            <Link to="/projects/$projectId" params={{ projectId }}>
-              <ArrowLeftIcon className="w-4 h-4 mr-2" />
-              Back to Project
-            </Link>
-          </Button>
-        </div>
-
-        <form.AppForm>
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-2xl">Edit Configuration</CardTitle>
-                  <p className="text-muted-foreground mt-1">
-                    {project.name} • {branch.name} branch
-                  </p>
-                </div>
-
-                {/* Mode Toggle */}
-                {/* <div className="flex bg-gray-100 p-1 rounded-lg">
-                  <button
-                    onClick={() => setEditMode('form')}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      editMode === 'form'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <FormInputIcon className="w-4 h-4" />
-                    Form
-                  </button>
-                  <button
-                    onClick={() => setEditMode('code')}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      editMode === 'code'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <FileTextIcon className="w-4 h-4" />
-                    Code
-                  </button>
-                </div> */}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {editMode === 'form' ? (
-                <>
-                  {/* Form Mode - Enums and Schema Editors */}
-                  <ConstantsField form={form} />
-                  <SchemaEditor form={form} />
-                </>
-              ) : (
-                <>
-                  {/* Code Mode - YAML Editor */}
-                  {/* <YamlEditor
-                    config={{
-                      enums: form.getFieldValue('enums'),
-                      schema: form.getFieldValue('schema'),
-                    }}
-                    onChange={(config) => {
-                      form.setFieldValue('enums', config.enums);
-                      form.setFieldValue('schema', config.schema);
-                    }}
-                  /> */}
-                </>
-              )}
-
-              {/* Save button */}
-              <div className="flex justify-end">
-                <form.FormSubmitButton>
-                  {updateBranch.isPending ? (
-                    'Saving...'
-                  ) : (
-                    <>
-                      <SaveIcon className="w-4 h-4 mr-2" />
-                      Save Configuration
-                    </>
-                  )}
-                </form.FormSubmitButton>
-              </div>
-            </CardContent>
-          </Card>
-        </form.AppForm>
-      </div>
-    </div>
-  );
+  return <Studio branch={branch} />;
 }

@@ -2,46 +2,40 @@ import { StringTemplateWordingValueInput } from './string-template';
 import { Input } from '@/app/common/ui/input';
 import { Switch } from '@/app/common/ui/switch';
 import {
+  PathToArrayItemTypeId,
   PathToField,
   PathToType,
-  useFieldType,
+  PathToWordingInstanceValue,
   useObjectFieldNamePossibilities,
-  useProjectWordingForm,
-  useStoreObjectField,
-  useTypePath,
 } from '../../use-project-wording-form';
 import { Fragment, useCallback } from 'react';
-import { useStore } from '@tanstack/react-form';
-import { get, range } from 'lodash-es';
+import { range } from 'lodash-es';
 import { InlineAppend } from '../_inline-append';
-import { useArrayItemPathToType } from '../field-array';
 import { DeleteButton } from '../../_ui-delete-button';
 import { Card } from '@/app/common/ui/card';
 import { SchemaObjectNode } from '@/server/data/wording.types';
 import { useFieldHasParams } from '../_base-field';
 import { cn } from '@/app/common/lib/utils';
+import { useWordingStudioStore } from '../../ui-wording-studio-context';
+import { useReadStoreField, useSelectStoreField } from '../../store';
 
 export const WordingArrayInput = ({
   pathToType,
   pathToValue,
-  form,
 }: {
   pathToType: PathToType;
-  pathToValue: string;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
+  pathToValue: PathToWordingInstanceValue;
 }) => {
-  const { pathToItem } = useArrayItemPathToType({
-    pathToType,
-    form,
-  });
-  const itemType = useFieldType({
-    pathToType: pathToItem,
-    form,
-  });
+  const store = useWordingStudioStore();
+  const pathToItemTypeId: PathToArrayItemTypeId =
+    `${pathToType}.itemTypeId` as const;
+  const itemTypeId = useReadStoreField(store, pathToItemTypeId);
+  const itemType = useReadStoreField(store, `schema.nodes.${itemTypeId}.type`);
 
-  const count = useStore(
-    form.store,
-    (s) => (get(s.values, pathToValue) as unknown[] | undefined)?.length ?? 0,
+  const count = useSelectStoreField(
+    store,
+    pathToValue,
+    (v) => (v as unknown[] | undefined)?.length ?? 0,
   );
 
   const onInsertValue = useCallback((index: number) => {
@@ -56,22 +50,19 @@ export const WordingArrayInput = ({
               ? []
               : {};
 
-    form.setFieldValue(
-      pathToValue as `${PathToType}.${string}`,
-      (prev: unknown) => {
-        if (!!prev && !Array.isArray(prev)) {
-          return prev;
-        }
+    store?.setField(pathToValue, (prev) => {
+      if (!!prev && !Array.isArray(prev)) {
+        return prev;
+      }
 
-        const current = (prev ?? []) as unknown[];
+      const current = (prev ?? []) as unknown[];
 
-        return [
-          ...current.slice(0, index + 1),
-          newValue,
-          ...current.slice(index + 1),
-        ];
-      },
-    );
+      return [
+        ...current.slice(0, index + 1),
+        newValue,
+        ...current.slice(index + 1),
+      ];
+    });
   }, []);
 
   return (
@@ -85,24 +76,20 @@ export const WordingArrayInput = ({
         <Fragment key={index}>
           <div className="w-full group flex items-center">
             <WordingValueInput
-              pathToType={pathToItem}
-              form={form}
-              pathToValue={`${pathToValue}[${index}]`}
+              pathToType={`schema.nodes.${itemTypeId}`}
+              pathToValue={`${pathToValue}.${index}`}
             />
             <DeleteButton
               onDelete={() => {
-                form.setFieldValue(
-                  pathToValue as `${PathToType}.${string}`,
-                  (prev: unknown) => {
-                    if (!!prev && !Array.isArray(prev)) {
-                      return prev;
-                    }
+                store?.setField(pathToValue, (prev) => {
+                  if (!!prev && !Array.isArray(prev)) {
+                    return prev;
+                  }
 
-                    const current = (prev ?? []) as unknown[];
+                  const current = (prev ?? []) as unknown[];
 
-                    return current.filter((_, i) => i !== index);
-                  },
-                );
+                  return current.filter((_, i) => i !== index);
+                });
               }}
               requireConfirmation
               itemName=""
@@ -122,28 +109,20 @@ export const WordingArrayInput = ({
 
 const WordingObjectTemplateFieldInput = ({
   pathToField,
-  form,
   pathToParentValue,
 }: {
   pathToField: PathToField;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
-  pathToParentValue: string;
+  pathToParentValue: PathToWordingInstanceValue;
 }) => {
+  const store = useWordingStudioStore();
   const possibleFieldNames = useObjectFieldNamePossibilities({
-    form,
+    store,
     pathToField,
   });
 
-  const fieldTypeId = useStoreObjectField({
-    pathToField,
-    form,
-    select: (field) => field?.typeId,
-  });
-  const pathToFieldType = useTypePath(fieldTypeId);
-  const fieldType = useFieldType({
-    pathToType: pathToFieldType,
-    form,
-  });
+  const fieldTypeId = useReadStoreField(store, `${pathToField}.typeId`);
+  const pathToFieldType = `schema.nodes.${fieldTypeId}` as const;
+  const fieldType = useReadStoreField(store, `${pathToFieldType}.type`);
 
   return (
     <>
@@ -159,7 +138,6 @@ const WordingObjectTemplateFieldInput = ({
           <div className={cn(fieldType !== 'string-template' && 'pl-4')}>
             <WordingValueInput
               pathToType={pathToFieldType}
-              form={form}
               pathToValue={`${pathToParentValue}.${name}`}
             />
           </div>
@@ -170,34 +148,27 @@ const WordingObjectTemplateFieldInput = ({
 };
 export const WordingObjectFieldInput = ({
   pathToField,
-  form,
   pathToParentValue,
 }: {
   pathToField: PathToField;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
-  pathToParentValue: string;
+  pathToParentValue: PathToWordingInstanceValue;
 }) => {
-  const name = useStore(
-    form.store,
-    (s) => (get(s.values, `${pathToField}.name`) as string) || '',
-  );
+  const store = useWordingStudioStore();
+  const name = useReadStoreField(store, `${pathToField}.name`);
+
   const isTemplateField = useFieldHasParams({
+    store,
     pathToField,
-    form,
   });
 
-  const fieldTypeId = useStoreObjectField({
-    pathToField,
-    form,
-    select: (field) => field?.typeId,
-  });
-  const pathToFieldType = useTypePath(fieldTypeId);
+  const fieldTypeId = useReadStoreField(store, `${pathToField}.typeId`);
+
+  const pathToFieldType = `schema.nodes.${fieldTypeId}` as const;
 
   if (isTemplateField) {
     return (
       <WordingObjectTemplateFieldInput
         pathToField={pathToField}
-        form={form}
         pathToParentValue={pathToParentValue}
       />
     );
@@ -208,7 +179,6 @@ export const WordingObjectFieldInput = ({
       <div className="py-2">{name}</div>
       <WordingValueInput
         pathToType={pathToFieldType}
-        form={form}
         pathToValue={`${pathToParentValue}.${name}`}
       />
     </div>
@@ -216,24 +186,24 @@ export const WordingObjectFieldInput = ({
 };
 const WordingObjectInput = ({
   pathToType,
-  form,
   pathToValue,
 }: {
   pathToType: PathToType;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
-  pathToValue: string;
+  pathToValue: PathToWordingInstanceValue;
 }) => {
-  const nbFields = useStore(
-    form.store,
-    (s) => (get(s.values, pathToType) as SchemaObjectNode)?.fields?.length || 0,
+  const store = useWordingStudioStore();
+  const nbFields = useSelectStoreField(
+    store,
+    pathToType,
+    (type) => (type as SchemaObjectNode | undefined)?.fields?.length ?? 0,
   );
+
   return (
     <Card className="w-full px-2 py-2 gap-0">
       {range(nbFields).map((index) => (
         <WordingObjectFieldInput
           key={index}
-          pathToField={`${pathToType}.fields[${index}]`}
-          form={form}
+          pathToField={`${pathToType}.fields.${index}`}
           pathToParentValue={pathToValue}
         />
       ))}
@@ -243,15 +213,11 @@ const WordingObjectInput = ({
 
 const NumberWordingValueInput = ({
   pathToValue,
-  form,
 }: {
-  pathToValue: string;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
+  pathToValue: PathToWordingInstanceValue;
 }) => {
-  const value = useStore(
-    form.store,
-    (s) => get(s.values, pathToValue) as number | undefined,
-  );
+  const store = useWordingStudioStore();
+  const value = useReadStoreField(store, pathToValue) as number | undefined;
 
   return (
     <Input
@@ -260,7 +226,7 @@ const NumberWordingValueInput = ({
       onChange={(e) => {
         const numValue =
           e.target.value === '' ? undefined : parseFloat(e.target.value);
-        form.setFieldValue(pathToValue as `${PathToType}.${string}`, numValue);
+        store?.setField(pathToValue, numValue);
       }}
       placeholder="Enter number"
       className="w-full"
@@ -270,22 +236,18 @@ const NumberWordingValueInput = ({
 
 const BooleanWordingValueInput = ({
   pathToValue,
-  form,
 }: {
-  pathToValue: string;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
+  pathToValue: PathToWordingInstanceValue;
 }) => {
-  const value = useStore(
-    form.store,
-    (s) => get(s.values, pathToValue) as boolean | undefined,
-  );
+  const store = useWordingStudioStore();
+  const value = useReadStoreField(store, pathToValue) as boolean | undefined;
 
   return (
     <div className="flex items-center space-x-2">
       <Switch
         checked={value ?? false}
         onCheckedChange={(checked) => {
-          form.setFieldValue(pathToValue as `${PathToType}.${string}`, checked);
+          store?.setField(pathToValue, checked);
         }}
       />
       <span className="text-sm">{value ? 'True' : 'False'}</span>
@@ -295,49 +257,32 @@ const BooleanWordingValueInput = ({
 
 export const WordingValueInput = ({
   pathToType,
-  form,
   pathToValue,
 }: {
   pathToType: PathToType;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
-  pathToValue: string;
+  pathToValue: PathToWordingInstanceValue;
 }) => {
-  const type = useFieldType({
-    pathToType,
-    form,
-  });
+  const store = useWordingStudioStore();
+  const type = useReadStoreField(store, `${pathToType}.type`);
 
   switch (type) {
     case 'string-template': {
-      return (
-        <StringTemplateWordingValueInput
-          pathToValue={pathToValue}
-          form={form}
-        />
-      );
+      return <StringTemplateWordingValueInput pathToValue={pathToValue} />;
     }
     case 'number': {
-      return <NumberWordingValueInput pathToValue={pathToValue} form={form} />;
+      return <NumberWordingValueInput pathToValue={pathToValue} />;
     }
     case 'boolean': {
-      return <BooleanWordingValueInput pathToValue={pathToValue} form={form} />;
+      return <BooleanWordingValueInput pathToValue={pathToValue} />;
     }
     case 'array': {
       return (
-        <WordingArrayInput
-          pathToType={pathToType}
-          pathToValue={pathToValue}
-          form={form}
-        />
+        <WordingArrayInput pathToType={pathToType} pathToValue={pathToValue} />
       );
     }
     case 'object': {
       return (
-        <WordingObjectInput
-          pathToType={pathToType}
-          form={form}
-          pathToValue={pathToValue}
-        />
+        <WordingObjectInput pathToType={pathToType} pathToValue={pathToValue} />
       );
     }
   }

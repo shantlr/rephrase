@@ -1,46 +1,44 @@
-import { useStore } from '@tanstack/react-form';
-import {
-  PathToField,
-  PathToType,
-  useProjectWordingForm,
-} from '../use-project-wording-form';
-import {
-  SchemaBaseField,
-  useFieldHasParams,
-  usePathToTypeFromPathToField,
-} from './_base-field';
-import { get, range } from 'lodash-es';
-import { useCallback } from 'react';
+import { PathToField, PathToType } from '../use-project-wording-form';
+import { SchemaBaseField, useFieldHasParams } from './_base-field';
+import { range } from 'lodash-es';
+import { useCallback, useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { SchemaNode, SchemaObjectNode } from '@/server/data/wording.types';
 import { InlineAppend } from './_inline-append';
 import { SchemaFormField } from './schema-field';
 import { FieldTemplateWordingDialog } from './field-template-wording-dialog';
+import { LoaderCircle } from 'lucide-react';
+import { useWordingStudioStore } from '../ui-wording-studio-context';
+import { useReadStoreField, useSelectStoreField } from '../store';
 
 export const SchemaObjectField = ({
   pathToField,
-  form,
   onDelete,
   wordingEditable,
 }: {
   pathToField: PathToField;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
   onDelete?: (pathToField: PathToField) => void;
   wordingEditable: boolean;
 }) => {
-  const { pathToType } = usePathToTypeFromPathToField({
-    pathToField,
-    form,
-  });
+  const store = useWordingStudioStore();
+  const typeId = useReadStoreField(store, `${pathToField}.typeId`);
+  const pathToType: PathToType = `schema.nodes.${typeId}`;
+  const [inited, setInited] = useState(false);
+
+  useEffect(() => {
+    requestIdleCallback(() => {
+      setInited(true);
+    });
+  }, []);
+
   const hasParams = useFieldHasParams({
+    store,
     pathToField,
-    form,
   });
 
   return (
     <SchemaBaseField
       pathToField={pathToField}
-      form={form}
       expandable
       onDelete={onDelete}
       children={({
@@ -50,25 +48,27 @@ export const SchemaObjectField = ({
         selectType,
         deleteButton,
       }) => (
-        <div className="group">
-          <div className="group w-full flex gap-1">
+        <div className="">
+          <div className="w-full flex gap-1">
             {expandButton}
             {selectType}
             {fieldName}
             {wordingEditable && hasParams && (
-              <FieldTemplateWordingDialog
-                form={form}
-                pathToField={pathToField}
-              />
+              <FieldTemplateWordingDialog pathToField={pathToField} />
             )}
             {deleteButton}
           </div>
 
-          {!!expanded && (
-            <div className="ml-[12px] pl-[24px] border-l group-hover:border-primary">
+          {!inited && (
+            <LoaderCircle
+              className="text-gray-300 transition-all animate-spin"
+              width={16}
+            />
+          )}
+          {!!inited && !!expanded && (
+            <div className="ml-[12px] pl-[24px] border-l ">
               <SchemaObjectFieldsList
                 pathToFieldList={`${pathToType}.fields`}
-                form={form}
                 wordingEditable={wordingEditable && !hasParams}
               />
             </div>
@@ -81,20 +81,20 @@ export const SchemaObjectField = ({
 
 export const SchemaObjectFieldsList = ({
   pathToFieldList,
-  form,
   wordingEditable,
 }: {
   pathToFieldList: `${PathToType}.fields` | `schema.root.fields`;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
   wordingEditable: boolean;
 }) => {
-  const fieldCount = useStore(form.store, (s) => {
-    const array = get(s.values, pathToFieldList);
-    if (Array.isArray(array)) {
-      return array.length;
-    }
-    return 0;
-  });
+  const store = useWordingStudioStore();
+
+  const fieldCount = useSelectStoreField(
+    store,
+    pathToFieldList as `schema.root.fields`,
+    (fields) => {
+      return fields?.length;
+    },
+  );
 
   const onInsertField = useCallback((index: number) => {
     const newField = {
@@ -102,30 +102,23 @@ export const SchemaObjectFieldsList = ({
       type: 'string-template',
     } satisfies SchemaNode;
 
-    form.setFieldValue(`schema.nodes.${newField.id}`, newField);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    form.setFieldValue(pathToFieldList, (prev: any) => {
-      if (!Array.isArray(prev)) {
-        return prev;
-      }
-      const current = prev as SchemaObjectNode['fields'];
-      return [
-        ...current.slice(0, index + 1),
-        {
-          name: '',
-          typeId: newField.id,
-        },
-        ...current.slice(index + 1),
-      ] satisfies SchemaObjectNode['fields'];
-    });
+    store?.setField(`schema.nodes.${newField.id}`, newField);
+    store?.setField(pathToFieldList, (prev) => [
+      ...(prev ?? []).slice(0, index + 1),
+      {
+        name: '',
+        typeId: newField.id,
+      },
+      ...(prev ?? []).slice(index + 1),
+    ]);
   }, []);
 
   const onDeleteField = useCallback((fieldPath: string) => {
-    const m = fieldPath.match(/^.+\[(?<index>\d+)\]$/);
+    const m = fieldPath.match(/^.+(?<index>\d+)$/);
     if (m?.groups?.index) {
       const index = Number(m.groups.index);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setFieldValue(pathToFieldList, (prev: any) => {
+
+      store?.setField(pathToFieldList, (prev) => {
         if (!Array.isArray(prev)) {
           return prev;
         }
@@ -147,8 +140,7 @@ export const SchemaObjectFieldsList = ({
           {/* Render each item in the array */}
           <SchemaFormField
             key={index}
-            pathToField={`${pathToFieldList}[${index}]`}
-            form={form}
+            pathToField={`${pathToFieldList}.${index}`}
             onDelete={onDeleteField}
             wordingEditable={wordingEditable}
           />

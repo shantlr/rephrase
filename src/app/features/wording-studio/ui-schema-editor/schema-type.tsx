@@ -1,25 +1,19 @@
 import { useMemo } from 'react';
-import {
-  PathToType,
-  useFieldType,
-  useProjectWordingForm,
-} from '../use-project-wording-form';
+import { PathToType } from '../use-project-wording-form';
 import { SchemaArrayItem } from './field-array';
 import { SchemaObjectFieldsList } from './field-object';
+import { useWordingStudioStore } from '../ui-wording-studio-context';
+import { useReadStoreField } from '../store';
 
 export const SchemaType = ({
   pathToType,
-  form,
   wordingEditable,
 }: {
   pathToType: PathToType;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
   wordingEditable: boolean;
 }) => {
-  const fieldType = useFieldType({
-    pathToType,
-    form,
-  });
+  const store = useWordingStudioStore();
+  const fieldType = useReadStoreField(store, `${pathToType}.type`);
 
   const elem = useMemo(() => {
     switch (fieldType) {
@@ -27,7 +21,6 @@ export const SchemaType = ({
         return (
           <SchemaArrayItem
             pathToType={pathToType}
-            form={form}
             wordingEditable={wordingEditable}
           />
         );
@@ -36,14 +29,13 @@ export const SchemaType = ({
         return (
           <SchemaObjectFieldsList
             pathToFieldList={`${pathToType}.fields`}
-            form={form}
             wordingEditable={wordingEditable}
           />
         );
       }
     }
     return null;
-  }, [fieldType, pathToType, form]);
+  }, [fieldType, pathToType]);
 
   if (!elem) {
     return null;

@@ -38,5 +38,4 @@ export const BaseWordingValuesDialog = ({
       </DialogContent>
     </Dialog>
   );
-  return null;
 };

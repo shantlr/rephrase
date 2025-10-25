@@ -1,7 +1,5 @@
 import { memo, ReactNode, useCallback, useMemo, useRef } from 'react';
-import { PathToType, useProjectWordingForm } from '../use-project-wording-form';
-import { useStore } from '@tanstack/react-form';
-import { get } from 'lodash-es';
+import { PathToType } from '../use-project-wording-form';
 import { SchemaNode } from '@/server/data/wording.types';
 import {
   CheckSquareIcon,
@@ -18,22 +16,19 @@ import {
   SelectTrigger,
 } from '@/app/common/ui/select';
 import { nanoid } from 'nanoid';
+import { useWordingStudioStore } from '../ui-wording-studio-context';
+import { useReadStoreField } from '../store';
 
 export const SelectFieldType = memo(
   ({
     pathToType,
-    form,
     onChange,
   }: {
     pathToType: PathToType;
-    form: ReturnType<typeof useProjectWordingForm>['form'];
     onChange?: () => void;
   }) => {
-    const fieldType = useStore(
-      form.store,
-      (s) =>
-        get(s.values, `${pathToType}.type`) as SchemaNode['type'] | undefined,
-    );
+    const store = useWordingStudioStore();
+    const fieldType = useReadStoreField(store, `${pathToType}.type`);
 
     const typeOptions = useMemo(() => {
       return [
@@ -75,12 +70,13 @@ export const SelectFieldType = memo(
 
     const removeField = useCallback((typeId: string) => {
       // NOTE: when removing a node, we have to recursively remove all children nodes to not leave relicas
-      const field = form.getFieldValue(`schema.nodes.${typeId}`) as SchemaNode;
+      const field = store?.getField(`schema.nodes.${typeId}`);
+      // const field = form.getFieldValue(`schema.nodes.${typeId}`) as SchemaNode;
       if (!field) {
         return;
       }
 
-      form.setFieldValue(`schema.nodes.${typeId}`, undefined);
+      store?.setField(`schema.nodes.${typeId}`, undefined);
 
       switch (field.type) {
         case 'array': {
@@ -106,19 +102,22 @@ export const SelectFieldType = memo(
         additionalNodes,
       }: {
         node: DistributiveOmit<SchemaNode, 'id'>;
+        /**
+         * Other nodes to add along with the main node, e.g. for array item types
+         */
         additionalNodes?: SchemaNode[];
       }) => {
-        const previous = form.getFieldValue(pathToType) as SchemaNode;
-        if (node.type === previous.type) {
+        const previous = store?.getField(pathToType);
+        if (!previous || node.type === previous?.type) {
           return;
         }
 
         removeField(previous.id);
 
         additionalNodes?.forEach((node) => {
-          form.setFieldValue(`schema.nodes.${node.id}`, node);
+          store?.setField(`schema.nodes.${node.id}`, node);
         });
-        form.setFieldValue(pathToType, {
+        store?.setField(pathToType, {
           id: previous.id,
           ...node,
         });

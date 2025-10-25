@@ -1,23 +1,20 @@
-import { useStore } from '@tanstack/react-form';
-import {
-  PathToType,
-  useProjectWordingForm,
-} from '../../use-project-wording-form';
+import { PathToWordingInstanceValue } from '../../use-project-wording-form';
 import { MinimalistInput } from '../_minimalist-input';
-import { get } from 'lodash-es';
+import { useWordingStudioStore } from '../../ui-wording-studio-context';
+import { useReadStoreField } from '../../store';
 
 export const PluralizationWordingValueInput = ({
   pathToValue,
-  form,
 }: {
-  pathToValue: string;
-  form: ReturnType<typeof useProjectWordingForm>['form'];
+  pathToValue: PathToWordingInstanceValue;
 }) => {
-  const value = useStore(
-    form.store,
-    (s) =>
-      get(s.values, pathToValue) as { one: string; other: string } | undefined,
-  );
+  const store = useWordingStudioStore();
+  const value = useReadStoreField(store, pathToValue) as
+    | {
+        one: string;
+        other: string;
+      }
+    | undefined;
 
   return (
     <div className="space-y-2">
@@ -29,10 +26,7 @@ export const PluralizationWordingValueInput = ({
           type="text"
           value={value?.one ?? ''}
           onChange={(e) => {
-            form.setFieldValue(
-              `${pathToValue}.one` as `${PathToType}.${string}`,
-              e.target.value,
-            );
+            store?.setField(`${pathToValue}.one`, e.target.value);
           }}
           placeholder="Singular form..."
         />
@@ -45,10 +39,7 @@ export const PluralizationWordingValueInput = ({
           type="text"
           value={value?.other ?? ''}
           onChange={(e) => {
-            form.setFieldValue(
-              `${pathToValue}.other` as `${PathToType}.${string}`,
-              e.target.value,
-            );
+            store?.setField(`${pathToValue}.other`, e.target.value);
           }}
           placeholder="Plural form..."
         />
