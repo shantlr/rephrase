@@ -13,6 +13,7 @@ import {
 import { useReadStoreField, useSelectStoreField } from '../store';
 import { SchemaObjectNode } from '@/server/data/wording.types';
 import { extractParams } from './_util-extract-params';
+import { useStudio } from './studio-context';
 
 export const useFieldHasParams = ({
   pathToField,
@@ -26,6 +27,9 @@ export const useFieldHasParams = ({
   });
 };
 
+/**
+ * Shows example of name template with params substituted
+ */
 const SchemaNameTemplateExample = ({
   pathToField,
 }: {
@@ -56,6 +60,9 @@ const SchemaNameTemplateExample = ({
 
 type FieldParams = NonNullable<SchemaObjectNode['fields'][number]['params']>;
 
+/**
+ * Extract params from template and sync to field params
+ */
 function useSyncParamsFromTemplate({
   template,
   currentParams,
@@ -114,6 +121,7 @@ export const SchemaFieldName = ({
   const store = useWordingStudioStore();
   const name = useReadStoreField(store, `${pathToField}.name`);
   const currentParams = useReadStoreField(store, `${pathToField}.params`);
+  const studio = useStudio();
 
   useSyncParamsFromTemplate({
     template: name,
@@ -123,14 +131,30 @@ export const SchemaFieldName = ({
     },
   });
 
+  const ref = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    return studio.registerInputRef(pathToField, ref.current);
+  }, [pathToField, studio]);
+
   return (
     <>
       <div className="w-full relative shrink">
         <MinimalistInput
+          ref={ref}
           value={name}
           placeholder="Field name"
           onChange={(e) => {
             store?.setField(`${pathToField}.name`, e.target.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              studio.appendItem(pathToField);
+            } else if (event.key === 'ArrowDown') {
+              studio.focusNextInput(pathToField);
+            } else if (event.key === 'ArrowUp') {
+              studio.focusPreviousInput(pathToField);
+            }
           }}
         />
         {!!currentParams && (
