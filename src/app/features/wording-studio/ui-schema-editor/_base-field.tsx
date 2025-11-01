@@ -14,6 +14,7 @@ import { useReadStoreField, useSelectStoreField } from '../store';
 import { SchemaObjectNode } from '@/server/data/wording.types';
 import { extractParams } from './_util-extract-params';
 import { useStudio } from './studio-context';
+import { highlightText, textContainsQuery } from './_text-highlight-utils';
 
 export const useFieldHasParams = ({
   pathToField,
@@ -120,8 +121,10 @@ export const SchemaFieldName = ({
 }) => {
   const store = useWordingStudioStore();
   const name = useReadStoreField(store, `${pathToField}.name`);
+  const searchQuery = useReadStoreField(store, 'searchQuery');
   const currentParams = useReadStoreField(store, `${pathToField}.params`);
   const studio = useStudio();
+  const [isFocused, setIsFocused] = useState(false);
 
   useSyncParamsFromTemplate({
     template: name,
@@ -136,6 +139,12 @@ export const SchemaFieldName = ({
     return studio.registerInputRef(pathToField, ref.current);
   }, [pathToField, studio]);
 
+  // Check if this field name contains the search query
+  const hasMatch = searchQuery && textContainsQuery(name || '', searchQuery);
+
+  // Show highlighted overlay when not focused and there's a search match
+  const showHighlightOverlay = !isFocused && hasMatch;
+
   return (
     <>
       <div className="w-full relative shrink">
@@ -143,9 +152,12 @@ export const SchemaFieldName = ({
           ref={ref}
           value={name}
           placeholder="Field name"
+          className={showHighlightOverlay ? 'text-transparent' : ''}
           onChange={(e) => {
             store?.setField(`${pathToField}.name`, e.target.value);
           }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
@@ -157,6 +169,16 @@ export const SchemaFieldName = ({
             }
           }}
         />
+
+        {/* Highlighted text overlay */}
+        {showHighlightOverlay && (
+          <div className="absolute inset-0 pointer-events-none flex items-center px-0 py-1">
+            <div className="text-sm font-medium text-gray-900">
+              {highlightText(name || '', searchQuery)}
+            </div>
+          </div>
+        )}
+
         {!!currentParams && (
           <SchemaNameTemplateExample pathToField={pathToField} />
         )}
