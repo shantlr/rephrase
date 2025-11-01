@@ -63,10 +63,12 @@ export const SchemaArrayField = ({
   pathToField,
   wordingEditable,
   onDelete,
+  depth,
 }: {
   pathToField: PathToField;
   wordingEditable: boolean;
   onDelete?: (pathToField: PathToField) => void;
+  depth: number;
 }) => {
   const store = useWordingStudioStore();
   const typeId = useReadStoreField(store, `${pathToField}.typeId`);
@@ -107,6 +109,7 @@ export const SchemaArrayField = ({
             <SchemaArrayItem
               pathToType={pathToType}
               wordingEditable={wordingEditable}
+              depth={depth + 1}
             />
           )}
         </div>
@@ -117,9 +120,11 @@ export const SchemaArrayField = ({
 
 export const SchemaArrayItem = ({
   pathToType,
+  depth,
 }: {
   pathToType: PathToType;
   wordingEditable: boolean;
+  depth: number;
 }) => {
   const store = useWordingStudioStore();
   const itemTypeId = useReadStoreField(store, `${pathToType}.itemTypeId`);
@@ -133,7 +138,11 @@ export const SchemaArrayItem = ({
           <SelectFieldType pathToType={pathToItem} />
         </div>
       </div>
-      <SchemaType pathToType={pathToItem} wordingEditable={false} />
+      <SchemaType
+        pathToType={pathToItem}
+        wordingEditable={false}
+        depth={depth + 1}
+      />
     </div>
   );
 };

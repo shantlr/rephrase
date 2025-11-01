@@ -364,7 +364,7 @@ export function StoreField<
         | StoreDeepValue<Value, K>
         | ((prev: StoreDeepValue<Value, K>) => StoreDeepValue<Value, K>),
     ) => {
-      return store.setField(name, value);
+      return store?.setField(name, value);
     },
     [store, name],
   );

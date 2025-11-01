@@ -1,4 +1,8 @@
-import { SchemaNode, WordingData } from '@/server/data/wording.types';
+import {
+  SchemaNode,
+  SchemaObjectNode,
+  WordingData,
+} from '@/server/data/wording.types';
 import { isEqual, map, sortBy } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createStore, useReadStoreField } from './store';
@@ -17,7 +21,7 @@ export type PathToWordingInstanceValue =
   | `${PathToType}.instances.${string}`
   | `${PathToField}.instances.${string}`;
 
-type FormValues = {
+export type FormValues = {
   constants: WordingData['constants'];
   schema: {
     nodes: Record<string, SchemaNode>;
@@ -29,22 +33,55 @@ type FormValues = {
 
 export const useProjectWordingForm = ({
   initialValues: inputInitialValues,
-  // onSubmit,
 }: {
   initialValues?: Partial<FormValues>;
-  onSubmit: (values: Pick<WordingData, 'constants' | 'schema'>) => void;
 }) => {
+  const initialSchema = useMemo(() => {
+    const baseSchema = inputInitialValues?.schema ?? {
+      nodes: {} as Record<string, SchemaNode>,
+      root: {
+        id: 'root',
+        type: 'object',
+        fields: [],
+      } as WordingData['schema']['root'],
+    };
+
+    const flattenPathToField = (
+      node: SchemaObjectNode,
+      pathToType: PathToType | `schema.root`,
+    ) => {
+      const res: PathToField[] = [];
+      node.fields.forEach((field, index) => {
+        const path: PathToField = `${pathToType}.fields.${index}`;
+        res.push(path);
+        const fieldType = baseSchema.nodes[field.typeId];
+        if (fieldType?.type === 'object') {
+          res.push(
+            ...flattenPathToField(fieldType, `schema.nodes.${fieldType.id}`),
+          );
+        } else if (fieldType?.type === 'array') {
+          const itemType = baseSchema.nodes[fieldType.itemTypeId];
+          if (itemType?.type === 'object') {
+            res.push(
+              ...flattenPathToField(itemType, `schema.nodes.${itemType.id}`),
+            );
+          }
+        }
+      });
+
+      return res;
+    };
+
+    return {
+      ...baseSchema,
+      pathToFieldList: flattenPathToField(baseSchema.root, 'schema.root'),
+    };
+  }, [inputInitialValues]);
+
   const [store] = useState(() =>
     createStore({
       constants: inputInitialValues?.constants ?? [],
-      schema: inputInitialValues?.schema ?? {
-        nodes: {},
-        root: {
-          id: 'root',
-          type: 'object',
-          fields: [],
-        },
-      },
+      schema: initialSchema,
       locales: inputInitialValues?.locales ?? [],
       selectedLocale: inputInitialValues?.locales?.[0] ?? null,
     }),

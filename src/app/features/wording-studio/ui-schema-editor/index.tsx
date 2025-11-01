@@ -53,9 +53,9 @@ export const SchemaEditor = () => {
 
   return (
     <StudioContext>
-      <div className="w-full px-2 flex flex-col overflow-hidden space-y-6">
+      <div className="w-full px-2 flex flex-col space-y-6">
         {/* Fields */}
-        <div className="w-full flex flex-col overflow-hidden">
+        <div className="w-full flex flex-col ">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Wordings</h3>
             <SelectLocale />
@@ -64,6 +64,7 @@ export const SchemaEditor = () => {
           <SchemaObjectFieldsList
             pathToFieldList="schema.root.fields"
             wordingEditable
+            depth={0}
           />
           <div className="py-2 text-center group/end-add">
             <Button

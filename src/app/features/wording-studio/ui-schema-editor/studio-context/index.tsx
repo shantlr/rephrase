@@ -76,14 +76,17 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
 
   const focusPreviousInput: ContextValue['focusPreviousInput'] = useCallback(
     (path) => {
+      if (!store) {
+        return;
+      }
       if (isPathToField(path)) {
-        const pathItems = path.split('.');
-        const index = Number(pathItems[pathItems.length - 1]);
-        if (index > 0) {
-          const previousPath = [
-            ...pathItems.slice(0, -1),
-            String(index - 1),
-          ].join('.') as PathToField;
+        const pathToFieldList = store.getField('schema.pathToFieldList');
+        const currentIndex = pathToFieldList.findIndex(
+          (p: PathToField) => p === path,
+        );
+
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          const previousPath = pathToFieldList[i] as PathToField;
           if (focusInput(previousPath)) {
             return;
           }
@@ -93,62 +96,37 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
     [],
   );
   const focusNextInput: ContextValue['focusNextInput'] = useCallback((path) => {
+    if (!store) {
+      return;
+    }
     if (isPathToField(path)) {
-      const currentField = store?.getField(path);
-      const currentType = currentField
-        ? store?.getField(`schema.nodes.${currentField.typeId}`)
-        : undefined;
-
-      console.log({
-        currentlyField: currentField,
-        currentType,
-      });
-
-      if (currentType?.type === 'object') {
-        // try to focus first fields
-        if (focusInput(`schema.nodes.${currentField?.typeId}.fields.0`)) {
-          return;
-        }
-      }
-
-      const pathItems = path.split('.');
-      const index = Number(pathItems[pathItems.length - 1]);
-
-      const pathToFieldList = pathItems
-        .slice(0, -1)
-        .join('.') as `${PathToType}.fields`;
-
-      const fieldList = store?.getField(pathToFieldList);
-      if (index < (fieldList?.length ?? 0) - 1) {
-        // Try to focus next item in field list
-        const nextPath = `${pathToFieldList}.${index + 1}` as PathToField;
+      const pathToFieldList = store.getField('schema.pathToFieldList');
+      const currentIndex = pathToFieldList.indexOf(path);
+      for (let i = currentIndex + 1; i < pathToFieldList.length; i++) {
+        const nextPath = pathToFieldList[i] as PathToField;
         if (focusInput(nextPath)) {
           return;
         }
       }
-
-      const pathToParent = pathItems.slice(0, -2).join('.') as PathToField;
-      const parentType = store?.getField(pathToParent);
-      console.log({
-        path,
-        parentType,
-      });
-
-      // try to focus next nodes
     }
   }, []);
   const appendItem: ContextValue['appendItem'] = useCallback((path) => {
+    if (!store) {
+      return;
+    }
+
     const pathItems = path.split('.');
     const parentPath = pathItems.slice(0, -1).join('.');
+    if (isPathToField(path)) {
+      const pathToFieldList = store.getField('schema.pathToFieldList');
 
-    if (path.match(/\.fields\.\d+$/)) {
       // path to field
       const currentlyAt: SchemaObjectNode['fields'][number] | undefined =
-        store?.getField(path);
+        store.getField(path);
 
       const currentTypePath: PathToType = `schema.nodes.${currentlyAt?.typeId}`;
       const currentType = currentlyAt
-        ? store?.getField(currentTypePath)
+        ? store.getField(currentTypePath)
         : undefined;
 
       if (currentType?.type === 'object') {
@@ -157,8 +135,22 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
           type: 'string-template',
           id: nanoid(),
         };
-        store?.setField(`schema.nodes.${newField.id}`, newField);
-        store?.setField(`${currentTypePath}.fields`, (fields) => [
+
+        const fieldList = store.getField(`${currentTypePath}.fields`);
+        if (fieldList) {
+          const lastFieldPathToField = `${currentTypePath}.fields.${fieldList.length - 1}`;
+          const lastFieldPathIndex = pathToFieldList.findIndex(
+            (p: PathToField) => p === lastFieldPathToField,
+          );
+          store.setField('schema.pathToFieldList', [
+            ...pathToFieldList.slice(0, lastFieldPathIndex + 1),
+            `${currentTypePath}.fields.${fieldList.length}` as PathToField,
+            ...pathToFieldList.slice(lastFieldPathIndex + 1),
+          ]);
+        }
+
+        store.setField(`schema.nodes.${newField.id}`, newField);
+        store.setField(`${currentTypePath}.fields`, (fields) => [
           {
             typeId: newField.id,
             name: '',
@@ -170,12 +162,28 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
     }
 
     if (parentPath.endsWith('.fields')) {
+      const pathToFieldList = store?.getField('schema.pathToFieldList');
+
       // => append to object fields array
       const index = Number(pathItems[pathItems.length - 1]);
       const newField: SchemaNode = {
         type: 'string-template',
         id: nanoid(),
       };
+
+      const fieldList = store?.getField(parentPath as `${PathToType}.fields`);
+      if (fieldList) {
+        const lastFieldPathToField = `${parentPath}.${fieldList.length - 1}`;
+        const lastFieldPathIndex = pathToFieldList.findIndex(
+          (p: PathToField) => p === lastFieldPathToField,
+        );
+        store.setField('schema.pathToFieldList', [
+          ...pathToFieldList.slice(0, lastFieldPathIndex + 1),
+          `${parentPath}.${fieldList.length}` as PathToField,
+          ...pathToFieldList.slice(lastFieldPathIndex + 1),
+        ]);
+      }
+
       store?.setField(`schema.nodes.${newField.id}`, newField);
       store?.setField(parentPath as `${PathToType}.fields`, (fields) => [
         ...(fields?.slice(0, index + 1) ?? []),

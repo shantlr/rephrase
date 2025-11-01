@@ -13,10 +13,12 @@ export const SchemaFormField = memo(
     pathToField,
     onDelete,
     wordingEditable,
+    depth,
   }: {
     pathToField: PathToField;
     onDelete?: (pathToField: PathToField) => void;
     wordingEditable: boolean;
+    depth: number;
   }) => {
     const store = useWordingStudioStore();
 
@@ -58,6 +60,7 @@ export const SchemaFormField = memo(
             pathToField={pathToField}
             onDelete={onDelete}
             wordingEditable={wordingEditable}
+            depth={depth}
           />
         );
       }
@@ -67,6 +70,7 @@ export const SchemaFormField = memo(
             pathToField={pathToField}
             onDelete={onDelete}
             wordingEditable={wordingEditable}
+            depth={depth}
           />
         );
       }

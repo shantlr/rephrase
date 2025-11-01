@@ -8,9 +8,11 @@ import { useReadStoreField } from '../store';
 export const SchemaType = ({
   pathToType,
   wordingEditable,
+  depth,
 }: {
   pathToType: PathToType;
   wordingEditable: boolean;
+  depth: number;
 }) => {
   const store = useWordingStudioStore();
   const fieldType = useReadStoreField(store, `${pathToType}.type`);
@@ -21,6 +23,7 @@ export const SchemaType = ({
         return (
           <SchemaArrayItem
             pathToType={pathToType}
+            depth={depth}
             wordingEditable={wordingEditable}
           />
         );
@@ -30,6 +33,7 @@ export const SchemaType = ({
           <SchemaObjectFieldsList
             pathToFieldList={`${pathToType}.fields`}
             wordingEditable={wordingEditable}
+            depth={depth}
           />
         );
       }

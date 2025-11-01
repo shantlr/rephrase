@@ -36,30 +36,6 @@ const Studio = ({
       schema: branch?.schema,
       locales: branch?.locales,
     },
-    onSubmit: async ({ constants, schema }) => {
-      try {
-        await updateBranch.mutateAsync({
-          branchId: branch.id,
-          config: {
-            constants,
-            schema,
-          },
-        });
-
-        toast.success('Configuration updated successfully!', {
-          description: 'The project configuration has been saved.',
-        });
-      } catch (error) {
-        console.error('Failed to update configuration:', error);
-
-        toast.error('Failed to update configuration', {
-          description:
-            error instanceof Error
-              ? error.message
-              : 'An unexpected error occurred. Please try again.',
-        });
-      }
-    },
   });
 
   return (
@@ -97,7 +73,34 @@ const Studio = ({
 
               {/* Save button */}
               <div className="flex justify-end">
-                <Button type="submit">
+                <Button
+                  type="submit"
+                  onClick={async () => {
+                    try {
+                      await updateBranch.mutateAsync({
+                        branchId: branch.id,
+                        config: {
+                          constants: store.getField('constants'),
+                          schema: store.getField('schema'),
+                        },
+                      });
+
+                      toast.success('Configuration updated successfully!', {
+                        description:
+                          'The project configuration has been saved.',
+                      });
+                    } catch (error) {
+                      console.error('Failed to update configuration:', error);
+
+                      toast.error('Failed to update configuration', {
+                        description:
+                          error instanceof Error
+                            ? error.message
+                            : 'An unexpected error occurred. Please try again.',
+                      });
+                    }
+                  }}
+                >
                   <SaveIcon className="w-4 h-4 mr-2" />
                   Save Configuration
                 </Button>

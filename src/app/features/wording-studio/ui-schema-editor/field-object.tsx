@@ -15,10 +15,12 @@ export const SchemaObjectField = ({
   pathToField,
   onDelete,
   wordingEditable,
+  depth,
 }: {
   pathToField: PathToField;
   onDelete?: (pathToField: PathToField) => void;
   wordingEditable: boolean;
+  depth: number;
 }) => {
   const store = useWordingStudioStore();
   const typeId = useReadStoreField(store, `${pathToField}.typeId`);
@@ -48,8 +50,14 @@ export const SchemaObjectField = ({
         selectType,
         deleteButton,
       }) => (
-        <div className="">
-          <div className="w-full flex gap-1">
+        <div>
+          <div
+            className="w-full flex gap-1  bg-white"
+            // style={{
+            //   position: 'sticky',
+            //   top: depth * 16,
+            // }}
+          >
             {expandButton}
             {selectType}
             {fieldName}
@@ -70,6 +78,7 @@ export const SchemaObjectField = ({
               <SchemaObjectFieldsList
                 pathToFieldList={`${pathToType}.fields`}
                 wordingEditable={wordingEditable && !hasParams}
+                depth={depth + 1}
               />
             </div>
           )}
@@ -82,9 +91,11 @@ export const SchemaObjectField = ({
 export const SchemaObjectFieldsList = ({
   pathToFieldList,
   wordingEditable,
+  depth,
 }: {
   pathToFieldList: `${PathToType}.fields` | `schema.root.fields`;
   wordingEditable: boolean;
+  depth: number;
 }) => {
   const store = useWordingStudioStore();
 
@@ -143,6 +154,7 @@ export const SchemaObjectFieldsList = ({
             pathToField={`${pathToFieldList}.${index}`}
             onDelete={onDeleteField}
             wordingEditable={wordingEditable}
+            depth={depth + 1}
           />
           <InlineAppend
             onClick={() => {
