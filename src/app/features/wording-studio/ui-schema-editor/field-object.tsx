@@ -107,6 +107,8 @@ export const SchemaObjectFieldsList = ({
     },
   );
 
+  const visibleFieldPaths = useReadStoreField(store, 'visibleFieldPaths');
+
   const onInsertField = useCallback((index: number) => {
     const newField = {
       id: nanoid(),
@@ -146,23 +148,32 @@ export const SchemaObjectFieldsList = ({
           onInsertField(-1);
         }}
       />
-      {range(0, fieldCount).map((_, index) => (
-        <div key={index} className="w-full flex flex-col">
-          {/* Render each item in the array */}
-          <SchemaFormField
-            key={index}
-            pathToField={`${pathToFieldList}.${index}`}
-            onDelete={onDeleteField}
-            wordingEditable={wordingEditable}
-            depth={depth + 1}
-          />
-          <InlineAppend
-            onClick={() => {
-              onInsertField(index);
-            }}
-          />
-        </div>
-      ))}
+      {range(0, fieldCount).map((_, index) => {
+        const fieldPath = `${pathToFieldList}.${index}` as PathToField;
+        const isVisible = visibleFieldPaths.has(fieldPath);
+
+        if (!isVisible) {
+          return null;
+        }
+
+        return (
+          <div key={index} className="w-full flex flex-col">
+            {/* Render each item in the array */}
+            <SchemaFormField
+              key={index}
+              pathToField={fieldPath}
+              onDelete={onDeleteField}
+              wordingEditable={wordingEditable}
+              depth={depth + 1}
+            />
+            <InlineAppend
+              onClick={() => {
+                onInsertField(index);
+              }}
+            />
+          </div>
+        );
+      })}
       <div className="mb-2" />
     </>
   );

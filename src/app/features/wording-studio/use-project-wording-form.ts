@@ -9,6 +9,126 @@ import { createStore, useReadStoreField } from './store';
 import { WordingStudioStore } from './ui-wording-studio-context';
 import { extractParams } from './ui-schema-editor/_util-extract-params';
 
+/**
+ * Build a searchable index of all fields in the schema
+ */
+const buildSearchableFields = (
+  schema: FormValues['schema'],
+): SearchableField[] => {
+  const searchableFields: SearchableField[] = [];
+
+  const traverseFields = (
+    fields: SchemaObjectNode['fields'],
+    pathPrefix: string,
+    depth: number,
+  ) => {
+    fields.forEach((field, index) => {
+      const fieldPath = `${pathPrefix}.${index}` as PathToField;
+
+      searchableFields.push({
+        path: fieldPath,
+        name: field.name || '',
+        depth,
+      });
+
+      const fieldType = schema.nodes[field.typeId];
+      if (fieldType?.type === 'object') {
+        // For nested object fields, we need to traverse through the type's fields
+        // but maintain the path structure that connects to the parent field
+        const nestedPathPrefix = `schema.nodes.${fieldType.id}.fields`;
+        traverseFields(fieldType.fields, nestedPathPrefix, depth + 1);
+      } else if (fieldType?.type === 'array') {
+        const itemType = schema.nodes[fieldType.itemTypeId];
+        if (itemType?.type === 'object') {
+          // For array item object fields, similar approach
+          const nestedPathPrefix = `schema.nodes.${itemType.id}.fields`;
+          traverseFields(itemType.fields, nestedPathPrefix, depth + 1);
+        }
+      }
+    });
+  };
+
+  traverseFields(schema.root.fields, 'schema.root.fields', 0);
+  return searchableFields;
+};
+
+/**
+ * Build a map of child paths to their parent paths for efficient lookup
+ */
+const buildFieldHierarchy = (
+  schema: FormValues['schema'],
+): Map<string, string[]> => {
+  const hierarchy = new Map<string, string[]>();
+
+  const traverseAndMap = (
+    fields: SchemaObjectNode['fields'],
+    pathPrefix: string,
+    parentPaths: string[] = [],
+  ) => {
+    fields.forEach((field, index) => {
+      const fieldPath = `${pathPrefix}.${index}`;
+      hierarchy.set(fieldPath, [...parentPaths]);
+
+      const fieldType = schema.nodes[field.typeId];
+      if (fieldType?.type === 'object') {
+        const nestedPathPrefix = `schema.nodes.${fieldType.id}.fields`;
+        traverseAndMap(fieldType.fields, nestedPathPrefix, [
+          ...parentPaths,
+          fieldPath,
+        ]);
+      } else if (fieldType?.type === 'array') {
+        const itemType = schema.nodes[fieldType.itemTypeId];
+        if (itemType?.type === 'object') {
+          const nestedPathPrefix = `schema.nodes.${itemType.id}.fields`;
+          traverseAndMap(itemType.fields, nestedPathPrefix, [
+            ...parentPaths,
+            fieldPath,
+          ]);
+        }
+      }
+    });
+  };
+
+  traverseAndMap(schema.root.fields, 'schema.root.fields');
+  return hierarchy;
+};
+
+/**
+ * Filter searchable fields based on search query and return visible field paths
+ */
+const getVisibleFieldPaths = (
+  searchableFields: SearchableField[],
+  searchQuery: string,
+  schema: FormValues['schema'],
+): Set<string> => {
+  if (!searchQuery.trim()) {
+    // If no search query, all fields are visible
+    return new Set(searchableFields.map((field) => field.path));
+  }
+
+  const query = searchQuery.toLowerCase().trim();
+  const visiblePaths = new Set<string>();
+  const hierarchy = buildFieldHierarchy(schema);
+
+  // Find fields that match the search query
+  const matchingFields = searchableFields.filter((field) =>
+    field.name.toLowerCase().includes(query),
+  );
+
+  // Add matching fields and all their parent paths
+  matchingFields.forEach((field) => {
+    visiblePaths.add(field.path);
+
+    // Add all parent paths using the hierarchy map
+    const parentPaths = hierarchy.get(field.path) || [];
+    parentPaths.forEach((parentPath) => {
+      visiblePaths.add(parentPath);
+    });
+  });
+
+  return visiblePaths;
+};
+
 export type PathToType = `schema.nodes.${string}`;
 
 export type PathToArrayItemTypeId = `${PathToType}.itemTypeId`;
@@ -21,6 +141,12 @@ export type PathToWordingInstanceValue =
   | `${PathToType}.instances.${string}`
   | `${PathToField}.instances.${string}`;
 
+export type SearchableField = {
+  path: PathToField;
+  name: string;
+  depth: number;
+};
+
 export type FormValues = {
   constants: WordingData['constants'];
   schema: {
@@ -29,6 +155,9 @@ export type FormValues = {
   };
   selectedLocale: string | null;
   locales: string[];
+  searchQuery: string;
+  searchableFields: SearchableField[];
+  visibleFieldPaths: Set<string>;
 };
 
 export const useProjectWordingForm = ({
@@ -84,11 +213,73 @@ export const useProjectWordingForm = ({
       schema: initialSchema,
       locales: inputInitialValues?.locales ?? [],
       selectedLocale: inputInitialValues?.locales?.[0] ?? null,
+      searchQuery: '',
+      searchableFields: [],
+      visibleFieldPaths: new Set<string>(),
     }),
   );
 
+  // Update searchable fields when schema changes
+  useEffect(() => {
+    const updateSearchableFields = () => {
+      const currentSchema = store.getField('schema');
+      const searchableFields = buildSearchableFields(currentSchema);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (store as any).setField('searchableFields', searchableFields);
+
+      // Update visible paths based on current search query
+      const currentSearchQuery = store.getField('searchQuery');
+      const visiblePaths = getVisibleFieldPaths(
+        searchableFields,
+        currentSearchQuery,
+        currentSchema,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (store as any).setField('visibleFieldPaths', visiblePaths);
+    };
+
+    // Initial build
+    updateSearchableFields();
+
+    // Listen for schema changes
+    const unsubscribe = store.subscribeKey('schema', updateSearchableFields);
+    return unsubscribe;
+  }, [store]);
+
   return {
     store,
+  };
+};
+
+/**
+ * Hook to manage search functionality
+ */
+export const useSchemaSearch = (store: WordingStudioStore | null) => {
+  const searchQuery = useReadStoreField(store, 'searchQuery');
+  const searchableFields = useReadStoreField(store, 'searchableFields');
+  const schema = useReadStoreField(store, 'schema');
+
+  // Update visible paths when search query changes
+  useEffect(() => {
+    if (!store || !searchableFields.length) return;
+
+    const visiblePaths = getVisibleFieldPaths(
+      searchableFields,
+      searchQuery,
+      schema,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (store as any).setField('visibleFieldPaths', visiblePaths);
+  }, [store, searchQuery, searchableFields, schema]);
+
+  const setSearchQuery = (query: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (store as any)?.setField('searchQuery', query);
+  };
+
+  return {
+    searchQuery,
+    setSearchQuery,
   };
 };
 

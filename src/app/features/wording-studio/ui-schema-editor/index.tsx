@@ -1,5 +1,6 @@
 import { Button } from '@/app/common/ui/button';
-import { PlusIcon } from 'lucide-react';
+import { Input } from '@/app/common/ui/input';
+import { PlusIcon, SearchIcon, XIcon } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -13,6 +14,9 @@ import { SchemaObjectFieldsList } from './field-object';
 import { useWordingStudioStore } from '../ui-wording-studio-context';
 import { useReadStoreField } from '../store';
 import { StudioContext } from './studio-context';
+import { useSchemaSearch } from '../use-project-wording-form';
+import { useMemo, useState } from 'react';
+import { debounce } from 'lodash-es';
 
 const SelectLocale = () => {
   const store = useWordingStudioStore();
@@ -48,6 +52,53 @@ const SelectLocale = () => {
   );
 };
 
+const SearchInput = () => {
+  const store = useWordingStudioStore();
+  const { searchQuery, setSearchQuery } = useSchemaSearch(store);
+  const [localValue, setLocalValue] = useState(searchQuery);
+
+  // Debounce the search to avoid excessive filtering
+  const debouncedSetSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearchQuery(value);
+      }, 300),
+    [setSearchQuery],
+  );
+
+  const handleChange = (value: string) => {
+    setLocalValue(value);
+    debouncedSetSearch(value);
+  };
+
+  const handleClear = () => {
+    setLocalValue('');
+    setSearchQuery('');
+  };
+
+  return (
+    <div className="relative">
+      <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        placeholder="Search fields..."
+        value={localValue}
+        onChange={(e) => handleChange(e.target.value)}
+        className="pl-9 pr-9 w-64"
+      />
+      {localValue && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2 p-0"
+          onClick={handleClear}
+        >
+          <XIcon className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  );
+};
+
 export const SchemaEditor = () => {
   const store = useWordingStudioStore();
 
@@ -58,7 +109,10 @@ export const SchemaEditor = () => {
         <div className="w-full flex flex-col ">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Wordings</h3>
-            <SelectLocale />
+            <div className="flex items-center gap-4">
+              <SearchInput />
+              <SelectLocale />
+            </div>
           </div>
 
           <SchemaObjectFieldsList
