@@ -13,6 +13,10 @@ Locale wording values are usually managed through a dialog, this allow to manage
 
 In the studio we can select a locale that is used for the field locale wording values preview.
 
+## Search Feature
+
+The schema studio includes a powerful search functionality that allows filtering fields by name with real-time highlighting and nested field support. See `docs/WORDING_STUDIO_SEARCH.md` for detailed implementation documentation.
+
 ## Field Types
 
 ### String Template Fields

@@ -15,8 +15,7 @@ import { useWordingStudioStore } from '../ui-wording-studio-context';
 import { useReadStoreField } from '../store';
 import { StudioContext } from './studio-context';
 import { useSchemaSearch } from '../use-project-wording-form';
-import { useMemo, useState } from 'react';
-import { debounce } from 'lodash-es';
+import { useEffect, useState } from 'react';
 
 const SelectLocale = () => {
   const store = useWordingStudioStore();
@@ -57,23 +56,21 @@ const SearchInput = () => {
   const { searchQuery, setSearchQuery } = useSchemaSearch(store);
   const [localValue, setLocalValue] = useState(searchQuery);
 
-  // Debounce the search to avoid excessive filtering
-  const debouncedSetSearch = useMemo(
-    () =>
-      debounce((value: string) => {
-        setSearchQuery(value);
-      }, 300),
-    [setSearchQuery],
-  );
+  // Simple debounced sync: localValue → store (300ms delay)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchQuery(localValue);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [localValue, setSearchQuery]);
 
   const handleChange = (value: string) => {
     setLocalValue(value);
-    debouncedSetSearch(value);
   };
 
   const handleClear = () => {
     setLocalValue('');
-    setSearchQuery('');
   };
 
   return (

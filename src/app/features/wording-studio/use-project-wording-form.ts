@@ -53,12 +53,16 @@ const buildSearchableFields = (
 };
 
 /**
- * Build a map of child paths to their parent paths for efficient lookup
+ * Build maps for field hierarchy navigation
  */
 const buildFieldHierarchy = (
   schema: FormValues['schema'],
-): Map<string, string[]> => {
-  const hierarchy = new Map<string, string[]>();
+): {
+  parentMap: Map<string, string[]>; // child -> [parent1, parent2, ...]
+  childrenMap: Map<string, string[]>; // parent -> [child1, child2, ...]
+} => {
+  const parentMap = new Map<string, string[]>();
+  const childrenMap = new Map<string, string[]>();
 
   const traverseAndMap = (
     fields: SchemaObjectNode['fields'],
@@ -67,7 +71,15 @@ const buildFieldHierarchy = (
   ) => {
     fields.forEach((field, index) => {
       const fieldPath = `${pathPrefix}.${index}`;
-      hierarchy.set(fieldPath, [...parentPaths]);
+
+      // Map child to parents
+      parentMap.set(fieldPath, [...parentPaths]);
+
+      // Map parents to this child
+      parentPaths.forEach((parentPath) => {
+        const existingChildren = childrenMap.get(parentPath) || [];
+        childrenMap.set(parentPath, [...existingChildren, fieldPath]);
+      });
 
       const fieldType = schema.nodes[field.typeId];
       if (fieldType?.type === 'object') {
@@ -90,7 +102,23 @@ const buildFieldHierarchy = (
   };
 
   traverseAndMap(schema.root.fields, 'schema.root.fields');
-  return hierarchy;
+  return { parentMap, childrenMap };
+};
+
+/**
+ * Recursively add all descendants of a field path to the visible set
+ */
+const addAllDescendants = (
+  fieldPath: string,
+  childrenMap: Map<string, string[]>,
+  visiblePaths: Set<string>,
+): void => {
+  const children = childrenMap.get(fieldPath) || [];
+  children.forEach((childPath) => {
+    visiblePaths.add(childPath);
+    // Recursively add descendants of this child
+    addAllDescendants(childPath, childrenMap, visiblePaths);
+  });
 };
 
 /**
@@ -108,22 +136,25 @@ const getVisibleFieldPaths = (
 
   const query = searchQuery.toLowerCase().trim();
   const visiblePaths = new Set<string>();
-  const hierarchy = buildFieldHierarchy(schema);
+  const { parentMap, childrenMap } = buildFieldHierarchy(schema);
 
   // Find fields that match the search query
   const matchingFields = searchableFields.filter((field) =>
     field.name.toLowerCase().includes(query),
   );
 
-  // Add matching fields and all their parent paths
+  // Add matching fields, their ancestors, and their descendants
   matchingFields.forEach((field) => {
     visiblePaths.add(field.path);
 
-    // Add all parent paths using the hierarchy map
-    const parentPaths = hierarchy.get(field.path) || [];
+    // Add all parent paths (ancestors)
+    const parentPaths = parentMap.get(field.path) || [];
     parentPaths.forEach((parentPath) => {
       visiblePaths.add(parentPath);
     });
+
+    // Add all descendant paths (children and nested children)
+    addAllDescendants(field.path, childrenMap, visiblePaths);
   });
 
   return visiblePaths;
