@@ -104,11 +104,13 @@ export const SchemaEditor = () => {
       <div className="w-full px-2 flex flex-col space-y-6">
         {/* Fields */}
         <div className="w-full flex flex-col ">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Wordings</h3>
-            <div className="flex items-center gap-4">
-              <SearchInput />
-              <SelectLocale />
+          <div className="pt-2 sticky top-0 z-40 bg-white border-b border-gray-200 pb-4 mb-4 px-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Wordings</h3>
+              <div className="flex items-center gap-4">
+                <SearchInput />
+                <SelectLocale />
+              </div>
             </div>
           </div>
 
