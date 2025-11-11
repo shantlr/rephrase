@@ -31,6 +31,7 @@ export const SchemaType = ({
       case 'object': {
         return (
           <SchemaObjectFieldsList
+            parentField={undefined}
             pathToFieldList={`${pathToType}.fields`}
             wordingEditable={wordingEditable}
             depth={depth}

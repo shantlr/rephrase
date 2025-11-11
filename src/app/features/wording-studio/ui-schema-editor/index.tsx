@@ -8,14 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/common/ui/select';
-import { nanoid } from 'nanoid';
-import { SchemaNode } from '@/server/data/wording.types';
 import { SchemaObjectFieldsList } from './field-object';
 import { useWordingStudioStore } from '../ui-wording-studio-context';
 import { useReadStoreField } from '../store';
-import { StudioContext } from './studio-context';
+import { StudioContext, useStudio } from './studio-context';
 import { useSchemaSearch } from '../use-project-wording-form';
 import { useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 const SelectLocale = () => {
   const store = useWordingStudioStore();
@@ -96,9 +95,33 @@ const SearchInput = () => {
   );
 };
 
-export const SchemaEditor = () => {
+const AppendFieldButton = () => {
   const store = useWordingStudioStore();
+  const studio = useStudio();
 
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="text-blue-600 hover:text-blue-700 opacity-40 group-hover/end-add:opacity-100 transition-opacity"
+      onClick={() => {
+        const paths = store?.getField('schema.pathToFieldList');
+        const lastPath = paths?.[paths.length - 1];
+        if (lastPath) {
+          flushSync(() => {
+            studio.appendItem(lastPath);
+          });
+          studio.focusNextInput(lastPath);
+          return;
+        }
+      }}
+    >
+      <PlusIcon className="w-3 h-3 mr-2" />
+      Add field
+    </Button>
+  );
+};
+export const SchemaEditor = () => {
   return (
     <StudioContext>
       <div className="w-full px-2 flex flex-col space-y-6">
@@ -115,34 +138,13 @@ export const SchemaEditor = () => {
           </div>
 
           <SchemaObjectFieldsList
+            parentField={undefined}
             pathToFieldList="schema.root.fields"
             wordingEditable
             depth={0}
           />
           <div className="py-2 text-center group/end-add">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-blue-600 hover:text-blue-700 opacity-40 group-hover/end-add:opacity-100 transition-opacity"
-              onClick={() => {
-                const newField = {
-                  id: nanoid(),
-                  type: 'string-template',
-                } satisfies SchemaNode;
-
-                store?.setField(`schema.nodes.${newField.id}`, newField);
-                store?.setField('schema.root.fields', (prev) => [
-                  ...prev,
-                  {
-                    name: '',
-                    typeId: newField.id,
-                  },
-                ]);
-              }}
-            >
-              <PlusIcon className="w-3 h-3 mr-2" />
-              Add field
-            </Button>
+            <AppendFieldButton />
           </div>
         </div>
       </div>

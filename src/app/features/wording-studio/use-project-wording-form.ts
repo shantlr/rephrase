@@ -161,12 +161,12 @@ const getVisibleFieldPaths = (
 };
 
 export type PathToType = `schema.nodes.${string}`;
+export type PathToRootFieldList = `schema.root.fields`;
+export type PathToFieldList = `${PathToType}.fields` | PathToRootFieldList;
 
 export type PathToArrayItemTypeId = `${PathToType}.itemTypeId`;
 
-export type PathToField =
-  | `schema.root.fields.${number}`
-  | `${PathToType}.fields.${number}`;
+export type PathToField = `${PathToFieldList}.${number}`;
 
 export type PathToWordingInstanceValue =
   | `${PathToType}.instances.${string}`

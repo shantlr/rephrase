@@ -7,7 +7,11 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import { PathToField, PathToType } from '../../use-project-wording-form';
+import {
+  PathToField,
+  PathToFieldList,
+  PathToType,
+} from '../../use-project-wording-form';
 import { useWordingStudioStore } from '../../ui-wording-studio-context';
 import { SchemaNode, SchemaObjectNode } from '@/server/data/wording.types';
 import { nanoid } from 'nanoid';
@@ -29,7 +33,7 @@ const Context = createContext<{
   focusInput: (pathToField: PathToField) => boolean;
   focusPreviousInput: (currentPathToField: PathToField) => void;
   focusNextInput: (currentPathToField: PathToField) => void;
-  appendItem: (currentlyAt: PathToField) => void;
+  appendItem: (currentlyAt: PathToField | PathToFieldList) => void;
   deleteField: (pathToField: PathToField) => void;
   deleteItemIfEmpty: (pathToField: PathToField) => boolean;
 }>({
@@ -128,6 +132,96 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    if (path === 'schema.root.fields') {
+      // prepend root
+      const newField: SchemaNode = {
+        type: 'string-template',
+        id: nanoid(),
+      };
+      store.setField(`schema.nodes.${newField.id}`, newField);
+      store.setField('schema.root.fields', (fields) => [
+        {
+          name: '',
+          typeId: newField.id,
+        },
+        ...(fields ?? []),
+      ]);
+      const newLength = store.getField('schema.root.fields')?.length ?? 0;
+      store.setField('schema.pathToFieldList', (prev) => {
+        if (!Array.isArray(prev)) {
+          return prev;
+        }
+        if (newLength === 1) {
+          return [`schema.root.fields.0` as PathToField];
+        } else {
+          return [
+            ...prev.slice(0, 0),
+            `schema.root.fields.${newLength - 1}` as PathToField,
+            ...prev.slice(0),
+          ];
+        }
+      });
+      return;
+    }
+
+    // Handle fieldList
+    if (path.endsWith('.fields')) {
+      const newField: SchemaNode = {
+        type: 'string-template',
+        id: nanoid(),
+      };
+      const pathToFieldList = path as PathToFieldList;
+      const fieldList = store?.getField(pathToFieldList);
+      if (!fieldList) {
+        return;
+      }
+
+      store.setField(`schema.nodes.${newField.id}`, newField);
+      store.setField(pathToFieldList, (fields) => {
+        if (!Array.isArray(fields)) {
+          return fields;
+        }
+
+        return [
+          {
+            name: '',
+            typeId: newField.id,
+          },
+          ...fields,
+        ];
+      });
+
+      const newLength = store.getField(pathToFieldList)?.length ?? 0;
+      store.setField('schema.pathToFieldList', (prev) => {
+        if (!Array.isArray(prev)) {
+          return prev;
+        }
+        if (newLength === 1) {
+          // find parent path
+          console.log({
+            pathToFieldList,
+            prev,
+            field: store.getField(
+              pathToFieldList.split('.').slice(0, -1).join('.') as PathToType,
+            ),
+          });
+        } else {
+          // find previous last item path
+          const lastFieldPathToField = `${pathToFieldList}.${newLength - 1}`;
+          const lastFieldPathIndex = prev.findIndex(
+            (p: PathToField) => p === lastFieldPathToField,
+          );
+          return [
+            ...prev.slice(0, lastFieldPathIndex + 1),
+            `${pathToFieldList}.${newLength - 1}` as PathToField,
+            ...prev.slice(lastFieldPathIndex + 1),
+          ];
+        }
+      });
+
+      return;
+    }
+
     const pathItems = path.split('.');
     const parentPath = pathItems.slice(0, -1).join('.');
     if (isPathToField(path)) {
@@ -212,11 +306,25 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
   const deleteField: ContextValue['deleteField'] = useCallback(
     (pathToField) => {
       const { index, pathToFieldList } = parsePathToField(pathToField);
+
+      // TODO: cleanup type nodes
       store?.setField(pathToFieldList, (prev) => {
         if (!Array.isArray(prev)) {
           return prev;
         }
         const next = prev.filter((_, i) => i !== index);
+        return next;
+      });
+
+      // remove previous last item from pathToFieldList
+      const newLength = store?.getField(pathToFieldList)?.length ?? 0;
+      store?.setField('schema.pathToFieldList', (prev) => {
+        if (!Array.isArray(prev)) {
+          return prev;
+        }
+        const next = prev.filter(
+          (p: PathToField) => p !== `${pathToFieldList}.${newLength}`,
+        );
         return next;
       });
     },

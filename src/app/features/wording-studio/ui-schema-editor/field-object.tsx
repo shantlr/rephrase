@@ -1,15 +1,14 @@
 import { PathToField, PathToType } from '../use-project-wording-form';
 import { SchemaBaseField, useFieldHasParams } from './_base-field';
 import { range } from 'lodash-es';
-import { useCallback, useEffect, useState } from 'react';
-import { nanoid } from 'nanoid';
-import { SchemaNode } from '@/server/data/wording.types';
+import { useEffect, useState } from 'react';
 import { InlineAppend } from './_inline-append';
 import { SchemaFormField } from './schema-field';
 import { FieldTemplateWordingDialog } from './field-template-wording-dialog';
 import { LoaderCircle } from 'lucide-react';
 import { useWordingStudioStore } from '../ui-wording-studio-context';
 import { useReadStoreField, useSelectStoreField } from '../store';
+import { useStudio } from './studio-context';
 
 export const SchemaObjectField = ({
   pathToField,
@@ -73,6 +72,7 @@ export const SchemaObjectField = ({
           {!!inited && !!expanded && (
             <div className="ml-[12px] pl-[24px] border-l ">
               <SchemaObjectFieldsList
+                parentField={pathToField}
                 pathToFieldList={`${pathToType}.fields`}
                 wordingEditable={wordingEditable && !hasParams}
                 depth={depth + 1}
@@ -86,15 +86,18 @@ export const SchemaObjectField = ({
 };
 
 export const SchemaObjectFieldsList = ({
+  parentField,
   pathToFieldList,
   wordingEditable,
   depth,
 }: {
+  parentField: PathToField | undefined;
   pathToFieldList: `${PathToType}.fields` | `schema.root.fields`;
   wordingEditable: boolean;
   depth: number;
 }) => {
   const store = useWordingStudioStore();
+  const studio = useStudio();
 
   const fieldCount = useSelectStoreField(
     store,
@@ -106,30 +109,15 @@ export const SchemaObjectFieldsList = ({
 
   const visibleFieldPaths = useReadStoreField(store, 'visibleFieldPaths');
 
-  const onInsertField = useCallback((index: number) => {
-    const newField = {
-      id: nanoid(),
-      type: 'string-template',
-    } satisfies SchemaNode;
-
-    store?.setField(`schema.nodes.${newField.id}`, newField);
-    store?.setField(pathToFieldList, (prev) => [
-      ...(prev ?? []).slice(0, index + 1),
-      {
-        name: '',
-        typeId: newField.id,
-      },
-      ...(prev ?? []).slice(index + 1),
-    ]);
-  }, []);
-
   return (
     <>
-      <InlineAppend
-        onClick={() => {
-          onInsertField(-1);
-        }}
-      />
+      {(!!parentField || pathToFieldList === 'schema.root.fields') && (
+        <InlineAppend
+          onClick={() => {
+            studio.appendItem(parentField || pathToFieldList);
+          }}
+        />
+      )}
       {range(0, fieldCount).map((_, index) => {
         const fieldPath = `${pathToFieldList}.${index}` as PathToField;
         const isVisible = visibleFieldPaths.has(fieldPath);
@@ -149,7 +137,7 @@ export const SchemaObjectFieldsList = ({
             />
             <InlineAppend
               onClick={() => {
-                onInsertField(index);
+                studio.appendItem(`${pathToFieldList}.${index}`);
               }}
             />
           </div>
