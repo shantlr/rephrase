@@ -62,12 +62,10 @@ const ArrayWording = ({ pathToField }: { pathToField: PathToField }) => {
 export const SchemaArrayField = ({
   pathToField,
   wordingEditable,
-  onDelete,
   depth,
 }: {
   pathToField: PathToField;
   wordingEditable: boolean;
-  onDelete?: (pathToField: PathToField) => void;
   depth: number;
 }) => {
   const store = useWordingStudioStore();
@@ -83,7 +81,6 @@ export const SchemaArrayField = ({
     <SchemaBaseField
       pathToField={pathToField}
       expandable
-      onDelete={onDelete}
       children={({
         expanded,
         expandButton,

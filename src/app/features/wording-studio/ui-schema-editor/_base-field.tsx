@@ -1,6 +1,7 @@
 import { PathToField } from '../use-project-wording-form';
 import { MinimalistInput } from './_minimalist-input';
 import { memo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { forEach, isEqual, sortBy } from 'lodash-es';
 import { ChevronDownIcon } from 'lucide-react';
 import { cn } from '@/app/common/lib/utils';
@@ -161,7 +162,18 @@ export const SchemaFieldName = ({
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
-              studio.appendItem(pathToField);
+              flushSync(() => {
+                studio.appendItem(pathToField);
+              });
+              studio.focusNextInput(pathToField);
+            } else if (
+              event.key === 'Backspace' &&
+              !event.currentTarget.value
+            ) {
+              studio.focusPreviousInput(pathToField);
+              if (studio.deleteItemIfEmpty(pathToField)) {
+                event.preventDefault();
+              }
             } else if (event.key === 'ArrowDown') {
               studio.focusNextInput(pathToField);
             } else if (event.key === 'ArrowUp') {
@@ -191,7 +203,6 @@ export const SchemaBaseField = memo(
   ({
     pathToField,
     expandable = false,
-    onDelete,
 
     children = ({ expandButton, selectType, fieldName, deleteButton }) => (
       <div className="group flex gap-1 items-center">
@@ -204,7 +215,6 @@ export const SchemaBaseField = memo(
   }: {
     pathToField: PathToField;
     expandable?: boolean;
-    onDelete?: (pathToField: PathToField) => void;
 
     children?: (arg: {
       expandButton: ReactNode;
@@ -215,6 +225,7 @@ export const SchemaBaseField = memo(
     }) => ReactNode;
   }) => {
     const store = useWordingStudioStore();
+    const { deleteField } = useStudio();
     const typeId = useReadStoreField(store, `${pathToField}.typeId`);
     const pathToType = `schema.nodes.${typeId}` as const;
 
@@ -237,9 +248,9 @@ export const SchemaBaseField = memo(
       ),
       selectType: <SelectFieldType pathToType={pathToType} />,
       fieldName: <SchemaFieldName pathToField={pathToField} />,
-      deleteButton: !!onDelete && (
+      deleteButton: (
         <DeleteButton
-          onDelete={() => onDelete(pathToField)}
+          onDelete={() => deleteField?.(pathToField)}
           requireConfirmation={!!fieldName}
           itemName={fieldName}
           itemType="field"

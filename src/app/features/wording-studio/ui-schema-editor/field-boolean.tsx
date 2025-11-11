@@ -65,18 +65,15 @@ const Wording = ({ pathToField }: { pathToField: PathToField }) => {
 
 export const SchemaBooleanField = ({
   pathToField,
-  onDelete,
   wordingEditable,
 }: {
   pathToField: PathToField;
-  onDelete?: (pathToField: PathToField) => void;
   wordingEditable: boolean;
 }) => {
   return (
     <SchemaBaseField
       pathToField={pathToField}
       expandable={false}
-      onDelete={onDelete}
       children={({ fieldName, selectType, deleteButton }) => (
         <div className="w-full flex gap-1 group">
           {selectType}

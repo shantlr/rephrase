@@ -12,6 +12,15 @@ import { useWordingStudioStore } from '../../ui-wording-studio-context';
 import { SchemaNode, SchemaObjectNode } from '@/server/data/wording.types';
 import { nanoid } from 'nanoid';
 
+const parsePathToField = (path: PathToField) => {
+  const pathItems = path.split('.');
+  const pathToFieldList = pathItems
+    .slice(0, -1)
+    .join('.') as `${PathToType}.fields`;
+  const index = Number(pathItems[pathItems.length - 1]);
+  return { pathToFieldList, index };
+};
+
 const Context = createContext<{
   registerInputRef: (
     pathToField: PathToField,
@@ -21,7 +30,8 @@ const Context = createContext<{
   focusPreviousInput: (currentPathToField: PathToField) => void;
   focusNextInput: (currentPathToField: PathToField) => void;
   appendItem: (currentlyAt: PathToField) => void;
-  deleteItemIfEmpty: (pathToField: PathToField) => void;
+  deleteField: (pathToField: PathToField) => void;
+  deleteItemIfEmpty: (pathToField: PathToField) => boolean;
 }>({
   registerInputRef: () => {
     throw new Error('Not implemented');
@@ -30,6 +40,9 @@ const Context = createContext<{
     throw new Error('Not implemented');
   },
   deleteItemIfEmpty: () => {
+    throw new Error('Not implemented');
+  },
+  deleteField: () => {
     throw new Error('Not implemented');
   },
   focusInput: () => {
@@ -196,20 +209,29 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const deleteField: ContextValue['deleteField'] = useCallback(
+    (pathToField) => {
+      const { index, pathToFieldList } = parsePathToField(pathToField);
+      store?.setField(pathToFieldList, (prev) => {
+        if (!Array.isArray(prev)) {
+          return prev;
+        }
+        const next = prev.filter((_, i) => i !== index);
+        return next;
+      });
+    },
+    [],
+  );
+
   const deleteItemIfEmpty: ContextValue['deleteItemIfEmpty'] = useCallback(
     (path) => {
-      const pathItems = path.split('.');
-      const parentPath = pathItems.slice(0, -1).join('.');
-
-      if (parentPath.endsWith('.fields')) {
-        const index = Number(pathItems[pathItems.length - 1]);
-        store?.setField(parentPath as `${PathToType}.fields`, (fields) => {
-          if (!Array.isArray(fields)) {
-            return fields;
-          }
-          return fields.filter((_, i) => i !== index);
-        });
+      const field = store?.getField(path);
+      if (!field || !!field.name) {
+        return false;
       }
+
+      deleteField(path);
+      return true;
     },
     [],
   );
@@ -222,6 +244,7 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
       appendItem,
       focusInput,
       deleteItemIfEmpty,
+      deleteField,
     }),
     [
       registerInputRef,
@@ -229,6 +252,8 @@ export const StudioContext = ({ children }: { children: ReactNode }) => {
       focusNextInput,
       appendItem,
       focusInput,
+      deleteField,
+      deleteItemIfEmpty,
     ],
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;

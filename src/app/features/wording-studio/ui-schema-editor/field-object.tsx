@@ -3,7 +3,7 @@ import { SchemaBaseField, useFieldHasParams } from './_base-field';
 import { range } from 'lodash-es';
 import { useCallback, useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
-import { SchemaNode, SchemaObjectNode } from '@/server/data/wording.types';
+import { SchemaNode } from '@/server/data/wording.types';
 import { InlineAppend } from './_inline-append';
 import { SchemaFormField } from './schema-field';
 import { FieldTemplateWordingDialog } from './field-template-wording-dialog';
@@ -13,12 +13,10 @@ import { useReadStoreField, useSelectStoreField } from '../store';
 
 export const SchemaObjectField = ({
   pathToField,
-  onDelete,
   wordingEditable,
   depth,
 }: {
   pathToField: PathToField;
-  onDelete?: (pathToField: PathToField) => void;
   wordingEditable: boolean;
   depth: number;
 }) => {
@@ -42,7 +40,6 @@ export const SchemaObjectField = ({
     <SchemaBaseField
       pathToField={pathToField}
       expandable
-      onDelete={onDelete}
       children={({
         expanded,
         expandButton,
@@ -126,21 +123,6 @@ export const SchemaObjectFieldsList = ({
     ]);
   }, []);
 
-  const onDeleteField = useCallback((fieldPath: string) => {
-    const m = fieldPath.match(/^.+(?<index>\d+)$/);
-    if (m?.groups?.index) {
-      const index = Number(m.groups.index);
-
-      store?.setField(pathToFieldList, (prev) => {
-        if (!Array.isArray(prev)) {
-          return prev;
-        }
-        const current = prev as SchemaObjectNode['fields'];
-        return current.filter((_, i) => i !== index);
-      });
-    }
-  }, []);
-
   return (
     <>
       <InlineAppend
@@ -162,7 +144,6 @@ export const SchemaObjectFieldsList = ({
             <SchemaFormField
               key={index}
               pathToField={fieldPath}
-              onDelete={onDeleteField}
               wordingEditable={wordingEditable}
               depth={depth + 1}
             />

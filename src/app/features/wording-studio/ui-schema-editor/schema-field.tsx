@@ -11,12 +11,10 @@ import { useReadStoreField } from '../store';
 export const SchemaFormField = memo(
   ({
     pathToField,
-    onDelete,
     wordingEditable,
     depth,
   }: {
     pathToField: PathToField;
-    onDelete?: (pathToField: PathToField) => void;
     wordingEditable: boolean;
     depth: number;
   }) => {
@@ -31,7 +29,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaStringTemplateField
             pathToField={pathToField}
-            onDelete={onDelete}
             wordingEditable={wordingEditable}
           />
         );
@@ -40,7 +37,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaNumberField
             pathToField={pathToField}
-            onDelete={onDelete}
             wordingEditable={wordingEditable}
           />
         );
@@ -49,7 +45,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaBooleanField
             pathToField={pathToField}
-            onDelete={onDelete}
             wordingEditable={wordingEditable}
           />
         );
@@ -58,7 +53,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaArrayField
             pathToField={pathToField}
-            onDelete={onDelete}
             wordingEditable={wordingEditable}
             depth={depth}
           />
@@ -68,7 +62,6 @@ export const SchemaFormField = memo(
         return (
           <SchemaObjectField
             pathToField={pathToField}
-            onDelete={onDelete}
             wordingEditable={wordingEditable}
             depth={depth}
           />

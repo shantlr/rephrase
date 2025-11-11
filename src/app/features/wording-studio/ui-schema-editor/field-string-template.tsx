@@ -245,11 +245,9 @@ const Params = ({ pathToField }: { pathToField: PathToField }) => {
 
 export const SchemaStringTemplateField = ({
   pathToField,
-  onDelete,
   wordingEditable,
 }: {
   pathToField: PathToField;
-  onDelete?: (pathToField: PathToField) => void;
   wordingEditable: boolean;
 }) => {
   const store = useWordingStudioStore();
@@ -263,7 +261,6 @@ export const SchemaStringTemplateField = ({
       <SchemaBaseField
         pathToField={pathToField}
         expandable={false}
-        onDelete={onDelete}
         children={({ fieldName, selectType, deleteButton }) => (
           <div>
             <div className="w-full flex gap-1 group">
