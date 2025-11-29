@@ -1,6 +1,6 @@
 import { Button } from '@/app/common/ui/button';
 import { Input } from '@/app/common/ui/input';
-import { PlusIcon, SearchIcon, XIcon } from 'lucide-react';
+import { PlusIcon, SearchIcon, XIcon, Download } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -15,6 +15,8 @@ import { StudioContext, useStudio } from './studio-context';
 import { useSchemaSearch } from '../use-project-wording-form';
 import { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
+import { ImportWordingValuesDialog } from '../ui-import-wording-values';
+import { useImportWordingValues } from '../use-import-wording-values';
 
 const SelectLocale = () => {
   const store = useWordingStudioStore();
@@ -121,7 +123,68 @@ const AppendFieldButton = () => {
     </Button>
   );
 };
+
+const ImportButton = ({ onImportClick }: { onImportClick: () => void }) => {
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={onImportClick}
+      title="Import wording values from JSON or TypeScript"
+    >
+      <Download className="w-4 h-4 mr-2" />
+      Import Values
+    </Button>
+  );
+};
 export const SchemaEditor = () => {
+  const store = useWordingStudioStore();
+  const schema = useReadStoreField(store, 'schema');
+  const locales = useReadStoreField(store, 'locales');
+
+  const importState = useImportWordingValues(
+    schema,
+    locales,
+    async (instances, locale, strategy) => {
+      // Apply the imported instances to the store
+      for (const [nodeId, nodeInstances] of Object.entries(instances)) {
+        const currentInstances =
+          store?.getField('schema.nodes' as const)[nodeId]?.instances || {};
+
+        const mergedInstances: Record<string, unknown> = {
+          ...currentInstances,
+        };
+
+        if (strategy === 'overwrite') {
+          // Overwrite: replace the instances for this locale
+          for (const [instLocale, instValue] of Object.entries(nodeInstances)) {
+            mergedInstances[instLocale] = instValue;
+          }
+        } else {
+          // Merge: only update what's in the new data
+          for (const [instLocale, instValue] of Object.entries(nodeInstances)) {
+            if (instLocale === locale) {
+              mergedInstances[instLocale] = instValue;
+            }
+          }
+        }
+
+        // Use setFieldFromPath to handle dynamic node IDs
+        store?.setFieldFromPath(
+          ['schema', 'nodes', nodeId, 'instances'] as unknown as Parameters<
+            typeof store.setFieldFromPath
+          >[0],
+          mergedInstances,
+        );
+      }
+
+      // Add locale if it doesn't exist
+      if (!locales.includes(locale)) {
+        store?.setField('locales', [...locales, locale]);
+      }
+    },
+  );
+
   return (
     <StudioContext>
       <div className="w-full px-2 flex flex-col space-y-6">
@@ -133,6 +196,9 @@ export const SchemaEditor = () => {
               <div className="flex items-center gap-4">
                 <SearchInput />
                 <SelectLocale />
+                <ImportButton
+                  onImportClick={() => importState.setIsOpen(true)}
+                />
               </div>
             </div>
           </div>
@@ -147,6 +213,13 @@ export const SchemaEditor = () => {
             <AppendFieldButton />
           </div>
         </div>
+
+        <ImportWordingValuesDialog
+          isOpen={importState.isOpen}
+          onOpenChange={importState.setIsOpen}
+          availableLocales={locales}
+          state={importState}
+        />
       </div>
     </StudioContext>
   );
