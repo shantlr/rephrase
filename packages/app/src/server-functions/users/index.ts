@@ -3,10 +3,7 @@ import { UserRepo } from '@/server/data/repo/user';
 import { createServerFn, json } from '@tanstack/react-start';
 import { $serverAuthenticated } from '../_middlewares/auth';
 
-export const serverGetUsers = createServerFn({
-  method: 'GET',
-  response: 'data',
-})
+export const serverGetUsers = createServerFn()
   .middleware([$serverAuthenticated()])
   .handler(async ({ context }) => {
     if (

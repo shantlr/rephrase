@@ -5,6 +5,7 @@ import {
   JSONColumnType,
   Selectable,
 } from 'kysely';
+import { ApiTokenTable } from './api-token.types';
 import { WordingData } from './wording.types';
 import { AccountTable, UserSession, UserTable } from './user.types';
 
@@ -13,6 +14,7 @@ export interface Database {
   project_wording_branch: ProjectWordingBranchTable;
   project_wording_branch_operation: ProjectWordingBranchOperation;
   project_wording_audit_log: ProjectWordingAuditLog;
+  api_token: ApiTokenTable;
 
   user: UserTable;
   account: AccountTable;

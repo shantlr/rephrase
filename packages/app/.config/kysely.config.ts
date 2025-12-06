@@ -23,7 +23,7 @@ export default defineConfig({
     }),
   },
   migrations: {
-    migrationFolder: 'migrations',
+    migrationFolder: './migrations',
   },
   //   plugins: [],
   //   seeds: {

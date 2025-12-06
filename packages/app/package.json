@@ -62,7 +62,7 @@
     "clsx": "^2.1.1",
     "getenv": "^2.0.0",
     "js-yaml": "^4.1.0",
-    "kysely": "^0.28.5",
+    "kysely": "^0.28.8",
     "lodash-es": "^4.17.21",
     "lru-cache": "^11.2.1",
     "lucide-react": "^0.542.0",
