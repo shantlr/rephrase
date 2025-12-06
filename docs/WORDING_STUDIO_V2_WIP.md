@@ -8,7 +8,7 @@ Lean, value-only wording editor that keeps the original Studio (schema editor) i
 
 ## Where it lives
 - Route: `/_authenticated/projects/$projectId/branch/$branchId/studio-v2`
-- Feature code: `src/app/features/wording-studio-v2/`
+- Feature code: `packages/app/src/app/features/wording-studio-v2/`
 
 ## Current UX
 - Sticky header with Back-to-Project, locale selector, and Save button.

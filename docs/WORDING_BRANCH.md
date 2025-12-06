@@ -4,14 +4,14 @@ This project provides a GUI to manage localization wordings
 
 Users can create multiple projects. Each project has at least one wording branch called `main`
 
-See `src/server/data/db.ts` and `src/server/data/wording.types.ts` to have a look at table column and types details
+See `packages/app/src/server/data/db.ts` and `packages/app/src/server/data/wording.types.ts` to have a look at table column and types details
 
 Each branch should define `data.schema` that describes the schema of the wordings that each locale should implement
 Each branch should define `data.locales` that is a list of locales that the project supports and associated wordings that should respect the wording schema
 
 This document explains the core idea of how a project localization schema is defined, and how each locale may define values for each schema field
 
-The schema GUI editor is a complex part of this project and can be found in the folder `/src/app/features/project-wording`
+The schema GUI editor is a complex part of this project and can be found in the folder `/packages/app/src/app/features/wording-studio`
 
 ## Schema
 
@@ -409,4 +409,3 @@ const config: WordingData = {
   locales: [{ tag: 'en-GB' }],
 }
 ```
-

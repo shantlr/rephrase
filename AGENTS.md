@@ -1,19 +1,21 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/app/routes` holds TanStack React Start route files and global styles (`app.css`); `routeTree.gen.ts` is generated—do not hand-edit.
-- `src/app/features/*` contains feature modules (wording studio, projects, import, user) with colocated components, stores, and hooks.
-- Shared utilities live in `src/hooks` and `src/ts-utils`; server-side logic is split between `src/server` (common/data) and `src/server-functions`.
+- App code now lives under `packages/app` (Yarn workspaces).
+- `packages/app/src/app/routes` holds TanStack React Start route files and global styles (`app.css`); `routeTree.gen.ts` is generated—do not hand-edit.
+- `packages/app/src/app/features/*` contains feature modules (wording studio, projects, import, user) with colocated components, stores, and hooks.
+- Shared utilities live in `packages/app/src/hooks` and `packages/app/src/ts-utils`; server-side logic is split between `packages/app/src/server` (common/data) and `packages/app/src/server-functions`.
 - Reference `docs/CODING_RULES.md` for shared expectations; feature notes live in `docs/WORDING_SCHEMA_STUDIO.md`, `docs/WORDING_STUDIO_SEARCH.md`, and `docs/WORDING_BRANCH.md` (all relevant to the wording studio).
-- Tests currently live alongside code (e.g., `src/app/features/wording-studio/store/index.test.tsx`).
+- Tests currently live alongside code (e.g., `packages/app/src/app/features/wording-studio/store/index.test.tsx`).
 
 ## Build, Test, and Development Commands
-- Install deps with `yarn install` (Yarn 4, Node 24 via Volta).
+- Install deps from repo root with `yarn install` (Yarn 4, Node 24 via Volta).
+- Run app scripts from the workspace: `cd packages/app` then `yarn dev | build | ts-check | lint | lint:fix | test`; or `yarn workspace rephrase-app <script>` from the root.
 - `yarn dev` runs the Vite dev server.
 - `yarn build` creates a production build; `yarn ts-check` runs type-only checks.
 - `yarn lint` / `yarn lint:fix` run ESLint (Prettier integrated).
 - `yarn test` runs Vitest; `yarn test --watch` for rapid cycles.
-- Data: start services with `docker-compose up -d postgres redis`; run `yarn migrate:latest`, `yarn migrate:down`, or `yarn db:reset` via `dotenvx` (requires `DATABASE_URL`/`REDIS_URL`).
+- Data: start services with `docker-compose up -d postgres redis`; run `yarn migrate:latest`, `yarn migrate:down`, or `yarn db:reset` (in `packages/app`) via `dotenvx` (requires `DATABASE_URL`/`REDIS_URL`).
 
 ## Coding Style & Naming Conventions
 - TypeScript + React with functional components; use 2-space indentation.

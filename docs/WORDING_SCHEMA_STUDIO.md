@@ -5,7 +5,7 @@ Have a looks at `docs/WORDING_BRANCH.md` for more information about wording sche
 
 ## Overview
 
-The schema studio is located in `/src/app/features/project-wording/ui-schema-editor/` and consists of several interconnected components that work together to provide a comprehensive schema editing experience.
+The schema studio is located in `/packages/app/src/app/features/wording-studio/ui-schema-editor/` and consists of several interconnected components that work together to provide a comprehensive schema editing experience.
 
 The wording studio has current 2 sections. The first one allow to manage constants, the second one is about managing the schema and associated locale instances.
 

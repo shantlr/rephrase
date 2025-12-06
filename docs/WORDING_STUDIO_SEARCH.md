@@ -13,7 +13,7 @@ Real-time search functionality for filtering wording schema fields with text hig
 
 ## Architecture
 
-**Core Components:**
+**Core Components (in `packages/app/src/app/features/wording-studio/ui-schema-editor/` unless noted):**
 - `SearchInput` - Debounced search input with clear button
 - `SchemaFieldName` - Field name display with highlighting overlay
 - `useSchemaSearch` - Search state management hook
@@ -26,11 +26,11 @@ Real-time search functionality for filtering wording schema fields with text hig
 
 ## Key Files
 
-- `ui-schema-editor/index.tsx` - SearchInput component
-- `ui-schema-editor/_base-field.tsx` - Field highlighting logic
-- `ui-schema-editor/_text-highlight-utils.tsx` - Text highlighting utilities
-- `use-project-wording-form.ts` - Search indexing and filtering logic
-- `ui-schema-editor/field-object.tsx` - Field visibility checks
+- `packages/app/src/app/features/wording-studio/ui-schema-editor/index.tsx` - SearchInput component
+- `packages/app/src/app/features/wording-studio/ui-schema-editor/_base-field.tsx` - Field highlighting logic
+- `packages/app/src/app/features/wording-studio/ui-schema-editor/_text-highlight-utils.tsx` - Text highlighting utilities
+- `packages/app/src/app/features/wording-studio/use-project-wording-form.ts` - Search indexing and filtering logic
+- `packages/app/src/app/features/wording-studio/ui-schema-editor/field-object.tsx` - Field visibility checks
 
 ## How It Works
 
