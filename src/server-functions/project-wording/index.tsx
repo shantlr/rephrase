@@ -8,6 +8,7 @@ import {
 } from '@/server/common/authorization';
 import { db } from '@/server/data';
 import { WordingData } from '@/server/data/wording.types';
+import { keyBy, mapValues } from 'lodash-es';
 
 const constantNameValidator = z.string().regex(/^[A-Z0-9_]+$/);
 
@@ -51,6 +52,14 @@ const updateProjectWordingsBranchValidator = z.object({
         ),
       }),
     }),
+    locales: z
+      .array(
+        z.object({
+          tag: z.string(),
+          values: z.record(z.string(), z.any()).optional(),
+        }),
+      )
+      .optional(),
   }),
 });
 
@@ -90,6 +99,11 @@ export const serverGetProjectWordingsBranch = createServerFn({
       schema: branch.data.schema,
       constants: branch.data.constants,
       locales: branch.data.locales?.map((l) => l.tag) || [],
+      localeValues: mapValues(
+        keyBy(branch.data.locales, (l) => l.tag),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (l) => (l.values ?? {}) as Record<string, any>,
+      ),
     };
   });
 
@@ -135,6 +149,7 @@ export const serverUpdateProjectWordingsBranch = createServerFn({
     const updatedWordingData: WordingData = {
       ...currentWordingData,
       ...data.config,
+      locales: data.config.locales ?? currentWordingData.locales,
     };
 
     // Update the branch using the repository
@@ -147,8 +162,13 @@ export const serverUpdateProjectWordingsBranch = createServerFn({
       id: branch.id,
       projectId: branch.project_id,
       name: branch.name,
-      schema: branch.data.schema,
-      constants: branch.data.constants,
-      locales: branch.data.locales?.map((l) => l.tag) || [],
+      schema: updatedWordingData.schema,
+      constants: updatedWordingData.constants,
+      locales: updatedWordingData.locales?.map((l) => l.tag) || [],
+      localeValues: mapValues(
+        keyBy(branch.data.locales, (l) => l.tag),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (l) => (l.values ?? {}) as Record<string, any>,
+      ),
     };
   });

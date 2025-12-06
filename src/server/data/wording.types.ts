@@ -103,6 +103,16 @@ export type SchemaNode =
   | SchemaBooleanNode
   | SchemaObjectNode;
 
+export type WordingLocale = {
+  tag: string;
+  /**
+   * V2: wording values stored per locale instead of alongside schema nodes.
+   * Keys are freeform for now (node ids, paths, template keys) while we
+   * iterate; legacy `instances` on schema nodes remain supported.
+   */
+  values?: Record<string, unknown>;
+};
+
 export type WordingData = {
   constants: (WordingEnumConstant | WordingStringConstant)[];
 
@@ -113,7 +123,5 @@ export type WordingData = {
     root: SchemaObjectNode;
   };
 
-  locales: {
-    tag: string;
-  }[];
+  locales: WordingLocale[];
 };

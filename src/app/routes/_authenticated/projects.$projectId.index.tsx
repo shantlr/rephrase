@@ -156,6 +156,21 @@ function RouteComponent() {
                       </Link>
                     </Button>
                   )}
+                {project.permissions?.can_edit_schema &&
+                  project.defaultBranch && (
+                    <Button asChild variant="secondary" size="sm">
+                      <Link
+                        to="/projects/$projectId/branch/$branchId/studio-v2"
+                        params={{
+                          projectId: project.id,
+                          branchId: project.defaultBranch.id,
+                        }}
+                      >
+                        <EditIcon className="w-4 h-4 mr-2" />
+                        Studio V2
+                      </Link>
+                    </Button>
+                  )}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm">

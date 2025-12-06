@@ -18,6 +18,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './app/routes/_authen
 import { Route as AuthenticatedProjectsCreateRouteImport } from './app/routes/_authenticated/projects.create'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './app/routes/_authenticated/projects.$projectId.index'
 import { Route as AuthenticatedProjectsProjectIdImportRouteImport } from './app/routes/_authenticated/projects.$projectId.import'
+import { Route as AuthenticatedProjectsProjectIdBranchBranchIdStudioV2RouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.studio-v2'
 import { Route as AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.config.edit'
 import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
 
@@ -60,6 +61,12 @@ const AuthenticatedProjectsProjectIdImportRoute =
     path: '/projects/$projectId/import',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route =
+  AuthenticatedProjectsProjectIdBranchBranchIdStudioV2RouteImport.update({
+    id: '/projects/$projectId/branch/$branchId/studio-v2',
+    path: '/projects/$projectId/branch/$branchId/studio-v2',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute =
   AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRouteImport.update({
     id: '/projects/$projectId/branch/$branchId/config/edit',
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
 export interface FileRoutesByTo {
@@ -89,6 +97,7 @@ export interface FileRoutesByTo {
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
 export interface FileRoutesById {
@@ -100,6 +109,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/_authenticated/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/_authenticated/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
   '/_authenticated/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
 export interface FileRouteTypes {
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/projects/create'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
+    | '/projects/$projectId/branch/$branchId/studio-v2'
     | '/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/projects/create'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
+    | '/projects/$projectId/branch/$branchId/studio-v2'
     | '/projects/$projectId/branch/$branchId/config/edit'
   id:
     | '__root__'
@@ -130,6 +142,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/create'
     | '/_authenticated/projects/$projectId/import'
     | '/_authenticated/projects/$projectId/'
+    | '/_authenticated/projects/$projectId/branch/$branchId/studio-v2'
     | '/_authenticated/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesById: FileRoutesById
 }
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdImportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/branch/$branchId/studio-v2': {
+      id: '/_authenticated/projects/$projectId/branch/$branchId/studio-v2'
+      path: '/projects/$projectId/branch/$branchId/studio-v2'
+      fullPath: '/projects/$projectId/branch/$branchId/studio-v2'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/branch/$branchId/config/edit': {
       id: '/_authenticated/projects/$projectId/branch/$branchId/config/edit'
       path: '/projects/$projectId/branch/$branchId/config/edit'
@@ -237,6 +257,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsCreateRoute: typeof AuthenticatedProjectsCreateRoute
   AuthenticatedProjectsProjectIdImportRoute: typeof AuthenticatedProjectsProjectIdImportRoute
   AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
+  AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route: typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
   AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute: typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
 
@@ -247,6 +268,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdImportRoute,
   AuthenticatedProjectsProjectIdIndexRoute:
     AuthenticatedProjectsProjectIdIndexRoute,
+  AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route:
+    AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route,
   AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute:
     AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute,
 }
