@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createServerRootRoute } from '@tanstack/react-start/server'
-
 import { Route as rootRouteImport } from './app/routes/__root'
 import { Route as LoginRouteImport } from './app/routes/login'
 import { Route as AuthenticatedRouteRouteImport } from './app/routes/_authenticated/route'
@@ -18,11 +16,9 @@ import { Route as AuthenticatedDashboardRouteImport } from './app/routes/_authen
 import { Route as AuthenticatedProjectsCreateRouteImport } from './app/routes/_authenticated/projects.create'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './app/routes/_authenticated/projects.$projectId.index'
 import { Route as AuthenticatedProjectsProjectIdImportRouteImport } from './app/routes/_authenticated/projects.$projectId.import'
+import { Route as ApiAuthCallbackMicrosoftEntraIdIndexRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
 import { Route as AuthenticatedProjectsProjectIdBranchBranchIdStudioV2RouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.studio-v2'
 import { Route as AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.config.edit'
-import { ServerRoute as ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
-
-const rootServerRouteImport = createServerRootRoute()
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -61,6 +57,12 @@ const AuthenticatedProjectsProjectIdImportRoute =
     path: '/projects/$projectId/import',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiAuthCallbackMicrosoftEntraIdIndexRoute =
+  ApiAuthCallbackMicrosoftEntraIdIndexRouteImport.update({
+    id: '/api/auth/callback/microsoft-entra-id/',
+    path: '/api/auth/callback/microsoft-entra-id/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route =
   AuthenticatedProjectsProjectIdBranchBranchIdStudioV2RouteImport.update({
     id: '/projects/$projectId/branch/$branchId/studio-v2',
@@ -73,12 +75,6 @@ const AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute =
     path: '/projects/$projectId/branch/$branchId/config/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiAuthCallbackMicrosoftEntraIdIndexServerRoute =
-  ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport.update({
-    id: '/api/auth/callback/microsoft-entra-id/',
-    path: '/api/auth/callback/microsoft-entra-id/',
-    getParentRoute: () => rootServerRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
   '/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
@@ -97,6 +94,7 @@ export interface FileRoutesByTo {
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
   '/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
@@ -109,6 +107,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/_authenticated/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/api/auth/callback/microsoft-entra-id/': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
   '/_authenticated/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
   '/_authenticated/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
@@ -121,6 +120,7 @@ export interface FileRouteTypes {
     | '/projects/create'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
+    | '/api/auth/callback/microsoft-entra-id'
     | '/projects/$projectId/branch/$branchId/studio-v2'
     | '/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +131,7 @@ export interface FileRouteTypes {
     | '/projects/create'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
+    | '/api/auth/callback/microsoft-entra-id'
     | '/projects/$projectId/branch/$branchId/studio-v2'
     | '/projects/$projectId/branch/$branchId/config/edit'
   id:
@@ -142,6 +143,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/create'
     | '/_authenticated/projects/$projectId/import'
     | '/_authenticated/projects/$projectId/'
+    | '/api/auth/callback/microsoft-entra-id/'
     | '/_authenticated/projects/$projectId/branch/$branchId/studio-v2'
     | '/_authenticated/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesById: FileRoutesById
@@ -150,27 +152,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
-}
-export interface FileServerRoutesByFullPath {
-  '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
-}
-export interface FileServerRoutesByTo {
-  '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
-}
-export interface FileServerRoutesById {
-  __root__: typeof rootServerRouteImport
-  '/api/auth/callback/microsoft-entra-id/': typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
-}
-export interface FileServerRouteTypes {
-  fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/auth/callback/microsoft-entra-id'
-  fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/auth/callback/microsoft-entra-id'
-  id: '__root__' | '/api/auth/callback/microsoft-entra-id/'
-  fileServerRoutesById: FileServerRoutesById
-}
-export interface RootServerRouteChildren {
-  ApiAuthCallbackMicrosoftEntraIdIndexServerRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRoute
+  ApiAuthCallbackMicrosoftEntraIdIndexRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -224,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdImportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/auth/callback/microsoft-entra-id/': {
+      id: '/api/auth/callback/microsoft-entra-id/'
+      path: '/api/auth/callback/microsoft-entra-id'
+      fullPath: '/api/auth/callback/microsoft-entra-id'
+      preLoaderRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/projects/$projectId/branch/$branchId/studio-v2': {
       id: '/_authenticated/projects/$projectId/branch/$branchId/studio-v2'
       path: '/projects/$projectId/branch/$branchId/studio-v2'
@@ -237,17 +226,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/$projectId/branch/$branchId/config/edit'
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-  }
-}
-declare module '@tanstack/react-start/server' {
-  interface ServerFileRoutesByPath {
-    '/api/auth/callback/microsoft-entra-id/': {
-      id: '/api/auth/callback/microsoft-entra-id/'
-      path: '/api/auth/callback/microsoft-entra-id'
-      fullPath: '/api/auth/callback/microsoft-entra-id'
-      preLoaderRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexServerRouteImport
-      parentRoute: typeof rootServerRouteImport
     }
   }
 }
@@ -281,14 +259,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiAuthCallbackMicrosoftEntraIdIndexRoute:
+    ApiAuthCallbackMicrosoftEntraIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-const rootServerRouteChildren: RootServerRouteChildren = {
-  ApiAuthCallbackMicrosoftEntraIdIndexServerRoute:
-    ApiAuthCallbackMicrosoftEntraIdIndexServerRoute,
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
 }
-export const serverRouteTree = rootServerRouteImport
-  ._addFileChildren(rootServerRouteChildren)
-  ._addFileTypes<FileServerRouteTypes>()
