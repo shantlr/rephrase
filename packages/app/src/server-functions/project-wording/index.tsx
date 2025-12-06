@@ -63,12 +63,9 @@ const updateProjectWordingsBranchValidator = z.object({
   }),
 });
 
-export const serverGetProjectWordingsBranch = createServerFn({
-  method: 'GET',
-  response: 'data',
-})
+export const serverGetProjectWordingsBranch = createServerFn()
   .middleware([$serverAuthenticated()])
-  .validator(
+  .inputValidator(
     z.object({
       branchId: z.string().min(1, 'Branch ID is required'),
     }),
@@ -107,12 +104,9 @@ export const serverGetProjectWordingsBranch = createServerFn({
     };
   });
 
-export const serverUpdateProjectWordingsBranch = createServerFn({
-  method: 'POST',
-  response: 'data',
-})
+export const serverUpdateProjectWordingsBranch = createServerFn()
   .middleware([$serverAuthenticated()])
-  .validator(updateProjectWordingsBranchValidator)
+  .inputValidator(updateProjectWordingsBranchValidator)
   .handler(async ({ data, context }) => {
     // Get the branch first to check project ownership and authorization
     const branch = await db

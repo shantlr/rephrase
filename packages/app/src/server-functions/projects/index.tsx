@@ -35,12 +35,9 @@ export type CreateProjectOutput = {
   createdAt: Date;
 };
 
-export const serverCreateProject = createServerFn({
-  method: 'POST',
-  response: 'data',
-})
+export const serverCreateProject = createServerFn()
   .middleware([$serverAuthenticated()])
-  .validator(createProjectInputValidator)
+  .inputValidator(createProjectInputValidator)
   .handler(async ({ data, context }) => {
     if (!isUserAllowedToCreateProject(context.user)) {
       throw json('unauthorized', { status: 403 });
@@ -93,10 +90,7 @@ export const serverCreateProject = createServerFn({
     } as CreateProjectOutput;
   });
 
-export const serverGetProjects = createServerFn({
-  method: 'GET',
-  response: 'data',
-})
+export const serverGetProjects = createServerFn()
   .middleware([$serverAuthenticated()])
   .handler(async ({ context }) => {
     // Determine which projects the user can access based on roles
@@ -147,12 +141,9 @@ export const serverGetProjects = createServerFn({
     };
   });
 
-export const serverGetProject = createServerFn({
-  method: 'GET',
-  response: 'data',
-})
+export const serverGetProject = createServerFn()
   .middleware([$serverAuthenticated()])
-  .validator((data: { id: string }) => {
+  .inputValidator((data: { id: string }) => {
     if (!data.id || typeof data.id !== 'string') {
       throw new Error('Project ID is required');
     }
@@ -204,12 +195,9 @@ export const serverGetProject = createServerFn({
     };
   });
 
-export const serverDeleteProject = createServerFn({
-  method: 'POST',
-  response: 'data',
-})
+export const serverDeleteProject = createServerFn()
   .middleware([$serverAuthenticated()])
-  .validator((data: { id: string }) => {
+  .inputValidator((data: { id: string }) => {
     if (!data.id || typeof data.id !== 'string') {
       throw new Error('Project ID is required');
     }

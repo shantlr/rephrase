@@ -8,45 +8,47 @@ import { MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX } from '@/server/common/env/m
 import { redis } from '@/server/data/redis';
 import { UserRepo } from '@/server/data/repo/user';
 import { redirect } from '@tanstack/react-router';
-import { createServerFn, serverOnly } from '@tanstack/react-start';
+import { createServerFn, createServerOnlyFn } from '@tanstack/react-start';
 import { deleteCookie } from '@tanstack/react-start/server';
 import { $serverAuthenticated } from '../_middlewares/auth';
 
 const resolveSessionKey = (state: string) =>
   `${MICROSOFT_ENTRA_ID_SSO_SESSION_KEY_PREFIX}:${state}`;
 
-export const $serverGetAuthSession = serverOnly(async (state: string) => {
-  const value = await redis.get(resolveSessionKey(state));
-  return value
-    ? (JSON.parse(value) as {
-        codeVerifier: string;
-      })
-    : null;
-});
+export const $serverGetAuthSession = createServerOnlyFn(
+  async (state: string) => {
+    const value = await redis.get(resolveSessionKey(state));
+    return value
+      ? (JSON.parse(value) as {
+          codeVerifier: string;
+        })
+      : null;
+  },
+);
 
-export const serverAuthStartMicrosoftEntraId = createServerFn({
-  method: 'GET',
-  response: 'data',
-}).handler(async () => {
-  const { url, state, codeVerifier } = ENTRA_ID.createAuthUrl();
+export const serverAuthStartMicrosoftEntraId = createServerFn().handler(
+  async () => {
+    const { url, state, codeVerifier } = ENTRA_ID.createAuthUrl();
 
-  await redis.set(resolveSessionKey(state), JSON.stringify({ codeVerifier }), {
-    expiration: {
-      type: 'EX',
-      value: 300,
-    },
-  });
+    await redis.set(
+      resolveSessionKey(state),
+      JSON.stringify({ codeVerifier }),
+      {
+        expiration: {
+          type: 'EX',
+          value: 300,
+        },
+      },
+    );
 
-  throw redirect({
-    href: url.toString(),
-    statusCode: 302,
-  });
-});
+    throw redirect({
+      href: url.toString(),
+      statusCode: 302,
+    });
+  },
+);
 
-export const serverGetUserMe = createServerFn({
-  method: 'GET',
-  response: 'data',
-})
+export const serverGetUserMe = createServerFn()
   .middleware([$serverAuthenticated()])
   .handler(async ({ context }) => {
     const permissions = {
@@ -70,10 +72,7 @@ export const serverGetUserMe = createServerFn({
     };
   });
 
-export const serverLogout = createServerFn({
-  method: 'POST',
-  response: 'data',
-})
+export const serverLogout = createServerFn()
   .middleware([$serverAuthenticated()])
   .handler(async ({ context }) => {
     await UserRepo.mutate.disableSession(context.session.id);
