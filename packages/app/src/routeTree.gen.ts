@@ -13,7 +13,9 @@ import { Route as LoginRouteImport } from './app/routes/login'
 import { Route as AuthenticatedRouteRouteImport } from './app/routes/_authenticated/route'
 import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './app/routes/_authenticated/dashboard'
+import { Route as AuthenticatedApiTokensIndexRouteImport } from './app/routes/_authenticated/api-tokens.index'
 import { Route as AuthenticatedProjectsCreateRouteImport } from './app/routes/_authenticated/projects.create'
+import { Route as AuthenticatedApiTokensCreateRouteImport } from './app/routes/_authenticated/api-tokens.create'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './app/routes/_authenticated/projects.$projectId.index'
 import { Route as AuthenticatedProjectsProjectIdImportRouteImport } from './app/routes/_authenticated/projects.$projectId.import'
 import { Route as ApiAuthCallbackMicrosoftEntraIdIndexRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
@@ -39,10 +41,22 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedApiTokensIndexRoute =
+  AuthenticatedApiTokensIndexRouteImport.update({
+    id: '/api-tokens/',
+    path: '/api-tokens/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsCreateRoute =
   AuthenticatedProjectsCreateRouteImport.update({
     id: '/projects/create',
     path: '/projects/create',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedApiTokensCreateRoute =
+  AuthenticatedApiTokensCreateRouteImport.update({
+    id: '/api-tokens/create',
+    path: '/api-tokens/create',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProjectsProjectIdIndexRoute =
@@ -80,7 +94,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api-tokens/create': typeof AuthenticatedApiTokensCreateRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/api-tokens': typeof AuthenticatedApiTokensIndexRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
@@ -91,7 +107,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api-tokens/create': typeof AuthenticatedApiTokensCreateRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/api-tokens': typeof AuthenticatedApiTokensIndexRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
@@ -104,7 +122,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/api-tokens/create': typeof AuthenticatedApiTokensCreateRoute
   '/_authenticated/projects/create': typeof AuthenticatedProjectsCreateRoute
+  '/_authenticated/api-tokens/': typeof AuthenticatedApiTokensIndexRoute
   '/_authenticated/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/api/auth/callback/microsoft-entra-id/': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
@@ -117,7 +137,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard'
+    | '/api-tokens/create'
     | '/projects/create'
+    | '/api-tokens'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
     | '/api/auth/callback/microsoft-entra-id'
@@ -128,7 +150,9 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard'
+    | '/api-tokens/create'
     | '/projects/create'
+    | '/api-tokens'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
     | '/api/auth/callback/microsoft-entra-id'
@@ -140,7 +164,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/dashboard'
+    | '/_authenticated/api-tokens/create'
     | '/_authenticated/projects/create'
+    | '/_authenticated/api-tokens/'
     | '/_authenticated/projects/$projectId/import'
     | '/_authenticated/projects/$projectId/'
     | '/api/auth/callback/microsoft-entra-id/'
@@ -185,11 +211,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/api-tokens/': {
+      id: '/_authenticated/api-tokens/'
+      path: '/api-tokens'
+      fullPath: '/api-tokens'
+      preLoaderRoute: typeof AuthenticatedApiTokensIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/create': {
       id: '/_authenticated/projects/create'
       path: '/projects/create'
       fullPath: '/projects/create'
       preLoaderRoute: typeof AuthenticatedProjectsCreateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/api-tokens/create': {
+      id: '/_authenticated/api-tokens/create'
+      path: '/api-tokens/create'
+      fullPath: '/api-tokens/create'
+      preLoaderRoute: typeof AuthenticatedApiTokensCreateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/projects/$projectId/': {
@@ -232,7 +272,9 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedApiTokensCreateRoute: typeof AuthenticatedApiTokensCreateRoute
   AuthenticatedProjectsCreateRoute: typeof AuthenticatedProjectsCreateRoute
+  AuthenticatedApiTokensIndexRoute: typeof AuthenticatedApiTokensIndexRoute
   AuthenticatedProjectsProjectIdImportRoute: typeof AuthenticatedProjectsProjectIdImportRoute
   AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
   AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route: typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
@@ -241,7 +283,9 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedApiTokensCreateRoute: AuthenticatedApiTokensCreateRoute,
   AuthenticatedProjectsCreateRoute: AuthenticatedProjectsCreateRoute,
+  AuthenticatedApiTokensIndexRoute: AuthenticatedApiTokensIndexRoute,
   AuthenticatedProjectsProjectIdImportRoute:
     AuthenticatedProjectsProjectIdImportRoute,
   AuthenticatedProjectsProjectIdIndexRoute:

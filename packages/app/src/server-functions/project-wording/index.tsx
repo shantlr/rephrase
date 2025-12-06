@@ -104,6 +104,36 @@ export const serverGetProjectWordingsBranch = createServerFn()
     };
   });
 
+export const serverListProjectBranches = createServerFn()
+  .middleware([$serverAuthenticated()])
+  .inputValidator(
+    z.object({
+      projectId: z.string().min(1, 'Project ID is required'),
+    }),
+  )
+  .handler(async ({ data, context }) => {
+    if (!isUserAllowedToReadProject(context.user, data.projectId)) {
+      throw json('unauthorized', { status: 403 });
+    }
+
+    const branches = await db
+      .selectFrom('project_wording_branch')
+      .select(['id', 'name', 'locked', 'archived_at'])
+      .where('project_id', '=', data.projectId)
+      .where('archived_at', 'is', null)
+      .orderBy('created_at', 'asc')
+      .execute();
+
+    return {
+      branches: branches.map((b) => ({
+        id: b.id,
+        name: b.name,
+        locked: b.locked,
+        isDefault: b.name === 'main',
+      })),
+    };
+  });
+
 export const serverUpdateProjectWordingsBranch = createServerFn()
   .middleware([$serverAuthenticated()])
   .inputValidator(updateProjectWordingsBranchValidator)

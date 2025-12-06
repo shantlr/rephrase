@@ -8,6 +8,7 @@ import { ApiTokenRepo } from '@/server/data/repo/api-token';
 import { createServerFn, json } from '@tanstack/react-start';
 import { createHash, randomBytes } from 'crypto';
 import * as z from 'zod';
+import { subDays } from 'date-fns';
 import { $serverAuthenticated } from '../_middlewares/auth';
 
 const resourceSchema = z.object({
@@ -128,4 +129,41 @@ export const serverCreateApiToken = createServerFn()
       expiresAt: created.expires_at,
       createdAt: created.created_at,
     };
+  });
+
+export const serverListApiTokens = createServerFn()
+  .middleware([$serverAuthenticated()])
+  .handler(async ({ context }) => {
+    const tokens = await ApiTokenRepo.query.listByUser(context.user.id);
+    const cutoff = subDays(new Date(), 7);
+
+    return {
+      tokens: tokens
+        .filter((t) => !t.revoked_at || t.revoked_at > cutoff)
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          expiresAt: t.expires_at,
+          revokedAt: t.revoked_at,
+          lastUsedAt: t.last_used_at,
+          createdAt: t.created_at,
+        })),
+    };
+  });
+
+const revokeTokenValidator = z.object({ tokenId: z.string().min(1) });
+
+export const serverRevokeApiToken = createServerFn()
+  .middleware([$serverAuthenticated()])
+  .inputValidator(revokeTokenValidator)
+  .handler(async ({ data, context }) => {
+    const token = await ApiTokenRepo.query.findById(data.tokenId);
+
+    if (!token || token.created_by_user_id !== context.user.id) {
+      throw json('not_found', { status: 404 });
+    }
+
+    await ApiTokenRepo.mutate.revoke(token.id);
+
+    return { success: true };
   });

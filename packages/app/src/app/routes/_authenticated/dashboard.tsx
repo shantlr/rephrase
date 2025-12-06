@@ -1,5 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Plus, LanguagesIcon, LogOut, User, Users } from 'lucide-react';
+import {
+  Plus,
+  LanguagesIcon,
+  LogOut,
+  User,
+  Users,
+  KeyRound,
+} from 'lucide-react';
 import { Button } from '@/app/common/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/common/ui/card';
 import { Badge } from '@/app/common/ui/badge';
@@ -54,6 +61,13 @@ function RouteComponent() {
                 <div className="px-2 py-1.5 text-sm text-muted-foreground">
                   {currentUser.user.email}
                 </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/api-tokens" className="cursor-pointer">
+                    <KeyRound className="w-4 h-4 mr-2" />
+                    API tokens
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-red-600 cursor-pointer"
