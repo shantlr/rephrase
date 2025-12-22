@@ -25,14 +25,19 @@ Once created the api tokens can be used on the following cases
 When api token is used, it should provided as `authorization` header using `Bearer` scheme
 Api token is only used through REST request (not through server-functions) 
 
-- [ ] Implement a reusable server-only function that can resolve an api token from raw token
-- [ ] Implement helpers to check if token has access to project/branch/scope
-- [ ] List accessible projects enpoint 
+- [x] Implement a reusable server-only function that can resolve an api token from raw token
+- [x] Implement helpers to check if token has access to project/branch/scope
+- [x] List accessible projects enpoint 
   - GET `/api/projects`
   - check api tokens permissions
-- [ ] Get a specific project details 
+- [x] Get a specific project details 
   - GET `/api/projects/:project-id`
   - check api tokens permissions
-- [ ] Get a specific project branch details 
-  - GET `/api/projects/:project-id/branch/:branch-id`
+- [x] Get a specific project branch details
+  - GET `/api/projects/:project-id/branch/:branch-id-or-name`
   - check api tokens permissions
+  - [x] also match by branch name
+- [x] Update branch schema
+  - PUT `/api/projects/:project-id/branch/:branch-id-or-name`
+  - check api tokens permission (write)
+  - body contain a schema field

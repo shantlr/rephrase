@@ -51,3 +51,4 @@
 - `GET /api/projects` – lists projects the token can read, including accessible branches for each project.
 - `GET /api/projects/:projectId` – returns project metadata, locales (from an accessible branch), and the branches the token can read.
 - `GET /api/projects/:projectId/branch/:branchIdOrName` – returns full wording data for the branch when the token grants read access to that branch (or project-wide). Accepts either a branch UUID or branch name (e.g., `main`).
+- `PUT /api/projects/:projectId/branch/:branchIdOrName` – updates the branch schema. Requires write access. Body: `{ "schema": { "nodes": {...}, "root": {...} } }`.
