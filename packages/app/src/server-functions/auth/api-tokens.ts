@@ -2,11 +2,12 @@ import {
   isUserAllowedToEditProjectSchema,
   isUserAllowedToReadProject,
 } from '@/server/common/authorization';
+import { hashApiToken } from '@/server/common/api-tokens';
 import { ApiTokenResource } from '@/server/data/api-token.types';
 import { db } from '@/server/data';
 import { ApiTokenRepo } from '@/server/data/repo/api-token';
 import { createServerFn, json } from '@tanstack/react-start';
-import { createHash, randomBytes } from 'crypto';
+import { randomBytes } from 'crypto';
 import * as z from 'zod';
 import { subDays } from 'date-fns';
 import { $serverAuthenticated } from '../_middlewares/auth';
@@ -40,9 +41,6 @@ const createApiTokenInputValidator = z.object({
       },
     ),
 });
-
-const hashToken = (token: string) =>
-  createHash('sha256').update(token, 'utf8').digest('hex');
 
 const generateToken = () => `rpt_${randomBytes(32).toString('hex')}`;
 
@@ -108,7 +106,7 @@ export const serverCreateApiToken = createServerFn()
     }
 
     const rawToken = generateToken();
-    const tokenHash = hashToken(rawToken);
+    const tokenHash = hashApiToken(rawToken);
 
     const created = await ApiTokenRepo.mutate.create({
       name: data.name,

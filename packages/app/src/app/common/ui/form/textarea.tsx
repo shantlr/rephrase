@@ -4,8 +4,10 @@ import { Label } from '@/app/common/ui/label';
 import { useFieldContext } from '../../hooks/use-form-context';
 import { useFormError } from '../../hooks/use-form-error';
 
-interface FormTextareaProps
-  extends Omit<React.ComponentProps<'textarea'>, 'value' | 'onChange'> {
+interface FormTextareaProps extends Omit<
+  React.ComponentProps<'textarea'>,
+  'value' | 'onChange'
+> {
   label: string;
   required?: boolean;
   description?: ReactNode;

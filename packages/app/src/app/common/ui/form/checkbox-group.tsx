@@ -13,7 +13,10 @@ type FormCheckboxGroupProps = {
   options: Option[];
 };
 
-export const FormCheckboxGroup = ({ label, options }: FormCheckboxGroupProps) => {
+export const FormCheckboxGroup = ({
+  label,
+  options,
+}: FormCheckboxGroupProps) => {
   const field = useFieldContext<string[]>();
   const error = useFormError(field.state.meta.errors);
   const current = new Set(field.state.value ?? []);
@@ -33,13 +36,12 @@ export const FormCheckboxGroup = ({ label, options }: FormCheckboxGroupProps) =>
       <Label>{label}</Label>
       <div className="flex items-center gap-4">
         {options.map((option) => (
-          <label
-            key={option.value}
-            className="flex items-center gap-2 text-sm"
-          >
+          <label key={option.value} className="flex items-center gap-2 text-sm">
             <Checkbox
               checked={current.has(option.value)}
-              onCheckedChange={(checked) => toggle(option.value, checked === true)}
+              onCheckedChange={(checked) =>
+                toggle(option.value, checked === true)
+              }
             />
             {option.label}
           </label>
@@ -49,4 +51,3 @@ export const FormCheckboxGroup = ({ label, options }: FormCheckboxGroupProps) =>
     </div>
   );
 };
-

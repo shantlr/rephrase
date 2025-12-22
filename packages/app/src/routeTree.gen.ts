@@ -13,12 +13,15 @@ import { Route as LoginRouteImport } from './app/routes/login'
 import { Route as AuthenticatedRouteRouteImport } from './app/routes/_authenticated/route'
 import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './app/routes/_authenticated/dashboard'
+import { Route as ApiProjectsIndexRouteImport } from './app/routes/api/projects/index'
 import { Route as AuthenticatedApiTokensIndexRouteImport } from './app/routes/_authenticated/api-tokens.index'
 import { Route as AuthenticatedProjectsCreateRouteImport } from './app/routes/_authenticated/projects.create'
 import { Route as AuthenticatedApiTokensCreateRouteImport } from './app/routes/_authenticated/api-tokens.create'
+import { Route as ApiProjectsProjectIdIndexRouteImport } from './app/routes/api/projects.$projectId/index'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './app/routes/_authenticated/projects.$projectId.index'
 import { Route as AuthenticatedProjectsProjectIdImportRouteImport } from './app/routes/_authenticated/projects.$projectId.import'
 import { Route as ApiAuthCallbackMicrosoftEntraIdIndexRouteImport } from './app/routes/api/auth/callback/microsoft-entra-id/index'
+import { Route as ApiProjectsProjectIdBranchBranchIdIndexRouteImport } from './app/routes/api/projects.$projectId/branch.$branchId/index'
 import { Route as AuthenticatedProjectsProjectIdBranchBranchIdStudioV2RouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.studio-v2'
 import { Route as AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRouteImport } from './app/routes/_authenticated/projects.$projectId.branch.$branchId.config.edit'
 
@@ -41,6 +44,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiProjectsIndexRoute = ApiProjectsIndexRouteImport.update({
+  id: '/api/projects/',
+  path: '/api/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedApiTokensIndexRoute =
   AuthenticatedApiTokensIndexRouteImport.update({
     id: '/api-tokens/',
@@ -59,6 +67,12 @@ const AuthenticatedApiTokensCreateRoute =
     path: '/api-tokens/create',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiProjectsProjectIdIndexRoute =
+  ApiProjectsProjectIdIndexRouteImport.update({
+    id: '/api/projects/$projectId/',
+    path: '/api/projects/$projectId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedProjectsProjectIdIndexRoute =
   AuthenticatedProjectsProjectIdIndexRouteImport.update({
     id: '/projects/$projectId/',
@@ -75,6 +89,12 @@ const ApiAuthCallbackMicrosoftEntraIdIndexRoute =
   ApiAuthCallbackMicrosoftEntraIdIndexRouteImport.update({
     id: '/api/auth/callback/microsoft-entra-id/',
     path: '/api/auth/callback/microsoft-entra-id/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiProjectsProjectIdBranchBranchIdIndexRoute =
+  ApiProjectsProjectIdBranchBranchIdIndexRouteImport.update({
+    id: '/api/projects/$projectId/branch/$branchId/',
+    path: '/api/projects/$projectId/branch/$branchId/',
     getParentRoute: () => rootRouteImport,
   } as any)
 const AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route =
@@ -97,10 +117,13 @@ export interface FileRoutesByFullPath {
   '/api-tokens/create': typeof AuthenticatedApiTokensCreateRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/api-tokens': typeof AuthenticatedApiTokensIndexRoute
+  '/api/projects': typeof ApiProjectsIndexRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdIndexRoute
   '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
   '/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
+  '/api/projects/$projectId/branch/$branchId': typeof ApiProjectsProjectIdBranchBranchIdIndexRoute
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
 export interface FileRoutesByTo {
@@ -110,10 +133,13 @@ export interface FileRoutesByTo {
   '/api-tokens/create': typeof AuthenticatedApiTokensCreateRoute
   '/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/api-tokens': typeof AuthenticatedApiTokensIndexRoute
+  '/api/projects': typeof ApiProjectsIndexRoute
   '/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/api/projects/$projectId': typeof ApiProjectsProjectIdIndexRoute
   '/api/auth/callback/microsoft-entra-id': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
   '/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
+  '/api/projects/$projectId/branch/$branchId': typeof ApiProjectsProjectIdBranchBranchIdIndexRoute
   '/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
 export interface FileRoutesById {
@@ -125,10 +151,13 @@ export interface FileRoutesById {
   '/_authenticated/api-tokens/create': typeof AuthenticatedApiTokensCreateRoute
   '/_authenticated/projects/create': typeof AuthenticatedProjectsCreateRoute
   '/_authenticated/api-tokens/': typeof AuthenticatedApiTokensIndexRoute
+  '/api/projects/': typeof ApiProjectsIndexRoute
   '/_authenticated/projects/$projectId/import': typeof AuthenticatedProjectsProjectIdImportRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/api/projects/$projectId/': typeof ApiProjectsProjectIdIndexRoute
   '/api/auth/callback/microsoft-entra-id/': typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
   '/_authenticated/projects/$projectId/branch/$branchId/studio-v2': typeof AuthenticatedProjectsProjectIdBranchBranchIdStudioV2Route
+  '/api/projects/$projectId/branch/$branchId/': typeof ApiProjectsProjectIdBranchBranchIdIndexRoute
   '/_authenticated/projects/$projectId/branch/$branchId/config/edit': typeof AuthenticatedProjectsProjectIdBranchBranchIdConfigEditRoute
 }
 export interface FileRouteTypes {
@@ -140,10 +169,13 @@ export interface FileRouteTypes {
     | '/api-tokens/create'
     | '/projects/create'
     | '/api-tokens'
+    | '/api/projects'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
+    | '/api/projects/$projectId'
     | '/api/auth/callback/microsoft-entra-id'
     | '/projects/$projectId/branch/$branchId/studio-v2'
+    | '/api/projects/$projectId/branch/$branchId'
     | '/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -153,10 +185,13 @@ export interface FileRouteTypes {
     | '/api-tokens/create'
     | '/projects/create'
     | '/api-tokens'
+    | '/api/projects'
     | '/projects/$projectId/import'
     | '/projects/$projectId'
+    | '/api/projects/$projectId'
     | '/api/auth/callback/microsoft-entra-id'
     | '/projects/$projectId/branch/$branchId/studio-v2'
+    | '/api/projects/$projectId/branch/$branchId'
     | '/projects/$projectId/branch/$branchId/config/edit'
   id:
     | '__root__'
@@ -167,10 +202,13 @@ export interface FileRouteTypes {
     | '/_authenticated/api-tokens/create'
     | '/_authenticated/projects/create'
     | '/_authenticated/api-tokens/'
+    | '/api/projects/'
     | '/_authenticated/projects/$projectId/import'
     | '/_authenticated/projects/$projectId/'
+    | '/api/projects/$projectId/'
     | '/api/auth/callback/microsoft-entra-id/'
     | '/_authenticated/projects/$projectId/branch/$branchId/studio-v2'
+    | '/api/projects/$projectId/branch/$branchId/'
     | '/_authenticated/projects/$projectId/branch/$branchId/config/edit'
   fileRoutesById: FileRoutesById
 }
@@ -178,7 +216,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiProjectsIndexRoute: typeof ApiProjectsIndexRoute
+  ApiProjectsProjectIdIndexRoute: typeof ApiProjectsProjectIdIndexRoute
   ApiAuthCallbackMicrosoftEntraIdIndexRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexRoute
+  ApiProjectsProjectIdBranchBranchIdIndexRoute: typeof ApiProjectsProjectIdBranchBranchIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,6 +252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/projects/': {
+      id: '/api/projects/'
+      path: '/api/projects'
+      fullPath: '/api/projects'
+      preLoaderRoute: typeof ApiProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/api-tokens/': {
       id: '/_authenticated/api-tokens/'
       path: '/api-tokens'
@@ -232,6 +280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApiTokensCreateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/projects/$projectId/': {
+      id: '/api/projects/$projectId/'
+      path: '/api/projects/$projectId'
+      fullPath: '/api/projects/$projectId'
+      preLoaderRoute: typeof ApiProjectsProjectIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/projects/$projectId/': {
       id: '/_authenticated/projects/$projectId/'
       path: '/projects/$projectId'
@@ -251,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/callback/microsoft-entra-id'
       fullPath: '/api/auth/callback/microsoft-entra-id'
       preLoaderRoute: typeof ApiAuthCallbackMicrosoftEntraIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/projects/$projectId/branch/$branchId/': {
+      id: '/api/projects/$projectId/branch/$branchId/'
+      path: '/api/projects/$projectId/branch/$branchId'
+      fullPath: '/api/projects/$projectId/branch/$branchId'
+      preLoaderRoute: typeof ApiProjectsProjectIdBranchBranchIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/projects/$projectId/branch/$branchId/studio-v2': {
@@ -303,8 +365,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiProjectsIndexRoute: ApiProjectsIndexRoute,
+  ApiProjectsProjectIdIndexRoute: ApiProjectsProjectIdIndexRoute,
   ApiAuthCallbackMicrosoftEntraIdIndexRoute:
     ApiAuthCallbackMicrosoftEntraIdIndexRoute,
+  ApiProjectsProjectIdBranchBranchIdIndexRoute:
+    ApiProjectsProjectIdBranchBranchIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
