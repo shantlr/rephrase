@@ -54,7 +54,7 @@ export const serverCreateProject = createServerFn()
       );
 
       // Create the main wording branch with empty data for the specified locales
-      await ProjectWordingRepo.mutate.createBranch(
+      const mainBranch = await ProjectWordingRepo.mutate.createBranch(
         {
           projectId: project.id,
           branchName: 'main',
@@ -75,6 +75,9 @@ export const serverCreateProject = createServerFn()
         },
         trx,
       );
+
+      // Set the main branch as the default branch
+      await ProjectRepo.mutate.setDefaultBranch(project.id, mainBranch.id, trx);
 
       return project;
     });
@@ -160,14 +163,26 @@ export const serverGetProject = createServerFn()
       throw new Error('Project not found');
     }
 
-    // Get locale information from the main branch
-    const mainBranch = await db
-      .selectFrom('project_wording_branch')
-      .select(['id', 'name', 'data'])
-      .where('project_id', '=', project.id)
-      .where('name', '=', 'main')
-      .where('archived_at', 'is', null)
-      .executeTakeFirst();
+    // Get the default branch - first try by ID, then fall back to "main" by name
+    let defaultBranch = project.default_branch_id
+      ? await db
+          .selectFrom('project_wording_branch')
+          .select(['id', 'name', 'data'])
+          .where('id', '=', project.default_branch_id)
+          .where('archived_at', 'is', null)
+          .executeTakeFirst()
+      : null;
+
+    // Fallback: look for "main" branch by name (for backwards compatibility)
+    if (!defaultBranch) {
+      defaultBranch = await db
+        .selectFrom('project_wording_branch')
+        .select(['id', 'name', 'data'])
+        .where('project_id', '=', project.id)
+        .where('name', '=', 'main')
+        .where('archived_at', 'is', null)
+        .executeTakeFirst();
+    }
 
     return {
       id: project.id,
@@ -175,11 +190,11 @@ export const serverGetProject = createServerFn()
       description: project.description,
       createdAt: project.created_at,
       updatedAt: project.updated_at,
-      locales: mainBranch?.data?.locales?.map((l) => l.tag) ?? [],
-      defaultBranch: mainBranch
+      locales: defaultBranch?.data?.locales?.map((l) => l.tag) ?? [],
+      defaultBranch: defaultBranch
         ? {
-            id: mainBranch.id,
-            name: mainBranch.name,
+            id: defaultBranch.id,
+            name: defaultBranch.name,
           }
         : null,
       permissions: {

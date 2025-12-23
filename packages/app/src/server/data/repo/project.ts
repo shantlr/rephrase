@@ -5,6 +5,7 @@ import { Database, Project } from '../db';
 export type ProjectCreate = {
   name: string;
   description: string;
+  default_branch_id?: string | null;
 };
 
 export type ProjectSelect = Selectable<Project>;
@@ -131,6 +132,21 @@ export const ProjectRepo = {
         .executeTakeFirst();
 
       return result.numDeletedRows > 0;
+    },
+
+    setDefaultBranch: async (
+      projectId: string,
+      branchId: string | null,
+      trx?: Transaction<Database>,
+    ): Promise<ProjectSelect | undefined> => {
+      const executor = trx || db;
+      return await executor
+        .updateTable('project')
+        .set({ default_branch_id: branchId })
+        .where('id', '=', projectId)
+        .where('archived_at', 'is', null)
+        .returningAll()
+        .executeTakeFirst();
     },
   },
 };

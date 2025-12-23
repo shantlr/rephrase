@@ -13,3 +13,9 @@
 .pnp.*
 
 node_modules/
+
+.env
+.env.*
+
+/.serena/
+

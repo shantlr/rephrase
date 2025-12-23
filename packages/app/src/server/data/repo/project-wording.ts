@@ -21,7 +21,7 @@ export const ProjectWordingRepo = {
         data: ProjectWordingBranch['data'];
       },
       trx?: Transaction<Database>,
-    ) => {
+    ): Promise<ProjectWordingBranch> => {
       const executor = trx || db;
       return await executor
         .insertInto('project_wording_branch')
@@ -33,6 +33,7 @@ export const ProjectWordingRepo = {
           locked: false,
           updated_at: new Date(),
         })
+        .returningAll()
         .executeTakeFirstOrThrow();
     },
     updateBranch: async (

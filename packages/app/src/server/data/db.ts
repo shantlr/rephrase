@@ -25,6 +25,7 @@ export interface Project {
   id: GeneratedAlways<string>;
   name: string;
   description: string;
+  default_branch_id: ColumnType<string | null, string | null, string | null>;
   created_at: GeneratedAlways<Date>;
   updated_at: ColumnType<Date, string | undefined, never>;
   archived_at: ColumnType<Date | null, Date | null, Date | null>;
