@@ -4,11 +4,15 @@ import { createContext, useContext } from 'react';
 
 export const createV2Store = (initialData: {
   schema: WordingData['schema'];
+  constants: WordingData['constants'];
+  locales: string[];
   localeValues: Record<string, Record<string, unknown>>;
   selectedLocale: string;
 }) => {
   return createStore({
-    schema: initialData.schema,
+    constants: initialData.constants,
+    schema: initialData.schema as Record<string, unknown>,
+    locales: initialData.locales,
     localeValues: initialData.localeValues,
     selectedLocale: initialData.selectedLocale,
     search: '',

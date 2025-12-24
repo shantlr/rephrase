@@ -12,57 +12,6 @@ import { keyBy, mapValues } from 'lodash-es';
 
 const constantNameValidator = z.string().regex(/^[A-Z0-9_]+$/);
 
-const updateProjectWordingsBranchValidator = z.object({
-  branchId: z.string().min(1, 'Branch ID is required'),
-  config: z.object({
-    constants: z.array(
-      z.discriminatedUnion('type', [
-        z.object({
-          type: z.literal('enum'),
-          get name() {
-            return constantNameValidator;
-          },
-          description: z.string().optional(),
-          options: z.array(z.string()),
-        }),
-        z.object({
-          type: z.literal('string'),
-          get name() {
-            return constantNameValidator;
-          },
-          description: z.string().optional(),
-          value: z.string(),
-        }),
-      ]),
-    ),
-    schema: z.object({
-      nodes: z.record(
-        z.string(),
-        z.looseObject({
-          id: z.string(),
-          type: z.string(),
-        }),
-      ),
-      root: z.object({
-        type: z.literal('object'),
-        fields: z.array(
-          z.looseObject({
-            typeId: z.string(),
-          }),
-        ),
-      }),
-    }),
-    locales: z
-      .array(
-        z.object({
-          tag: z.string(),
-          values: z.record(z.string(), z.any()).optional(),
-        }),
-      )
-      .optional(),
-  }),
-});
-
 export const serverGetProjectWordingsBranch = createServerFn()
   .middleware([$serverAuthenticated()])
   .inputValidator(
@@ -134,7 +83,48 @@ export const serverListProjectBranches = createServerFn()
     };
   });
 
-export const serverUpdateProjectWordingsBranch = createServerFn()
+const updateProjectWordingsBranchValidator = z.object({
+  branchId: z.string().min(1, 'Branch ID is required'),
+  config: z.object({
+    constants: z.array(
+      z.discriminatedUnion('type', [
+        z.object({
+          type: z.literal('enum'),
+          get name() {
+            return constantNameValidator;
+          },
+          description: z.string().optional(),
+          options: z.array(z.string()),
+        }),
+        z.object({
+          type: z.literal('string'),
+          get name() {
+            return constantNameValidator;
+          },
+          description: z.string().optional(),
+          value: z.string(),
+        }),
+      ]),
+    ),
+    schema: z
+      .object({
+        type: z.literal('object'),
+      })
+      .loose(),
+    locales: z
+      .array(
+        z.object({
+          tag: z.string(),
+          values: z.record(z.string(), z.any()).optional(),
+        }),
+      )
+      .optional(),
+  }),
+});
+
+export const serverUpdateProjectWordingsBranch = createServerFn({
+  method: 'POST',
+})
   .middleware([$serverAuthenticated()])
   .inputValidator(updateProjectWordingsBranchValidator)
   .handler(async ({ data, context }) => {
@@ -145,6 +135,11 @@ export const serverUpdateProjectWordingsBranch = createServerFn()
       .where('id', '=', data.branchId)
       .where('archived_at', 'is', null)
       .executeTakeFirst();
+
+    // console.log({
+    //   data,
+    // });
+    // throw new Error('Debug stop');
 
     if (!branch) {
       throw json('Branch not found', { status: 404 });

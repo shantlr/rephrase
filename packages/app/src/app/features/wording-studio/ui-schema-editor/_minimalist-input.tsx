@@ -1,9 +1,13 @@
 import { cn } from '@/app/common/lib/utils';
-import { ComponentProps } from 'react';
+import { ComponentProps, forwardRef } from 'react';
 
-export const MinimalistInput = (props: ComponentProps<'input'>) => {
+export const MinimalistInput = forwardRef<
+  HTMLInputElement,
+  ComponentProps<'input'>
+>((props, ref) => {
   return (
     <input
+      ref={ref}
       type="text"
       {...props}
       className={cn(
@@ -12,4 +16,6 @@ export const MinimalistInput = (props: ComponentProps<'input'>) => {
       )}
     />
   );
-};
+});
+
+MinimalistInput.displayName = 'MinimalistInput';

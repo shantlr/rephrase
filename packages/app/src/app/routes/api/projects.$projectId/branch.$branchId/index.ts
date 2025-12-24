@@ -7,6 +7,7 @@ import {
 import { db } from '@/server/data';
 import { ProjectWordingRepo } from '@/server/data/repo/project-wording';
 import type { WordingData } from '@/server/data/wording.types';
+import { z } from 'zod';
 
 const jsonResponse = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -35,6 +36,99 @@ const authenticate = async (request: Request) => {
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Zod validators for constants
+const constantNameValidator = z.string().regex(/^[A-Z0-9_]+$/);
+
+const enumConstantValidator = z.object({
+  type: z.literal('enum'),
+  name: constantNameValidator,
+  description: z.string().optional(),
+  options: z.array(z.string()),
+});
+
+const stringConstantValidator = z.object({
+  type: z.literal('string'),
+  name: constantNameValidator,
+  description: z.string().optional(),
+  value: z.string(),
+});
+
+const constantValidator = z.discriminatedUnion('type', [
+  enumConstantValidator,
+  stringConstantValidator,
+]);
+
+// Schema node validators (recursive)
+const schemaStringNodeValidator = z.object({
+  type: z.literal('string'),
+  params: z
+    .record(
+      z.string(),
+      z.object({
+        type: z.enum(['string', 'number']),
+      }),
+    )
+    .optional(),
+});
+
+const schemaNumberNodeValidator = z.object({
+  type: z.literal('number'),
+});
+
+const schemaBooleanNodeValidator = z.object({
+  type: z.literal('boolean'),
+});
+
+// Use lazy for recursive types
+const schemaNodeValidator: z.ZodType<unknown> = z.lazy(() =>
+  z.discriminatedUnion('type', [
+    schemaStringNodeValidator,
+    schemaNumberNodeValidator,
+    schemaBooleanNodeValidator,
+    schemaArrayNodeValidator,
+    schemaObjectNodeValidator,
+  ]),
+);
+
+const schemaArrayNodeValidator = z.object({
+  type: z.literal('array'),
+  itemType: z.lazy(() => schemaNodeValidator),
+});
+
+// Field validators
+const staticFieldValidator = z.object({
+  name: z.string().regex(/^[a-zA-Z0-9_-]+$/),
+  type: z.lazy(() => schemaNodeValidator),
+});
+
+const templatedFieldValidator = z.object({
+  name: z.string().regex(/^[a-zA-Z0-9${}_-]+$/),
+  nameParams: z.record(
+    constantNameValidator,
+    z.object({
+      type: z.literal('constant'),
+      id: constantNameValidator,
+    }),
+  ),
+  type: z.lazy(() => schemaNodeValidator),
+});
+
+const schemaFieldValidator = z.union([
+  templatedFieldValidator,
+  staticFieldValidator,
+]);
+
+const schemaObjectNodeValidator = z.object({
+  type: z.literal('object'),
+  fields: z.array(schemaFieldValidator),
+});
+
+// Full body validator - schema is now directly a SchemaObjectNode
+const updateBranchBodyValidator = z.object({
+  schema: schemaObjectNodeValidator,
+  constants: z.array(constantValidator).optional(),
+});
 
 export const Route = createFileRoute(
   '/api/projects/$projectId/branch/$branchId/',
@@ -124,29 +218,30 @@ export const Route = createFileRoute(
           return jsonResponse(400, { error: 'branch_is_locked' });
         }
 
-        let body: { schema?: WordingData['schema'] };
+        // Parse JSON body
+        let rawBody: unknown;
         try {
-          body = await request.json();
+          rawBody = await request.json();
         } catch {
           return jsonResponse(400, { error: 'invalid_json_body' });
         }
 
-        if (!body.schema) {
-          return jsonResponse(400, { error: 'missing_schema_field' });
+        // Validate body with Zod
+        const parseResult = updateBranchBodyValidator.safeParse(rawBody);
+        if (!parseResult.success) {
+          return jsonResponse(400, {
+            error: 'validation_error',
+            details: parseResult.error.issues,
+          });
         }
 
-        // Basic validation of schema structure
-        if (
-          typeof body.schema !== 'object' ||
-          !body.schema.nodes ||
-          !body.schema.root
-        ) {
-          return jsonResponse(400, { error: 'invalid_schema_structure' });
-        }
+        const body = parseResult.data;
+        const constants = body.constants ?? branch.data.constants ?? [];
 
         const updatedData: WordingData = {
           ...branch.data,
-          schema: body.schema,
+          schema: body.schema as WordingData['schema'],
+          constants,
         };
 
         try {

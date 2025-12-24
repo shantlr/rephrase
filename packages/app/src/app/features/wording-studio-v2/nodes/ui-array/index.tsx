@@ -48,20 +48,14 @@ const Items = ({
   );
 };
 
-export const SchemaArrayField = ({
-  fieldPath,
-  typePath,
-}: {
-  fieldPath: PathToField;
-  typePath: PathToType;
-}) => {
+export const SchemaArrayField = ({ fieldPath }: { fieldPath: PathToField }) => {
   const store = useStudioStore();
-  const itemTypeId = useReadStoreField(
-    store,
-    `${typePath}.itemTypeId` satisfies PathToArrayItemTypeId,
-  );
-  const itemType = useReadStoreField(store, `schema.nodes.${itemTypeId}`);
-  console.log(itemType);
+  // const itemTypeId = useReadStoreField(
+  //   store,
+  //   `${typePath}.itemTypeId` satisfies PathToArrayItemTypeId,
+  // );
+  // const itemType = useReadStoreField(store, `schema.nodes.${itemTypeId}`);
+  // console.log(itemType);
 
   return (
     <BaseField
@@ -69,7 +63,7 @@ export const SchemaArrayField = ({
       fieldPath={fieldPath}
     >
       <div className="ml-4">
-        <Items />
+        {/* <Items /> */}
         {/* <SchemaFieldList schemaPath={`${typePath}.items`} /> */}
       </div>
     </BaseField>

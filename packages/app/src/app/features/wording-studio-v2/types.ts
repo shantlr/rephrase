@@ -1,4 +1,4 @@
-export type PathToType = `schema.nodes.${string}`;
+export type PathToType = 'schema' | `schema.${string}`;
 export type PathToRootFieldList = `schema.root.fields`;
 export type PathToFieldList = `${PathToType}.fields` | PathToRootFieldList;
 

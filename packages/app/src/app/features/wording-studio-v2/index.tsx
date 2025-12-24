@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/app/common/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/common/ui/card';
+import { Card, CardContent, CardHeader } from '@/app/common/ui/card';
 import { Input } from '@/app/common/ui/input';
 import {
   Select,
@@ -36,6 +36,8 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
   const [store] = useState(() => {
     return createV2Store({
       schema: branch.schema,
+      locales: branch.locales,
+      constants: branch.constants,
       localeValues: branch.localeValues || {},
       selectedLocale: branch.locales[0] || '',
     });
@@ -87,7 +89,6 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
                       ? `${projectName} • ${branch.name}`
                       : branch.name}
                   </p>
-                  <h1 className="text-2xl font-semibold">Studio V2</h1>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -119,7 +120,6 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
 
           <Card>
             <CardHeader className="space-y-2">
-              <CardTitle className="text-lg">Wordings</CardTitle>
               <Input
                 placeholder="Search by path"
                 value={search}
@@ -128,7 +128,7 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
               />
             </CardHeader>
             <CardContent>
-              <SchemaFieldList schemaPath="schema.root.fields" />
+              <SchemaFieldList schemaPath="schema.fields" valuePath="" />
             </CardContent>
           </Card>
         </div>

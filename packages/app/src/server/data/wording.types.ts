@@ -11,97 +11,141 @@ export type WordingStringConstant = {
   value: string;
 };
 
-type BaseSchemaNode<Type extends string, T> = {
-  type: Type;
-  id: string;
-  description?: string;
-} & T;
-export type SchemaStringTemplateNode = BaseSchemaNode<
-  'string-template',
-  {
-    params?: {
+// type BaseSchemaNode<Type extends string, T> = {
+//   type: Type;
+//   id: string;
+//   description?: string;
+// } & T;
+// export type SchemaStringTemplateNode = BaseSchemaNode<
+//   'string-template',
+//   {
+//     params?: {
+//       [paramName: string]: {
+//         type: 'string' | 'number';
+//       };
+//     };
+//   } & (
+//     | {
+//         variant: 'pluralized';
+//         instances?: {
+//           [localeTag: string]: {
+//             one: string;
+//             other: string;
+//           };
+//         };
+//       }
+//     | {
+//         variant?: never;
+//         instances?: {
+//           [localeTag: string]: string;
+//         };
+//       }
+//   )
+// >;
+// export type SchemaArrayNode = BaseSchemaNode<
+//   'array',
+//   {
+//     itemTypeId: string;
+//     instances?: {
+//       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//       [locale: string]: string[] | any[];
+//     };
+//   }
+// >;
+// export type SchemaNumberNode = BaseSchemaNode<
+//   'number',
+//   {
+//     instances?: {
+//       [localeTag: string]: number;
+//     };
+//   }
+// >;
+// export type SchemaBooleanNode = BaseSchemaNode<
+//   'boolean',
+//   {
+//     instances?: {
+//       [localeTag: string]: boolean;
+//     };
+//   }
+// >;
+// export type SchemaObjectNode = BaseSchemaNode<
+//   'object',
+//   {
+//     fields: (
+//       | {
+//           typeId: string;
+//           name: string;
+//           params?: never;
+//           instances?: never;
+//         }
+//       | {
+//           typeId: string;
+//           name: string;
+//           params: {
+//             [name: string]: {
+//               type: 'constant';
+//               name: string;
+//             };
+//           };
+//           instances?: {
+//             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//             [locale: string]: Record<string, any>;
+//           };
+//         }
+//     )[];
+//   }
+// >;
+
+// export type SchemaNode =
+//   | SchemaStringTemplateNode
+//   | SchemaArrayNode
+//   | SchemaNumberNode
+//   | SchemaBooleanNode
+//   | SchemaObjectNode;
+
+export type SchemaStringNode = {
+  type: 'string';
+  params?: {
+    [paramName: string]: {
+      type: 'string' | 'number';
+    };
+  };
+};
+
+export type SchemaNumberNode = {
+  type: 'number';
+};
+
+export type SchemaBooleanNode = {
+  type: 'boolean';
+};
+
+export type SchemaObjectNode = {
+  type: 'object';
+  fields: {
+    name: string;
+    nameParams?: {
       [paramName: string]: {
-        type: 'string' | 'number';
+        type: 'constant';
+        id: string;
       };
     };
-  } & (
-    | {
-        variant: 'pluralized';
-        instances?: {
-          [localeTag: string]: {
-            one: string;
-            other: string;
-          };
-        };
-      }
-    | {
-        variant?: never;
-        instances?: {
-          [localeTag: string]: string;
-        };
-      }
-  )
->;
-export type SchemaArrayNode = BaseSchemaNode<
-  'array',
-  {
-    itemTypeId: string;
-    instances?: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [locale: string]: string[] | any[];
-    };
-  }
->;
-export type SchemaNumberNode = BaseSchemaNode<
-  'number',
-  {
-    instances?: {
-      [localeTag: string]: number;
-    };
-  }
->;
-export type SchemaBooleanNode = BaseSchemaNode<
-  'boolean',
-  {
-    instances?: {
-      [localeTag: string]: boolean;
-    };
-  }
->;
-export type SchemaObjectNode = BaseSchemaNode<
-  'object',
-  {
-    fields: (
-      | {
-          typeId: string;
-          name: string;
-          params?: never;
-          instances?: never;
-        }
-      | {
-          typeId: string;
-          name: string;
-          params: {
-            [name: string]: {
-              type: 'constant';
-              name: string;
-            };
-          };
-          instances?: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            [locale: string]: Record<string, any>;
-          };
-        }
-    )[];
-  }
->;
+    type: SchemaNode;
+  }[];
+};
+export type SchemaObjectNodeField = SchemaObjectNode['fields'][number];
+
+export type SchemaArrayNode = {
+  type: 'array';
+  itemType: SchemaNode;
+};
 
 export type SchemaNode =
-  | SchemaStringTemplateNode
+  | SchemaStringNode
+  | SchemaObjectNode
   | SchemaArrayNode
   | SchemaNumberNode
-  | SchemaBooleanNode
-  | SchemaObjectNode;
+  | SchemaBooleanNode;
 
 export type WordingLocale = {
   tag: string;
@@ -116,12 +160,13 @@ export type WordingLocale = {
 export type WordingData = {
   constants: (WordingEnumConstant | WordingStringConstant)[];
 
-  schema: {
-    nodes: {
-      [id: string]: SchemaNode;
-    };
-    root: SchemaObjectNode;
-  };
+  schema: SchemaObjectNode;
+  // schema: {
+  //   nodes: {
+  //     [id: string]: SchemaNode;
+  //   };
+  //   root: SchemaObjectNode;
+  // };
 
   locales: WordingLocale[];
 };

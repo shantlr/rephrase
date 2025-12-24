@@ -1,14 +1,14 @@
 import { PackageIcon } from 'lucide-react';
-import { PathToField, PathToType } from '../../types';
+import { PathToField } from '../../types';
 import { BaseField } from '../ui-base-field';
 import { SchemaFieldList } from '../ui-schema-field-list';
 
 export const SchemaObjectField = ({
   fieldPath,
-  typePath,
+  valuePath,
 }: {
   fieldPath: PathToField;
-  typePath: PathToType;
+  valuePath: string;
 }) => {
   return (
     <BaseField
@@ -16,7 +16,10 @@ export const SchemaObjectField = ({
       fieldPath={fieldPath}
     >
       <div className="ml-4">
-        <SchemaFieldList schemaPath={`${typePath}.fields`} />
+        <SchemaFieldList
+          schemaPath={`${fieldPath}.type.fields`}
+          valuePath={valuePath}
+        />
       </div>
     </BaseField>
   );
