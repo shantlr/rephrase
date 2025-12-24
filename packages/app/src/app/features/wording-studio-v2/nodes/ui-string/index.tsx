@@ -1,10 +1,14 @@
 import { TypeIcon } from 'lucide-react';
-import { PathToField } from '../../types';
-import { BaseField } from '../ui-base-field';
-import { useStudioStore } from '../../store';
+import { useRef, useState } from 'react';
+import FocusLock from 'react-focus-lock';
+
+import { Dropdown } from '@/app/common/ui/dropdown';
 import { useReadStoreField } from '@/app/features/wording-studio/store';
 import { MinimalistInput } from '@/app/features/wording-studio/ui-schema-editor/_minimalist-input';
-import { useEffect, useRef, useState } from 'react';
+
+import { useStudioStore } from '../../store';
+import { PathToField } from '../../types';
+import { BaseField } from '../ui-base-field';
 
 const LocaleInput = ({
   locale,
@@ -20,8 +24,8 @@ const LocaleInput = ({
   const value = useReadStoreField(store, currentLocalePath);
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-gray-500 w-8 shrink-0 uppercase">
+    <div className="flex items-center gap-4">
+      <span className="text-xs text-gray-500 w-8 shrink-0 whitespace-nowrap">
         {locale}
       </span>
       <MinimalistInput
@@ -45,52 +49,49 @@ const StringPreview = ({ valuePath }: { valuePath: string }) => {
     `localeValues.${selectedLocale}.${valuePath}` as const;
   const value = useReadStoreField(store, currentLocaleValuePath);
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const selectedInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isOpen && selectedInputRef.current) {
-      selectedInputRef.current.focus();
-    }
-  }, [isOpen]);
-
-  const handleBlur = (e: React.FocusEvent) => {
-    // Check if the new focus target is still within our container
-    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
-      setIsOpen(false);
-    }
-  };
-
   return (
-    <div
-      className="flex grow justify-end"
-      ref={containerRef}
-      onBlur={handleBlur}
-    >
+    <div className="flex grow justify-end">
       <div className="w-full max-w-[500px] relative">
-        <MinimalistInput
-          value={String(value ?? '')}
-          placeholder="<empty>"
-          readOnly
-          onFocus={() => setIsOpen(true)}
-          className="cursor-pointer"
-        />
-        {isOpen && (
-          <div className="absolute top-full right-0 mt-1 w-[400px] p-3 bg-popover border rounded-md shadow-md z-50">
-            <div className="flex flex-col gap-2">
-              {(locales as string[]).map((locale) => (
-                <LocaleInput
-                  key={locale}
-                  locale={locale}
-                  valuePath={valuePath}
-                  inputRef={
-                    locale === selectedLocale ? selectedInputRef : undefined
-                  }
-                />
-              ))}
+        <Dropdown
+          trigger={({ ref, onClick }) => (
+            <div ref={ref}>
+              <MinimalistInput
+                value={String(value ?? '')}
+                placeholder="<empty>"
+                readOnly
+                onClick={onClick}
+                className="cursor-pointer"
+              />
             </div>
-          </div>
-        )}
+          )}
+          open={isOpen}
+          onOpenChange={setIsOpen}
+        >
+          {({ ref, style }) => (
+            <FocusLock returnFocus>
+              <div
+                ref={ref}
+                style={style}
+                className="absolute top-full right-0 w-[400px] p-3 bg-popover border rounded-md shadow-md z-50"
+              >
+                <div className="flex flex-col gap-2">
+                  {(locales as string[]).map((locale) => (
+                    <LocaleInput
+                      key={locale}
+                      locale={locale}
+                      valuePath={valuePath}
+                      inputRef={
+                        locale === selectedLocale ? selectedInputRef : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            </FocusLock>
+          )}
+        </Dropdown>
       </div>
     </div>
   );

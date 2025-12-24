@@ -12,6 +12,7 @@ import appCss from './app.css?url';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/app/common/api/query-client';
 import { Toaster } from '@/app/common/ui/sonner';
+import { RootOverlayContext } from '../common/ui/context/overlay';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -47,8 +48,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <RootDocument>
-        <Outlet />
-        <Toaster />
+        <RootOverlayContext>
+          <Outlet />
+          <Toaster />
+        </RootOverlayContext>
       </RootDocument>
     </QueryClientProvider>
   );
