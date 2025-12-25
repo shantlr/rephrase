@@ -110,6 +110,7 @@ export type SchemaStringNode = {
       type: 'string' | 'number';
     };
   };
+  pluralized?: boolean;
 };
 
 export type SchemaNumberNode = {
