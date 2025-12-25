@@ -48,7 +48,13 @@ const Items = ({
   );
 };
 
-export const SchemaArrayField = ({ fieldPath }: { fieldPath: PathToField }) => {
+export const SchemaArrayField = ({
+  fieldPath,
+  valuePath,
+}: {
+  fieldPath: PathToField;
+  valuePath: string;
+}) => {
   const store = useStudioStore();
   // const itemTypeId = useReadStoreField(
   //   store,
@@ -61,6 +67,7 @@ export const SchemaArrayField = ({ fieldPath }: { fieldPath: PathToField }) => {
     <BaseField
       icon={<ListIcon size={16} className="text-gray-500" />}
       fieldPath={fieldPath}
+      valuePath={valuePath}
     >
       <div className="ml-4">
         {/* <Items /> */}

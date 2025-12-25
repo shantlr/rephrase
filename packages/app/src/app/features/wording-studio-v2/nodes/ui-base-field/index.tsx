@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/common/ui/dropdown-menu';
+import { map } from 'lodash-es';
 
 /**
  * Parses a template string and returns an array of parts (text or param).
@@ -210,10 +211,12 @@ const TemplatedBaseField = (props: {
    */
   icon?: ReactNode;
   fieldPath: PathToField;
+  valuePath: string;
   valuesPreview?: ReactNode;
   children?: ReactNode;
 }) => {
   const store = useStudioStore();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
   const name = useReadStoreField(store, `${props.fieldPath}.name`) as
     | string
     | undefined;
@@ -223,6 +226,10 @@ const TemplatedBaseField = (props: {
     `${props.fieldPath}.nameParams`,
   ) as SchemaObjectNodeField['nameParams'];
 
+  const existingValues = useReadStoreField(
+    store,
+    `localeValues.${selectedLocale}.${props.valuePath}`,
+  ) as Record<string, unknown> | undefined;
   const possibleNames = computePossibleNames({
     template: name ?? '',
     params: Object.entries(params ?? {}).map(([key, value]) => ({
@@ -230,32 +237,48 @@ const TemplatedBaseField = (props: {
       ref: value,
     })),
     constants,
-  });
+  }).filter(
+    (name) => !(name in (existingValues || ({} as Record<string, unknown>))),
+  );
 
   const handleSelectInstantiation = (selectedName: string) => {
-    // TODO: handle instantiation selection
-    console.log('Selected instantiation:', selectedName);
+    store.setField(
+      `localeValues.${selectedLocale}.${props.valuePath}.${selectedName}`,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      null,
+    );
   };
 
   return (
     <div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="ml-4 cursor-pointer hover:bg-gray-100 rounded p-1">
-            <PlusIcon size={12} />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {possibleNames.map((possibleName) => (
-            <DropdownMenuItem
-              key={possibleName}
-              onClick={() => handleSelectInstantiation(possibleName)}
-            >
-              {possibleName}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {map(existingValues, (v, instantiatedTemplate) => (
+        <div
+          key={instantiatedTemplate}
+          className="flex ml-4 text-sm italic text-gray-500"
+        >
+          <div>{instantiatedTemplate}</div>
+        </div>
+      ))}
+      {possibleNames.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="ml-4 cursor-pointer hover:bg-gray-100 rounded p-1">
+              <PlusIcon size={12} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {possibleNames.map((possibleName) => (
+              <DropdownMenuItem
+                key={possibleName}
+                onClick={() => handleSelectInstantiation(possibleName)}
+              >
+                {possibleName}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 };
@@ -263,6 +286,7 @@ const TemplatedBaseField = (props: {
 export const BaseField = ({
   icon,
   fieldPath,
+  valuePath,
   valuesPreview,
   children,
 }: {
@@ -271,6 +295,7 @@ export const BaseField = ({
    */
   icon?: ReactNode;
   fieldPath: PathToField;
+  valuePath: string;
   valuesPreview?: ReactNode;
   children?: ReactNode;
 }) => {
@@ -299,6 +324,7 @@ export const BaseField = ({
       {hasParams ? (
         <TemplatedBaseField
           icon={icon}
+          valuePath={valuePath}
           fieldPath={fieldPath}
           valuesPreview={valuesPreview}
         />

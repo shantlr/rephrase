@@ -43,7 +43,12 @@ export const SchemaAnyField = ({
       );
     }
     case 'array': {
-      return <SchemaArrayField fieldPath={fieldPath} />;
+      return (
+        <SchemaArrayField
+          fieldPath={fieldPath}
+          valuePath={concatPath(valuePath, field.name)}
+        />
+      );
     }
     default:
   }

@@ -14,6 +14,7 @@ export const SchemaObjectField = ({
     <BaseField
       icon={<PackageIcon size={16} className="text-gray-500" />}
       fieldPath={fieldPath}
+      valuePath={valuePath}
     >
       <div className="ml-4">
         <SchemaFieldList

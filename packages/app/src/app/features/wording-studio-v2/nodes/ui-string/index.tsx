@@ -205,6 +205,7 @@ export const SchemaStringField = ({
     <BaseField
       icon={<TypeIcon className="text-gray-500" size={16} />}
       fieldPath={fieldPath}
+      valuePath={valuePath}
       valuesPreview={
         <StringPreview valuePath={valuePath} pluralized={!!pluralized} />
       }
