@@ -69,10 +69,12 @@ export const SchemaArrayField = ({
       fieldPath={fieldPath}
       valuePath={valuePath}
     >
-      <div className="ml-4">
-        {/* <Items /> */}
-        {/* <SchemaFieldList schemaPath={`${typePath}.items`} /> */}
-      </div>
+      {() => (
+        <div className="ml-4">
+          {/* <Items /> */}
+          {/* <SchemaFieldList schemaPath={`${typePath}.items`} /> */}
+        </div>
+      )}
     </BaseField>
   );
 };

@@ -212,8 +212,8 @@ const TemplatedBaseField = (props: {
   icon?: ReactNode;
   fieldPath: PathToField;
   valuePath: string;
-  valuesPreview?: ReactNode;
-  children?: ReactNode;
+  valuesPreview?: (args: { valuePath: string }) => ReactNode;
+  children?: (args: { fieldPath: PathToField; valuePath: string }) => ReactNode;
 }) => {
   const store = useStudioStore();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
@@ -252,14 +252,25 @@ const TemplatedBaseField = (props: {
 
   return (
     <div>
-      {map(existingValues, (v, instantiatedTemplate) => (
-        <div
-          key={instantiatedTemplate}
-          className="flex ml-4 text-sm italic text-gray-500"
-        >
-          <div>{instantiatedTemplate}</div>
-        </div>
-      ))}
+      {/* Already picked */}
+      {map(existingValues, (v, instantiatedTemplate) => {
+        const instanceValuePath = `${props.valuePath}.${instantiatedTemplate}`;
+        return (
+          <div key={instantiatedTemplate} className="ml-8">
+            <div className="flex text-sm italic text-gray-500 items-center gap-2">
+              <div>{instantiatedTemplate}</div>
+              {props.valuesPreview?.({ valuePath: instanceValuePath })}
+            </div>
+            <div className="">
+              {props.children?.({
+                fieldPath: props.fieldPath,
+                valuePath: instanceValuePath,
+              })}
+            </div>
+          </div>
+        );
+      })}
+      {/* Add new instances */}
       {possibleNames.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -296,8 +307,8 @@ export const BaseField = ({
   icon?: ReactNode;
   fieldPath: PathToField;
   valuePath: string;
-  valuesPreview?: ReactNode;
-  children?: ReactNode;
+  valuesPreview?: (args: { valuePath: string }) => ReactNode;
+  children?: (args: { fieldPath: PathToField; valuePath: string }) => ReactNode;
 }) => {
   const store = useStudioStore();
   const name = useReadStoreField(store, `${fieldPath}.name`) as
@@ -319,7 +330,7 @@ export const BaseField = ({
         ) : (
           <div className="text-gray-500 text-sm">{name}</div>
         )}
-        {!hasParams && valuesPreview}
+        {!hasParams && valuesPreview?.({ valuePath })}
       </div>
       {hasParams ? (
         <TemplatedBaseField
@@ -327,9 +338,11 @@ export const BaseField = ({
           valuePath={valuePath}
           fieldPath={fieldPath}
           valuesPreview={valuesPreview}
-        />
+        >
+          {children}
+        </TemplatedBaseField>
       ) : (
-        children
+        children?.({ fieldPath, valuePath })
       )}
     </div>
   );

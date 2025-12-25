@@ -16,12 +16,14 @@ export const SchemaObjectField = ({
       fieldPath={fieldPath}
       valuePath={valuePath}
     >
-      <div className="ml-4">
-        <SchemaFieldList
-          schemaPath={`${fieldPath}.type.fields`}
-          valuePath={valuePath}
-        />
-      </div>
+      {({ fieldPath, valuePath }) => (
+        <div className="ml-4">
+          <SchemaFieldList
+            schemaPath={`${fieldPath}.type.fields`}
+            valuePath={valuePath}
+          />
+        </div>
+      )}
     </BaseField>
   );
 };

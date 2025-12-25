@@ -206,9 +206,9 @@ export const SchemaStringField = ({
       icon={<TypeIcon className="text-gray-500" size={16} />}
       fieldPath={fieldPath}
       valuePath={valuePath}
-      valuesPreview={
+      valuesPreview={({ valuePath }) => (
         <StringPreview valuePath={valuePath} pluralized={!!pluralized} />
-      }
+      )}
     />
   );
 };
