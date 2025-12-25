@@ -1,5 +1,5 @@
 import { TypeIcon } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import FocusLock from 'react-focus-lock';
 
 import { Dropdown } from '@/app/common/ui/dropdown';
@@ -9,6 +9,8 @@ import { MinimalistInput } from '@/app/features/wording-studio/ui-schema-editor/
 import { useStudioStore } from '../../store';
 import { PathToField } from '../../types';
 import { BaseField } from '../ui-base-field';
+import { useListenKeyboard } from '@/app/common/hooks/use-listen-keyboard';
+import { useInputFocusDropdownState } from '@/app/common/hooks/use-input-focus-dropdown-state';
 
 const LocaleInput = ({
   locale,
@@ -48,29 +50,39 @@ const StringPreview = ({ valuePath }: { valuePath: string }) => {
   const currentLocaleValuePath =
     `localeValues.${selectedLocale}.${valuePath}` as const;
   const value = useReadStoreField(store, currentLocaleValuePath);
-  const [isOpen, setIsOpen] = useState(false);
   const selectedInputRef = useRef<HTMLInputElement>(null);
+  const dropdown = useInputFocusDropdownState(false);
+
+  useListenKeyboard(
+    {
+      Escape: (event) => {
+        event.preventDefault();
+        dropdown.closeWithFocusBackToInput();
+      },
+    },
+    dropdown.open,
+  );
 
   return (
     <div className="flex grow justify-end">
       <div className="w-full max-w-[500px] relative">
         <Dropdown
-          trigger={({ ref, onClick }) => (
+          {...dropdown.dropdownProps}
+          trigger={({ ref }) => (
             <div ref={ref}>
               <MinimalistInput
                 value={String(value ?? '')}
                 placeholder="<empty>"
                 readOnly
-                onClick={onClick}
+                active={dropdown.open}
+                {...dropdown.inputProps}
                 className="cursor-pointer"
               />
             </div>
           )}
-          open={isOpen}
-          onOpenChange={setIsOpen}
         >
           {({ ref, style }) => (
-            <FocusLock returnFocus>
+            <FocusLock returnFocus={false}>
               <div
                 ref={ref}
                 style={style}
