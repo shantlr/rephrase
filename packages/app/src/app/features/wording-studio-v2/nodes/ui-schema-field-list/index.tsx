@@ -12,6 +12,7 @@ import {
   SchemaObjectNodeField,
 } from '@/server/data/wording.types';
 import { concatPath } from '../../utils/concat-path';
+import { useFieldVisible } from '../../use-field-visible';
 
 export const SchemaAnyField = ({
   fieldPath,
@@ -56,6 +57,18 @@ export const SchemaAnyField = ({
   return null;
 };
 
+const FieldWrapper = ({
+  fieldPath,
+  valuePath,
+}: {
+  fieldPath: PathToField;
+  valuePath: string;
+}) => {
+  const isVisible = useFieldVisible(fieldPath);
+  if (!isVisible) return null;
+  return <SchemaAnyField fieldPath={fieldPath} valuePath={valuePath} />;
+};
+
 export const SchemaFieldList = ({
   schemaPath,
   valuePath,
@@ -74,12 +87,10 @@ export const SchemaFieldList = ({
   return (
     <>
       {Array.from({ length }).map((_, index) => {
+        const fieldPath = `${schemaPath}.${index}` as PathToField;
         return (
           <div key={index}>
-            <SchemaAnyField
-              fieldPath={`${schemaPath}.${index}`}
-              valuePath={valuePath}
-            />
+            <FieldWrapper fieldPath={fieldPath} valuePath={valuePath} />
           </div>
         );
       })}

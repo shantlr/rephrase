@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/app/common/ui/button';
-import { Card, CardContent, CardHeader } from '@/app/common/ui/card';
+import { Card, CardContent } from '@/app/common/ui/card';
 import { Input } from '@/app/common/ui/input';
 import {
   Select,
@@ -15,8 +15,23 @@ import { ArrowLeftIcon, SaveIcon } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { useReadStoreField } from '../wording-studio/store';
 import { WordingData } from '@/server/data/wording.types';
-import { createV2Store, StudioStoreProvider } from './store';
+import { createV2Store, StudioStoreProvider, useStudioStore } from './store';
 import { SchemaFieldList } from './nodes/ui-schema-field-list';
+import { SearchSync } from './ui-search-sync';
+
+const SearchInput = () => {
+  const store = useStudioStore();
+  const search = useReadStoreField(store, 'search') ?? '';
+
+  return (
+    <Input
+      placeholder="Search by path"
+      value={search}
+      onChange={(e) => store.setField('search', e.target.value)}
+      className="w-64"
+    />
+  );
+};
 
 type Props = {
   branch: {
@@ -43,7 +58,6 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
     });
   });
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
-  const search = useReadStoreField(store, 'search') ?? '';
 
   const updateBranch = useUpdateProjectWordingsBranch();
   const handleSave = async () => {
@@ -72,6 +86,7 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
 
   return (
     <StudioStoreProvider value={store}>
+      <SearchSync />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="sticky top-0 z-30 -mx-6 px-6 pt-2 pb-4 bg-gray-50/90 backdrop-blur border-b border-gray-200">
@@ -92,6 +107,7 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <SearchInput />
                 <Select
                   value={selectedLocale}
                   onValueChange={(value) => {
@@ -119,15 +135,7 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
           </div>
 
           <Card>
-            <CardHeader className="space-y-2">
-              <Input
-                placeholder="Search by path"
-                value={search}
-                onChange={(e) => store.setField('search', e.target.value)}
-                className="max-w-md"
-              />
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <SchemaFieldList schemaPath="schema.fields" valuePath="" />
             </CardContent>
           </Card>

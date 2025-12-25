@@ -16,6 +16,7 @@ export const createV2Store = (initialData: {
     localeValues: initialData.localeValues,
     selectedLocale: initialData.selectedLocale,
     search: '',
+    visibleFields: null as Set<string> | null, // null = show all, Set = show only these paths
   });
 };
 
