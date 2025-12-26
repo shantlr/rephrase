@@ -109,7 +109,10 @@ const formatNewlines = (str: string): string => {
   return str.replace(/\n/g, '↵ ');
 };
 
-const formatPreviewValue = (value: unknown, pluralized: boolean): string => {
+export const formatStringPreview = (
+  value: unknown,
+  pluralized: boolean,
+): string => {
   if (pluralized) {
     const plural = value as PluralValue | undefined;
     if (!plural) return '';
@@ -152,7 +155,7 @@ const StringPreview = ({
           trigger={({ ref }) => (
             <div ref={ref}>
               <MinimalistInput
-                value={formatPreviewValue(value, pluralized)}
+                value={formatStringPreview(value, pluralized)}
                 placeholder="<empty>"
                 readOnly
                 active={dropdown.open}

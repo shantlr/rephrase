@@ -323,12 +323,12 @@ export const BaseField = ({
 
   return (
     <div>
-      <div className="flex gap-2 items-center w-full">
-        {icon}
+      <div className="flex gap-2 items-start w-full">
+        {icon && <div className="mt-1.5">{icon}</div>}
         {hasParams ? (
           <TemplatedName template={name ?? ''} params={params} />
         ) : (
-          <div className="text-gray-500 text-sm">{name}</div>
+          <div className="mt-1 text-gray-500 text-sm">{name}</div>
         )}
         {!hasParams && valuesPreview?.({ valuePath })}
       </div>
