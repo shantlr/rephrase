@@ -71,6 +71,7 @@ const schemaStringNodeValidator = z.object({
     )
     .optional(),
   pluralized: z.boolean().optional(),
+  html: z.boolean().optional(),
 });
 
 const schemaNumberNodeValidator = z.object({

@@ -1,5 +1,6 @@
-import { TypeIcon } from 'lucide-react';
+import { TypeIcon, CodeXml } from 'lucide-react';
 import FocusLock from 'react-focus-lock';
+import Editor from '@monaco-editor/react';
 
 import { Dropdown } from '@/app/common/ui/dropdown';
 import { useReadStoreField } from '@/app/features/wording-studio/store';
@@ -105,6 +106,51 @@ const LocaleInput = ({
   );
 };
 
+const HtmlLocaleInput = ({
+  locale,
+  valuePath,
+}: {
+  locale: string;
+  valuePath: string;
+}) => {
+  const store = useStudioStore();
+  const currentLocalePath = `localeValues.${locale}.${valuePath}` as const;
+  const value = useReadStoreField(store, currentLocalePath);
+  const stringValue = String(value ?? '');
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-gray-500">{locale}</span>
+      <div className="border border-gray-200 rounded overflow-hidden">
+        <Editor
+          height="150px"
+          language="html"
+          value={stringValue}
+          onChange={(v) => store.setField(currentLocalePath, v ?? '')}
+          theme="light"
+          options={{
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            fontSize: 12,
+            lineNumbers: 'off',
+            wordWrap: 'on',
+            folding: false,
+            tabSize: 2,
+            insertSpaces: true,
+            renderLineHighlight: 'none',
+            overviewRulerLanes: 0,
+            hideCursorInOverviewRuler: true,
+            scrollbar: {
+              vertical: 'auto',
+              horizontal: 'hidden',
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
 const formatNewlines = (str: string): string => {
   return str.replace(/\n/g, '↵ ');
 };
@@ -112,21 +158,30 @@ const formatNewlines = (str: string): string => {
 export const formatStringPreview = (
   value: unknown,
   pluralized: boolean,
+  html?: boolean,
 ): string => {
   if (pluralized) {
     const plural = value as PluralValue | undefined;
     if (!plural) return '';
     return `${formatNewlines(plural.one)} / ${formatNewlines(plural.other)}`;
   }
-  return formatNewlines(String(value ?? ''));
+  const str = String(value ?? '');
+  if (html) {
+    // Show raw HTML, truncate if too long
+    const truncated = str.length > 80 ? str.slice(0, 80) + '...' : str;
+    return truncated.replace(/\n/g, ' ');
+  }
+  return formatNewlines(str);
 };
 
 const StringPreview = ({
   valuePath,
   pluralized,
+  html,
 }: {
   valuePath: string;
   pluralized: boolean;
+  html?: boolean;
 }) => {
   const store = useStudioStore();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
@@ -155,12 +210,14 @@ const StringPreview = ({
           trigger={({ ref }) => (
             <div ref={ref}>
               <MinimalistInput
-                value={formatStringPreview(value, pluralized)}
+                value={formatStringPreview(value, pluralized, html)}
                 placeholder="<empty>"
                 readOnly
                 active={dropdown.open}
                 {...dropdown.inputProps}
-                className="cursor-pointer"
+                className={
+                  html ? 'cursor-pointer font-mono text-xs' : 'cursor-pointer'
+                }
               />
             </div>
           )}
@@ -170,17 +227,25 @@ const StringPreview = ({
               <div
                 ref={ref}
                 style={style}
-                className="absolute top-full right-0 w-[400px] p-3 bg-popover border rounded-md shadow-md z-50"
+                className={`absolute top-full right-0 p-3 bg-popover border rounded-md shadow-md z-50 ${html ? 'w-[600px]' : 'w-[400px]'}`}
               >
                 <div className="flex flex-col gap-2">
-                  {(locales as string[]).map((locale) => (
-                    <LocaleInput
-                      key={locale}
-                      locale={locale}
-                      valuePath={valuePath}
-                      pluralized={pluralized}
-                    />
-                  ))}
+                  {(locales as string[]).map((locale) =>
+                    html ? (
+                      <HtmlLocaleInput
+                        key={locale}
+                        locale={locale}
+                        valuePath={valuePath}
+                      />
+                    ) : (
+                      <LocaleInput
+                        key={locale}
+                        locale={locale}
+                        valuePath={valuePath}
+                        pluralized={pluralized}
+                      />
+                    ),
+                  )}
                 </div>
               </div>
             </FocusLock>
@@ -203,14 +268,25 @@ export const SchemaStringField = ({
     store,
     `${fieldPath}.type.pluralized` as const,
   );
+  const html = useReadStoreField(store, `${fieldPath}.type.html` as const);
+
+  const icon = html ? (
+    <CodeXml className="text-gray-500" size={16} />
+  ) : (
+    <TypeIcon className="text-gray-500" size={16} />
+  );
 
   return (
     <BaseField
-      icon={<TypeIcon className="text-gray-500" size={16} />}
+      icon={icon}
       fieldPath={fieldPath}
       valuePath={valuePath}
       valuesPreview={({ valuePath }) => (
-        <StringPreview valuePath={valuePath} pluralized={!!pluralized} />
+        <StringPreview
+          valuePath={valuePath}
+          pluralized={!!pluralized}
+          html={!!html}
+        />
       )}
     />
   );

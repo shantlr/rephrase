@@ -111,6 +111,7 @@ export type SchemaStringNode = {
     };
   };
   pluralized?: boolean;
+  html?: boolean;
 };
 
 export type SchemaNumberNode = {
