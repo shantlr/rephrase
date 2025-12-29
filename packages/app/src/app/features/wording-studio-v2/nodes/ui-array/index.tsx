@@ -7,7 +7,12 @@ import { PathToField } from '../../types';
 import { BaseField } from '../ui-base-field';
 import { ListIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { concatPath } from '../../utils/concat-path';
-import { SchemaNode, SchemaStringNode } from '@/server/data/wording.types';
+import {
+  SchemaNode,
+  SchemaObjectNode,
+  SchemaStringNode,
+} from '@/server/data/wording.types';
+import { SchemaFieldList } from '../ui-schema-field-list';
 import { range } from 'lodash-es';
 import { formatStringPreview, StringLocaleInputField } from '../ui-string';
 import { useState } from 'react';
@@ -159,6 +164,136 @@ const StringArrayPreview = ({
   );
 };
 
+const ObjectArrayItems = ({
+  itemType,
+  valuePath,
+  fieldPath,
+}: {
+  itemType: SchemaObjectNode;
+  valuePath: string;
+  fieldPath: PathToField;
+}) => {
+  const store = useStudioStore();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+  const arrayPath = `localeValues.${selectedLocale}.${valuePath}` as const;
+
+  const count = useSelectStoreField(
+    store,
+    arrayPath,
+    (val) => (val as unknown[] | undefined)?.length ?? 0,
+  );
+
+  const itemFieldsSchemaPath = `${fieldPath}.type.itemType.fields` as const;
+
+  const handleAdd = () => {
+    const currentArray = (store.getField(arrayPath) as unknown[]) ?? [];
+    const emptyItem: Record<string, unknown> = {};
+    itemType.fields.forEach((field) => {
+      emptyItem[field.name] = null;
+    });
+    store.setField(arrayPath, [...currentArray, emptyItem]);
+  };
+
+  const handleDelete = (index: number) => {
+    const currentArray = (store.getField(arrayPath) as unknown[]) ?? [];
+    store.setField(
+      arrayPath,
+      currentArray.filter((_, i) => i !== index),
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {count === 0 && <span className="text-sm text-gray-500">No items</span>}
+      {range(count).map((index) => (
+        <div key={index} className="flex items-start gap-2">
+          <span className="text-gray-400 mt-1">-</span>
+          <div className="flex-1">
+            <SchemaFieldList
+              schemaPath={itemFieldsSchemaPath}
+              valuePath={concatPath(valuePath, String(index))}
+            />
+          </div>
+          <button
+            onClick={() => handleDelete(index)}
+            className="cursor-pointer hover:bg-red-50 rounded p-1 text-gray-400 hover:text-red-500"
+          >
+            <Trash2Icon size={12} />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={handleAdd}
+        className="cursor-pointer hover:bg-gray-100 rounded p-1 self-start ml-4"
+      >
+        <PlusIcon size={12} />
+      </button>
+    </div>
+  );
+};
+
+const NestedArrayItems = ({
+  valuePath,
+  fieldPath,
+}: {
+  valuePath: string;
+  fieldPath: PathToField;
+}) => {
+  const store = useStudioStore();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+  const arrayPath = `localeValues.${selectedLocale}.${valuePath}` as const;
+
+  const count = useSelectStoreField(
+    store,
+    arrayPath,
+    (val) => (val as unknown[] | undefined)?.length ?? 0,
+  );
+
+  const nestedFieldPath = `${fieldPath}.type.itemType` as PathToField;
+
+  const handleAdd = () => {
+    const currentArray = (store.getField(arrayPath) as unknown[]) ?? [];
+    store.setField(arrayPath, [...currentArray, []]);
+  };
+
+  const handleDelete = (index: number) => {
+    const currentArray = (store.getField(arrayPath) as unknown[]) ?? [];
+    store.setField(
+      arrayPath,
+      currentArray.filter((_, i) => i !== index),
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {count === 0 && <span className="text-sm text-gray-500">No items</span>}
+      {range(count).map((index) => (
+        <div key={index} className="flex items-start gap-2">
+          <span className="text-gray-400 mt-1">-</span>
+          <div className="flex-1">
+            <SchemaArrayField
+              fieldPath={nestedFieldPath}
+              valuePath={concatPath(valuePath, String(index))}
+            />
+          </div>
+          <button
+            onClick={() => handleDelete(index)}
+            className="cursor-pointer hover:bg-red-50 rounded p-1 text-gray-400 hover:text-red-500"
+          >
+            <Trash2Icon size={12} />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={handleAdd}
+        className="cursor-pointer hover:bg-gray-100 rounded p-1 self-start ml-4"
+      >
+        <PlusIcon size={12} />
+      </button>
+    </div>
+  );
+};
+
 export const SchemaArrayField = ({
   fieldPath,
   valuePath,
@@ -186,7 +321,16 @@ export const SchemaArrayField = ({
     >
       {() => (
         <div className="ml-4">
-          {/* <SchemaFieldList schemaPath={`${typePath}.items`} /> */}
+          {itemType?.type === 'object' && (
+            <ObjectArrayItems
+              itemType={itemType}
+              valuePath={valuePath}
+              fieldPath={fieldPath}
+            />
+          )}
+          {itemType?.type === 'array' && (
+            <NestedArrayItems valuePath={valuePath} fieldPath={fieldPath} />
+          )}
         </div>
       )}
     </BaseField>
