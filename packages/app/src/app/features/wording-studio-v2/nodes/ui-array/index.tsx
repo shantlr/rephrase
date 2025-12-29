@@ -5,11 +5,11 @@ import {
 import { useStudioStore } from '../../store';
 import { PathToField } from '../../types';
 import { BaseField } from '../ui-base-field';
-import { ListIcon } from 'lucide-react';
+import { ListIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { concatPath } from '../../utils/concat-path';
 import { SchemaNode, SchemaStringNode } from '@/server/data/wording.types';
 import { range } from 'lodash-es';
-import { formatStringPreview } from '../ui-string';
+import { formatStringPreview, StringLocaleInputField } from '../ui-string';
 import { useState } from 'react';
 import { Dropdown } from '@/app/common/ui/dropdown';
 
@@ -33,6 +33,68 @@ const StringPreview = ({
   );
 };
 
+const StringLocaleInput = ({
+  valuePath,
+  locale,
+  html,
+  pluralized,
+}: {
+  valuePath: string;
+  locale: string;
+  html: boolean;
+  pluralized: boolean;
+}) => {
+  const store = useStudioStore();
+  const arrayPath = `localeValues.${locale}.${valuePath}` as const;
+  const arrayValue = useReadStoreField(store, arrayPath) as
+    | unknown[]
+    | undefined;
+  const count = arrayValue?.length ?? 0;
+
+  const handleAdd = () => {
+    const currentArray = arrayValue ?? [];
+    const emptyItem = pluralized ? { one: '', other: '' } : '';
+    store.setField(arrayPath, [...currentArray, emptyItem]);
+  };
+
+  const handleDelete = (index: number) => {
+    const currentArray = arrayValue ?? [];
+    store.setField(
+      arrayPath,
+      currentArray.filter((_, i) => i !== index),
+    );
+  };
+
+  return (
+    <div className="grow flex flex-col gap-1">
+      {range(count).map((index) => (
+        <div key={index} className="flex items-start gap-1">
+          <div className="flex-1">
+            <StringLocaleInputField
+              locale={locale}
+              valuePath={concatPath(valuePath, String(index))}
+              html={html}
+              pluralized={pluralized}
+            />
+          </div>
+          <button
+            onClick={() => handleDelete(index)}
+            className="cursor-pointer hover:bg-red-50 rounded p-1 text-gray-400 hover:text-red-500"
+          >
+            <Trash2Icon size={12} />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={handleAdd}
+        className="cursor-pointer hover:bg-gray-100 rounded p-1"
+      >
+        <PlusIcon size={12} />
+      </button>
+    </div>
+  );
+};
+
 const StringArrayPreview = ({
   itemType,
   valuePath,
@@ -52,51 +114,50 @@ const StringArrayPreview = ({
   const locales = useReadStoreField(store, 'locales');
 
   return (
-    <div className="w-full flex justify-end relative">
-      <Dropdown
-        open={open}
-        trigger={
-          <div
-            role="button"
-            className="w-full max-w-[500px] border rounded-l border-gray-300 p-1 mt-0.5 cursor-pointer hover:border-gray-500 transition-all"
-          >
-            {range(count).map((index) => (
-              <div key={index} className="flex gap-2">
-                <span className="text-gray-400">&bull;</span>
-                <StringPreview
-                  valuePath={concatPath(valuePath, String(index))}
-                  locale={selectedLocale}
+    <div className="w-full flex justify-end">
+      <div className="w-full max-w-[500px] relative">
+        <Dropdown
+          open={open}
+          trigger={
+            <div
+              role="button"
+              className="w-full border rounded-l border-gray-300 p-1 mt-0.5 cursor-pointer hover:border-gray-500 transition-all"
+            >
+              {range(count).map((index) => (
+                <div key={index} className="flex gap-2">
+                  <span className="text-gray-400">&bull;</span>
+                  <StringPreview
+                    valuePath={concatPath(valuePath, String(index))}
+                    locale={selectedLocale}
+                    pluralized={!!itemType.pluralized}
+                  />
+                </div>
+              ))}
+              {count === 0 && (
+                <span className="text-sm text-gray-500">{'<empty>'}</span>
+              )}
+            </div>
+          }
+          onOpenChange={setOpen}
+        >
+          <div className="absolute top-full left-0 w-full p-3 bg-popover shadow-md rounded-md z-50 text-sm flex flex-col gap-2">
+            {locales.map((locale) => (
+              <div key={locale} className="flex gap-4">
+                <div className="text-xs pt-1.5 text-gray-500">{locale}</div>
+                <StringLocaleInput
+                  valuePath={valuePath}
+                  locale={locale}
+                  html={!!itemType.html}
                   pluralized={!!itemType.pluralized}
                 />
               </div>
             ))}
           </div>
-        }
-        onOpenChange={setOpen}
-      >
-        <div className="absolute top-full right-0 p-3 bg-popover shadow-md rounded-md z-50 text-10">
-          {locales.map((locale) => (
-            <div key={locale} className="mb-2">
-              <div className="font-medium mb-1">{locale}</div>
-              {/* {range(count).map((index) => (
-                <div key={index} className="flex gap-2">
-                  <span className="text-gray-400">&bull;</span>
-                  <StringPreview
-                    valuePath={concatPath(valuePath, String(index))}
-                    locale={locale}
-                    pluralized={!!itemType.pluralized}
-                  />
-                </div>
-              ))} */}
-            </div>
-          ))}
-        </div>
-      </Dropdown>
+        </Dropdown>
+      </div>
     </div>
   );
 };
-
-const LocaleInput = () => {};
 
 export const SchemaArrayField = ({
   fieldPath,

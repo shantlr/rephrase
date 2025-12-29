@@ -56,35 +56,28 @@ const LocaleInput = ({
     };
 
     return (
-      <div className="flex items-start gap-4">
-        <span className="text-xs text-gray-500 w-8 shrink-0 whitespace-nowrap pt-1">
-          {locale}
-        </span>
-        <div className="flex flex-col gap-1 w-full">
-          <div className="flex items-start gap-2">
-            <span className="text-xs text-gray-400 w-10 shrink-0 pt-1">
-              one
-            </span>
-            <LocaleTextarea
-              value={pluralValue.one}
-              placeholder="<one>"
-              onChange={(v) =>
-                store.setField(currentLocalePath, { ...pluralValue, one: v })
-              }
-            />
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-xs text-gray-400 w-10 shrink-0 pt-1">
-              other
-            </span>
-            <LocaleTextarea
-              value={pluralValue.other}
-              placeholder="<other>"
-              onChange={(v) =>
-                store.setField(currentLocalePath, { ...pluralValue, other: v })
-              }
-            />
-          </div>
+      <div className="flex flex-col gap-1 w-full">
+        <div className="flex items-start gap-2">
+          <span className="text-xs text-gray-400 w-10 shrink-0 pt-1">one</span>
+          <LocaleTextarea
+            value={pluralValue.one}
+            placeholder="<one>"
+            onChange={(v) =>
+              store.setField(currentLocalePath, { ...pluralValue, one: v })
+            }
+          />
+        </div>
+        <div className="flex items-start gap-2">
+          <span className="text-xs text-gray-400 w-10 shrink-0 pt-1">
+            other
+          </span>
+          <LocaleTextarea
+            value={pluralValue.other}
+            placeholder="<other>"
+            onChange={(v) =>
+              store.setField(currentLocalePath, { ...pluralValue, other: v })
+            }
+          />
         </div>
       </div>
     );
@@ -93,16 +86,11 @@ const LocaleInput = ({
   const stringValue = String(value ?? '');
 
   return (
-    <div className="flex items-start gap-4">
-      <span className="text-xs text-gray-500 w-8 shrink-0 whitespace-nowrap pt-1">
-        {locale}
-      </span>
-      <LocaleTextarea
-        value={stringValue}
-        placeholder="<empty>"
-        onChange={(v) => store.setField(currentLocalePath, v)}
-      />
-    </div>
+    <LocaleTextarea
+      value={stringValue}
+      placeholder="<empty>"
+      onChange={(v) => store.setField(currentLocalePath, v)}
+    />
   );
 };
 
@@ -119,35 +107,55 @@ const HtmlLocaleInput = ({
   const stringValue = String(value ?? '');
 
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-gray-500">{locale}</span>
-      <div className="border border-gray-200 rounded overflow-hidden">
-        <Editor
-          height="150px"
-          language="html"
-          value={stringValue}
-          onChange={(v) => store.setField(currentLocalePath, v ?? '')}
-          theme="light"
-          options={{
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            fontSize: 12,
-            lineNumbers: 'off',
-            wordWrap: 'on',
-            folding: false,
-            tabSize: 2,
-            insertSpaces: true,
-            renderLineHighlight: 'none',
-            overviewRulerLanes: 0,
-            hideCursorInOverviewRuler: true,
-            scrollbar: {
-              vertical: 'auto',
-              horizontal: 'hidden',
-            },
-          }}
-        />
-      </div>
+    <div className="border border-gray-200 rounded overflow-hidden">
+      <Editor
+        height="150px"
+        language="html"
+        value={stringValue}
+        onChange={(v) => store.setField(currentLocalePath, v ?? '')}
+        theme="light"
+        options={{
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          fontSize: 12,
+          lineNumbers: 'off',
+          wordWrap: 'on',
+          folding: false,
+          tabSize: 2,
+          insertSpaces: true,
+          renderLineHighlight: 'none',
+          overviewRulerLanes: 0,
+          hideCursorInOverviewRuler: true,
+          scrollbar: {
+            vertical: 'auto',
+            horizontal: 'hidden',
+          },
+        }}
+      />
     </div>
+  );
+};
+
+export const StringLocaleInputField = ({
+  locale,
+  valuePath,
+  html,
+  pluralized,
+}: {
+  locale: string;
+  valuePath: string;
+  html: boolean;
+  pluralized: boolean;
+}) => {
+  if (html) {
+    return <HtmlLocaleInput locale={locale} valuePath={valuePath} />;
+  }
+  return (
+    <LocaleInput
+      locale={locale}
+      valuePath={valuePath}
+      pluralized={pluralized}
+    />
   );
 };
 
@@ -227,25 +235,24 @@ const StringPreview = ({
               <div
                 ref={ref}
                 style={style}
-                className={`absolute top-full right-0 p-3 bg-popover border rounded-md shadow-md z-50 ${html ? 'w-[600px]' : 'w-[400px]'}`}
+                className={`w-full absolute top-full left-0 p-3 bg-popover border rounded-md shadow-md z-50 ${html ? 'w-[600px]' : 'w-[400px]'}`}
               >
-                <div className="flex flex-col gap-2">
-                  {(locales as string[]).map((locale) =>
-                    html ? (
-                      <HtmlLocaleInput
-                        key={locale}
-                        locale={locale}
-                        valuePath={valuePath}
-                      />
-                    ) : (
-                      <LocaleInput
-                        key={locale}
-                        locale={locale}
-                        valuePath={valuePath}
-                        pluralized={pluralized}
-                      />
-                    ),
-                  )}
+                <div className="flex flex-col gap-3">
+                  {(locales as string[]).map((locale) => (
+                    <div key={locale} className="flex items-start gap-4">
+                      <span className="text-xs text-gray-500 w-8 shrink-0 pt-1.5 whitespace-nowrap">
+                        {locale}
+                      </span>
+                      <div className="flex-1">
+                        <StringLocaleInputField
+                          locale={locale}
+                          valuePath={valuePath}
+                          html={!!html}
+                          pluralized={pluralized}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </FocusLock>
