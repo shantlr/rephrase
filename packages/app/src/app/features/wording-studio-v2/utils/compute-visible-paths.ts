@@ -3,14 +3,17 @@ import {
   SchemaObjectNodeField,
 } from '@/server/data/wording.types';
 import { matchesSearch } from './normalize-text';
+import { ExpandedNameInfo } from './compute-expanded-names';
 
 /**
  * Computes the set of visible field paths based on search query.
  * When a field matches, all its descendants are also included.
+ * Uses pre-computed expanded names for templated fields (e.g., "button_{action}" → ["button_click", ...]).
  */
 export const computeVisiblePaths = (
   schema: SchemaObjectNode,
   search: string,
+  expandedFieldNames: Map<string, ExpandedNameInfo[]>,
 ): Set<string> => {
   const visible = new Set<string>();
 
@@ -35,7 +38,13 @@ export const computeVisiblePaths = (
   ) => {
     fields.forEach((field, index) => {
       const fieldPath = `${basePath}.${index}`;
-      const selfMatches = matchesSearch(field.name, search);
+      // Use pre-computed expanded names for matching
+      const expandedNames = expandedFieldNames.get(fieldPath) ?? [
+        { name: field.name, paramValues: {} },
+      ];
+      const selfMatches = expandedNames.some((info) =>
+        matchesSearch(info.name, search),
+      );
 
       if (ancestorMatched) {
         // Ancestor matched, add this and all descendants

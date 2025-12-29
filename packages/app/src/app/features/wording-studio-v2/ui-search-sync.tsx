@@ -3,6 +3,7 @@ import { useReadStoreField } from '../wording-studio/store';
 import { useStudioStore } from './store';
 import { computeVisiblePaths } from './utils/compute-visible-paths';
 import { SchemaObjectNode } from '@/server/data/wording.types';
+import { ExpandedNameInfo } from './utils/compute-expanded-names';
 
 /**
  * Syncs the search value with the visibleFields set in the store.
@@ -12,6 +13,10 @@ export const SearchSync = () => {
   const store = useStudioStore();
   const search = (useReadStoreField(store, 'search') as string) ?? '';
   const schema = useReadStoreField(store, 'schema') as SchemaObjectNode;
+  const expandedFieldNames = useReadStoreField(
+    store,
+    'expandedFieldNames',
+  ) as Map<string, ExpandedNameInfo[]>;
 
   useEffect(() => {
     if (!search) {
@@ -19,9 +24,13 @@ export const SearchSync = () => {
       return;
     }
 
-    const visiblePaths = computeVisiblePaths(schema, search);
+    const visiblePaths = computeVisiblePaths(
+      schema,
+      search,
+      expandedFieldNames,
+    );
     store.setField('visibleFields', visiblePaths);
-  }, [search, schema, store]);
+  }, [search, schema, expandedFieldNames, store]);
 
   return null;
 };

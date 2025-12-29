@@ -135,7 +135,7 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
           </div>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="">
               <SchemaFieldList schemaPath="schema.fields" valuePath="" />
             </CardContent>
           </Card>

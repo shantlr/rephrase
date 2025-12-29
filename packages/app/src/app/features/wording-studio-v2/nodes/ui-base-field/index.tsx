@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/app/common/ui/dropdown-menu';
 import { map } from 'lodash-es';
+import { ExpandedNameInfo } from '../../utils/compute-expanded-names';
 
 /**
  * Parses a template string and returns an array of parts (text or param).
@@ -156,49 +157,52 @@ const TemplatedName = ({
   );
 };
 
-const computePossibleNames = ({
+/**
+ * Renders an expanded instance name with param values highlighted and hoverable.
+ * E.g., for template "button_{action}_{variant}" with values { action: "click", variant: "primary" },
+ * renders "button_[click]_[primary]" where bracketed parts are colored and have tooltips.
+ */
+const FormattedInstanceName = ({
   template,
-  params,
-  constants,
+  paramValues,
 }: {
   template: string;
-  params: {
-    name: string;
-    ref: NonNullable<SchemaObjectNodeField['nameParams']>[string];
-  }[];
-  constants: WordingData['constants'];
+  paramValues: ExpandedNameInfo['paramValues'];
 }) => {
-  if (params.length === 0) {
-    return [template];
-  }
+  const parts = parseTemplateName(template);
 
-  const param = params[0];
-  const restParams = params.slice(1);
-  const possibleValues: string[] = [];
+  return (
+    <span className="text-gray-500 text-sm">
+      {parts.map((part, index) => {
+        if (typeof part === 'string') {
+          return <span key={index}>{part}</span>;
+        }
 
-  if (param.ref.type === 'constant') {
-    const constant = constants.find((c) => c.name === param.ref.id);
-    if (constant?.type === 'enum') {
-      constant.options.forEach((option) => {
-        possibleValues.push(option);
-      });
-    } else if (constant?.type === 'string') {
-      possibleValues.push(constant.value);
-    }
-  }
+        const paramInfo = paramValues[part.param];
+        if (!paramInfo) {
+          // Param not found in values, show placeholder
+          return (
+            <span key={index} className="text-gray-400">
+              {`{${part.param}}`}
+            </span>
+          );
+        }
 
-  const results: string[] = [];
-  for (const value of possibleValues) {
-    const newTemplate = template.replaceAll(`{${param.name}}`, value);
-    const subResults = computePossibleNames({
-      template: newTemplate,
-      params: restParams,
-      constants,
-    });
-    results.push(...subResults);
-  }
-
-  return results;
+        return (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <span className="text-violet-500 italic font-medium cursor-help hover:bg-violet-100 rounded px-0.5">
+                {paramInfo.value}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>From constant: {paramInfo.constantId}</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      })}
+    </span>
+  );
 };
 
 /**
@@ -217,28 +221,29 @@ const TemplatedBaseField = (props: {
 }) => {
   const store = useStudioStore();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
-  const name = useReadStoreField(store, `${props.fieldPath}.name`) as
+  const expandedFieldNames = useReadStoreField(
+    store,
+    'expandedFieldNames',
+  ) as Map<string, ExpandedNameInfo[]>;
+  const templateName = useReadStoreField(store, `${props.fieldPath}.name`) as
     | string
     | undefined;
-  const constants = useReadStoreField(store, 'constants');
-  const params = useReadStoreField(
-    store,
-    `${props.fieldPath}.nameParams`,
-  ) as SchemaObjectNodeField['nameParams'];
 
   const existingValues = useReadStoreField(
     store,
     `localeValues.${selectedLocale}.${props.valuePath}`,
   ) as Record<string, unknown> | undefined;
-  const possibleNames = computePossibleNames({
-    template: name ?? '',
-    params: Object.entries(params ?? {}).map(([key, value]) => ({
-      name: key,
-      ref: value,
-    })),
-    constants,
-  }).filter(
-    (name) => !(name in (existingValues || ({} as Record<string, unknown>))),
+
+  // Use precomputed expanded names from store
+  const allExpandedNames = expandedFieldNames.get(props.fieldPath) ?? [];
+  const availableNames = allExpandedNames.filter(
+    (info) =>
+      !(info.name in (existingValues || ({} as Record<string, unknown>))),
+  );
+
+  // Create a lookup map for existing instance names to their param values
+  const nameToParamValues = new Map(
+    allExpandedNames.map((info) => [info.name, info.paramValues]),
   );
 
   const handleSelectInstantiation = (selectedName: string) => {
@@ -253,12 +258,16 @@ const TemplatedBaseField = (props: {
   return (
     <div>
       {/* Already picked */}
-      {map(existingValues, (v, instantiatedTemplate) => {
-        const instanceValuePath = `${props.valuePath}.${instantiatedTemplate}`;
+      {map(existingValues, (v, instantiatedName) => {
+        const instanceValuePath = `${props.valuePath}.${instantiatedName}`;
+        const paramValues = nameToParamValues.get(instantiatedName) ?? {};
         return (
-          <div key={instantiatedTemplate} className="ml-8">
-            <div className="flex text-sm italic text-gray-500 items-center gap-2">
-              <div>{instantiatedTemplate}</div>
+          <div key={instantiatedName} className="ml-4">
+            <div className="flex text-sm text-gray-500 items-center gap-2">
+              <FormattedInstanceName
+                template={templateName ?? ''}
+                paramValues={paramValues}
+              />
               {props.valuesPreview?.({ valuePath: instanceValuePath })}
             </div>
             <div className="">
@@ -271,7 +280,7 @@ const TemplatedBaseField = (props: {
         );
       })}
       {/* Add new instances */}
-      {possibleNames.length > 0 && (
+      {availableNames.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="ml-4 cursor-pointer hover:bg-gray-100 rounded p-1">
@@ -279,12 +288,15 @@ const TemplatedBaseField = (props: {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            {possibleNames.map((possibleName) => (
+            {availableNames.map((info) => (
               <DropdownMenuItem
-                key={possibleName}
-                onClick={() => handleSelectInstantiation(possibleName)}
+                key={info.name}
+                onClick={() => handleSelectInstantiation(info.name)}
               >
-                {possibleName}
+                <FormattedInstanceName
+                  template={templateName ?? ''}
+                  paramValues={info.paramValues}
+                />
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
