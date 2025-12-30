@@ -12,9 +12,28 @@ import {
   SchemaObjectNodeField,
 } from '@/server/data/wording.types';
 import { concatPath } from '../../utils/concat-path';
-import { useFieldVisible } from '../../use-field-visible';
 
-export const SchemaAnyField = ({
+/**
+ * Hook to check if a field should be visible based on the current search.
+ * Returns true if no search is active (visibleFields is null) or if the
+ * field path is in the visible set.
+ */
+const useFieldVisible = (fieldPath: PathToField): boolean => {
+  const store = useStudioStore();
+  const visibleFields = useReadStoreField(
+    store,
+    'visibleFields',
+  ) as Set<string> | null;
+
+  // null = show all (no search active)
+  if (visibleFields === null) {
+    return true;
+  }
+
+  return visibleFields.has(fieldPath);
+};
+
+const SchemaAnyField = ({
   fieldPath,
   valuePath,
 }: {
@@ -65,7 +84,10 @@ const FieldWrapper = ({
   valuePath: string;
 }) => {
   const isVisible = useFieldVisible(fieldPath);
-  if (!isVisible) return null;
+  if (!isVisible) {
+    return null;
+  }
+
   return <SchemaAnyField fieldPath={fieldPath} valuePath={valuePath} />;
 };
 

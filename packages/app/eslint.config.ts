@@ -29,6 +29,7 @@ export default defineConfig([
       'react/react-in-jsx-scope': 'off',
       'react/no-children-prop': 'off',
       'react/prop-types': 'off',
+      curly: ['error', 'all'],
     },
   },
 ]);

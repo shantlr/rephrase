@@ -191,7 +191,7 @@ const FormattedInstanceName = ({
         return (
           <Tooltip key={index}>
             <TooltipTrigger asChild>
-              <span className="text-violet-500 italic font-medium cursor-help hover:bg-violet-100 rounded px-0.5">
+              <span className="text-violet-600/70 italic font-medium cursor-help hover:bg-violet-100 rounded px-0.5">
                 {paramInfo.value}
               </span>
             </TooltipTrigger>

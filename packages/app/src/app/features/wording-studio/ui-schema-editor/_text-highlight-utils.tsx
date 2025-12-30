@@ -27,7 +27,9 @@ export const highlightText = (
 
   while (true) {
     const index = lowerText.indexOf(query, startIndex);
-    if (index === -1) break;
+    if (index === -1) {
+      break;
+    }
 
     matches.push({
       start: index,

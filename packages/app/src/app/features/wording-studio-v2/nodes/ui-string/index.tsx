@@ -5,12 +5,14 @@ import Editor from '@monaco-editor/react';
 import { Dropdown } from '@/app/common/ui/dropdown';
 import { useReadStoreField } from '@/app/features/wording-studio/store';
 import { MinimalistInput } from '@/app/features/wording-studio/ui-schema-editor/_minimalist-input';
+import { cn } from '@/app/common/lib/utils';
 
 import { useStudioStore } from '../../store';
 import { PathToField } from '../../types';
 import { BaseField } from '../ui-base-field';
 import { useListenKeyboard } from '@/app/common/hooks/use-listen-keyboard';
 import { useInputFocusDropdownState } from '@/app/common/hooks/use-input-focus-dropdown-state';
+import { useImportAssign } from '../../import/ui-assign-panel/use-import-assign';
 
 type PluralValue = { one: string; other: string };
 
@@ -170,7 +172,9 @@ export const formatStringPreview = (
 ): string => {
   if (pluralized) {
     const plural = value as PluralValue | undefined;
-    if (!plural) return '';
+    if (!plural) {
+      return '';
+    }
     return `${formatNewlines(plural.one)} / ${formatNewlines(plural.other)}`;
   }
   const str = String(value ?? '');
@@ -263,6 +267,56 @@ const StringPreview = ({
   );
 };
 
+// Component for showing separate "one" and "other" targets during import mode
+const PluralizedImportTargets = ({
+  valuePath,
+  handleAssign,
+}: {
+  valuePath: string;
+  handleAssign: (path: string) => void;
+}) => {
+  const store = useStudioStore();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+
+  const currentLocaleValuePath =
+    `localeValues.${selectedLocale}.${valuePath}` as const;
+  const value = useReadStoreField(store, currentLocaleValuePath) as
+    | PluralValue
+    | undefined;
+
+  const oneValue = value?.one || '';
+  const otherValue = value?.other || '';
+
+  return (
+    <div className="flex flex-col gap-1 flex-1">
+      <div
+        className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset rounded px-2 py-1.5 transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleAssign(`${valuePath}.one`);
+        }}
+      >
+        <span className="text-xs text-gray-400 w-10 shrink-0">one</span>
+        <span className="text-sm text-gray-600 truncate flex-1">
+          {oneValue || <span className="text-gray-400">Click to assign</span>}
+        </span>
+      </div>
+      <div
+        className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset rounded px-2 py-1.5 transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleAssign(`${valuePath}.other`);
+        }}
+      >
+        <span className="text-xs text-gray-400 w-10 shrink-0">other</span>
+        <span className="text-sm text-gray-600 truncate flex-1">
+          {otherValue || <span className="text-gray-400">Click to assign</span>}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export const SchemaStringField = ({
   fieldPath,
   valuePath,
@@ -276,6 +330,7 @@ export const SchemaStringField = ({
     `${fieldPath}.type.pluralized` as const,
   );
   const html = useReadStoreField(store, `${fieldPath}.type.html` as const);
+  const { isAssigning, isSelecting, handleAssign } = useImportAssign();
 
   const icon = html ? (
     <CodeXml className="text-gray-500" size={16} />
@@ -283,18 +338,52 @@ export const SchemaStringField = ({
     <TypeIcon className="text-gray-500" size={16} />
   );
 
+  const handleClick = () => {
+    if (isSelecting && !pluralized) {
+      // Only handle click for non-pluralized strings
+      // Pluralized strings have their own click targets
+      handleAssign(valuePath);
+    }
+  };
+
+  // For pluralized strings in import mode, show separate targets for "one" and "other"
+  if (pluralized && isAssigning) {
+    return (
+      <BaseField
+        icon={icon}
+        fieldPath={fieldPath}
+        valuePath={valuePath}
+        valuesPreview={() => (
+          <PluralizedImportTargets
+            valuePath={valuePath}
+            handleAssign={handleAssign}
+          />
+        )}
+      />
+    );
+  }
+
   return (
-    <BaseField
-      icon={icon}
-      fieldPath={fieldPath}
-      valuePath={valuePath}
-      valuesPreview={({ valuePath }) => (
-        <StringPreview
-          valuePath={valuePath}
-          pluralized={!!pluralized}
-          html={!!html}
-        />
+    <div
+      className={cn(
+        'transition-colors rounded',
+        isSelecting &&
+          'cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset',
       )}
-    />
+      onClick={handleClick}
+    >
+      <BaseField
+        icon={icon}
+        fieldPath={fieldPath}
+        valuePath={valuePath}
+        valuesPreview={({ valuePath }) => (
+          <StringPreview
+            valuePath={valuePath}
+            pluralized={!!pluralized}
+            html={!!html}
+          />
+        )}
+      />
+    </div>
   );
 };

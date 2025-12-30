@@ -292,7 +292,9 @@ export const useSchemaSearch = (store: WordingStudioStore | null) => {
 
   // Update visible paths when search query changes
   useEffect(() => {
-    if (!store || !searchableFields.length) return;
+    if (!store || !searchableFields.length) {
+      return;
+    }
 
     const visiblePaths = getVisibleFieldPaths(
       searchableFields,

@@ -139,7 +139,9 @@ function extractValue(node: ts.Node): unknown {
     return null;
   } else if (ts.isArrayLiteralExpression(node)) {
     return node.elements.map((element) => {
-      if (ts.isSpreadElement(element)) return null; // Skip spread elements
+      if (ts.isSpreadElement(element)) {
+        return null;
+      } // Skip spread elements
       return extractValue(element);
     });
   } else if (ts.isObjectLiteralExpression(node)) {

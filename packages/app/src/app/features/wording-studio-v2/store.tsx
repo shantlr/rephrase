@@ -2,6 +2,7 @@ import { WordingData } from '@/server/data/wording.types';
 import { createStore } from '../wording-studio/store';
 import { createContext, useContext } from 'react';
 import { computeAllExpandedNames } from './utils/compute-expanded-names';
+import { ImportState } from './import/types';
 
 export const createV2Store = (initialData: {
   schema: WordingData['schema'];
@@ -24,6 +25,9 @@ export const createV2Store = (initialData: {
     search: '',
     visibleFields: null as Set<string> | null, // null = show all, Set = show only these paths
     expandedFieldNames,
+
+    // Import wording state (discriminated union)
+    importWording: { step: 'idle' } as ImportState,
   });
 };
 

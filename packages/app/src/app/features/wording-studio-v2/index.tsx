@@ -11,13 +11,43 @@ import {
 } from '@/app/common/ui/select';
 import { toast } from 'sonner';
 import { useUpdateProjectWordingsBranch } from '@/app/features/wording-studio/use-project-wording';
-import { ArrowLeftIcon, SaveIcon } from 'lucide-react';
+import { ArrowLeftIcon, ImportIcon, SaveIcon } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { useReadStoreField } from '../wording-studio/store';
 import { WordingData } from '@/server/data/wording.types';
 import { createV2Store, StudioStoreProvider, useStudioStore } from './store';
 import { SchemaFieldList } from './nodes/ui-schema-field-list';
 import { SearchSync } from './ui-search-sync';
+import { ImportModal } from './import/ui-import-modal';
+import { ImportPanel } from './import/ui-assign-panel';
+
+const ImportButton = () => {
+  const store = useStudioStore();
+  const importState = useReadStoreField(store, 'importWording');
+
+  // Hide button when not idle (parsing, assigning, or confirming)
+  if (importState.step !== 'idle') {
+    return null;
+  }
+
+  return (
+    <Button
+      variant="outline"
+      onClick={() =>
+        store.setField('importWording', {
+          step: 'parsing',
+          parsedTable: null,
+          parseError: null,
+          columnLanguages: [],
+          isTransposed: false,
+        })
+      }
+    >
+      <ImportIcon className="w-4 h-4 mr-2" />
+      Import
+    </Button>
+  );
+};
 
 const SearchInput = () => {
   const store = useStudioStore();
@@ -87,6 +117,8 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
   return (
     <StudioStoreProvider value={store}>
       <SearchSync />
+      <ImportModal />
+      <ImportPanel selectedLocale={selectedLocale} locales={branch.locales} />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="sticky top-0 z-30 -mx-6 px-6 pt-2 pb-4 bg-gray-50/90 backdrop-blur border-b border-gray-200">
@@ -126,6 +158,7 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
                     ))}
                   </SelectContent>
                 </Select>
+                <ImportButton />
                 <Button onClick={handleSave} disabled={updateBranch.isPending}>
                   <SaveIcon className="w-4 h-4 mr-2" />
                   {updateBranch.isPending ? 'Saving...' : 'Save'}

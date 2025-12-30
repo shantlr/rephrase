@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button } from '@/app/common/ui/button';
 import { ArrowLeftIcon } from 'lucide-react';
 import { useProject } from '@/app/features/projects/use-projects';
@@ -25,7 +25,6 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { projectId } = Route.useParams();
-  const router = useRouter();
   const { data: project, isLoading, error } = useProject(projectId);
   const updateBranch = useUpdateProjectWordingsBranch();
 

@@ -16,7 +16,9 @@ export const TokenModal = ({ token, onClose }: TokenModalProps) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    if (!token) return;
+    if (!token) {
+      return;
+    }
     try {
       await navigator.clipboard.writeText(token);
       setCopied(true);

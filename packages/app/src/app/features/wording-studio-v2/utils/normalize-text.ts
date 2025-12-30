@@ -17,6 +17,8 @@ export const normalizeText = (text: string): string => {
  * Checks if the normalized needle is found in the normalized haystack.
  */
 export const matchesSearch = (haystack: string, needle: string): boolean => {
-  if (!needle) return true;
+  if (!needle) {
+    return true;
+  }
   return normalizeText(haystack).includes(normalizeText(needle));
 };
