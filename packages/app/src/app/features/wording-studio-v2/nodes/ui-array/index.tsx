@@ -168,10 +168,12 @@ const ObjectArrayItems = ({
   itemType,
   valuePath,
   fieldPath,
+  depth = 0,
 }: {
   itemType: SchemaObjectNode;
   valuePath: string;
   fieldPath: PathToField;
+  depth?: number;
 }) => {
   const store = useStudioStore();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
@@ -212,6 +214,7 @@ const ObjectArrayItems = ({
             <SchemaFieldList
               schemaPath={itemFieldsSchemaPath}
               valuePath={concatPath(valuePath, String(index))}
+              depth={depth}
             />
           </div>
           <button
@@ -224,7 +227,7 @@ const ObjectArrayItems = ({
       ))}
       <button
         onClick={handleAdd}
-        className="cursor-pointer hover:bg-gray-100 rounded p-1 self-start ml-4"
+        className="cursor-pointer hover:bg-gray-100 rounded p-1 self-start"
       >
         <PlusIcon size={12} />
       </button>
@@ -235,9 +238,11 @@ const ObjectArrayItems = ({
 const NestedArrayItems = ({
   valuePath,
   fieldPath,
+  depth = 0,
 }: {
   valuePath: string;
   fieldPath: PathToField;
+  depth?: number;
 }) => {
   const store = useStudioStore();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
@@ -274,6 +279,7 @@ const NestedArrayItems = ({
             <SchemaArrayField
               fieldPath={nestedFieldPath}
               valuePath={concatPath(valuePath, String(index))}
+              depth={depth}
             />
           </div>
           <button
@@ -286,7 +292,7 @@ const NestedArrayItems = ({
       ))}
       <button
         onClick={handleAdd}
-        className="cursor-pointer hover:bg-gray-100 rounded p-1 self-start ml-4"
+        className="cursor-pointer hover:bg-gray-100 rounded p-1 self-start"
       >
         <PlusIcon size={12} />
       </button>
@@ -297,9 +303,11 @@ const NestedArrayItems = ({
 export const SchemaArrayField = ({
   fieldPath,
   valuePath,
+  depth = 0,
 }: {
   fieldPath: PathToField;
   valuePath: string;
+  depth?: number;
 }) => {
   const store = useStudioStore();
   const itemType = useReadStoreField(store, `${fieldPath}.type.itemType`) as
@@ -311,6 +319,7 @@ export const SchemaArrayField = ({
       icon={<ListIcon size={16} className="text-gray-500" />}
       fieldPath={fieldPath}
       valuePath={valuePath}
+      depth={depth}
       valuesPreview={
         itemType?.type === 'string'
           ? () => (
@@ -319,19 +328,24 @@ export const SchemaArrayField = ({
           : undefined
       }
     >
-      {() => (
-        <div className="ml-4">
+      {({ depth }) => (
+        <>
           {itemType?.type === 'object' && (
             <ObjectArrayItems
               itemType={itemType}
               valuePath={valuePath}
               fieldPath={fieldPath}
+              depth={depth}
             />
           )}
           {itemType?.type === 'array' && (
-            <NestedArrayItems valuePath={valuePath} fieldPath={fieldPath} />
+            <NestedArrayItems
+              valuePath={valuePath}
+              fieldPath={fieldPath}
+              depth={depth}
+            />
           )}
-        </div>
+        </>
       )}
     </BaseField>
   );

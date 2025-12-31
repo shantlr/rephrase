@@ -218,7 +218,11 @@ const TemplatedBaseField = (props: {
   fieldPath: PathToField;
   valuePath: string;
   valuesPreview?: (args: { valuePath: string }) => ReactNode;
-  children?: (args: { fieldPath: PathToField; valuePath: string }) => ReactNode;
+  children?: (args: {
+    fieldPath: PathToField;
+    valuePath: string;
+    depth: number;
+  }) => ReactNode;
   /**
    * Whether we are currently in import assignment mode with a wording selected
    */
@@ -227,6 +231,10 @@ const TemplatedBaseField = (props: {
    * Callback to assign the selected import wording to a field
    */
   onAssignImportWording?: (valuePath: string) => void;
+  /**
+   * Nesting depth for indentation
+   */
+  depth?: number;
 }) => {
   const store = useStudioStore();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
@@ -284,7 +292,7 @@ const TemplatedBaseField = (props: {
                 : undefined
             }
           >
-            <div className="flex text-sm text-gray-500 items-center gap-2">
+            <div className="grid grid-cols-[250px_350px] gap-8 items-start mx-auto text-sm text-gray-500">
               <FormattedInstanceName
                 template={templateName ?? ''}
                 paramValues={paramValues}
@@ -295,6 +303,7 @@ const TemplatedBaseField = (props: {
               {props.children?.({
                 fieldPath: props.fieldPath,
                 valuePath: instanceValuePath,
+                depth: (props.depth ?? 0) + 1,
               })}
             </div>
           </div>
@@ -335,6 +344,7 @@ export const BaseField = ({
   children,
   isAssigningImportWording,
   onAssignImportWording,
+  depth = 0,
 }: {
   /**
    * Icon to display right before the field name
@@ -343,7 +353,11 @@ export const BaseField = ({
   fieldPath: PathToField;
   valuePath: string;
   valuesPreview?: (args: { valuePath: string }) => ReactNode;
-  children?: (args: { fieldPath: PathToField; valuePath: string }) => ReactNode;
+  children?: (args: {
+    fieldPath: PathToField;
+    valuePath: string;
+    depth: number;
+  }) => ReactNode;
   /**
    * Whether we are currently in import assignment mode with a wording selected
    */
@@ -352,6 +366,10 @@ export const BaseField = ({
    * Callback to assign the selected import wording to a field
    */
   onAssignImportWording?: (valuePath: string) => void;
+  /**
+   * Nesting depth for indentation
+   */
+  depth?: number;
 }) => {
   const store = useStudioStore();
   const name = useReadStoreField(store, `${fieldPath}.name`) as
@@ -366,14 +384,16 @@ export const BaseField = ({
 
   return (
     <div>
-      <div className="flex gap-2 items-start w-full">
-        {icon && <div className="mt-1.5">{icon}</div>}
-        {hasParams ? (
-          <TemplatedName template={name ?? ''} params={params} />
-        ) : (
-          <div className="mt-1 text-gray-500 text-sm">{name}</div>
-        )}
-        {!hasParams && valuesPreview?.({ valuePath })}
+      <div className="grid grid-cols-[250px_350px] gap-8 mx-auto">
+        <div className="flex gap-2" style={{ paddingLeft: depth * 12 }}>
+          {icon && <div className="mt-1.5">{icon}</div>}
+          {hasParams ? (
+            <TemplatedName template={name ?? ''} params={params} />
+          ) : (
+            <div className="mt-1 text-gray-500 text-sm">{name}</div>
+          )}
+        </div>
+        <div>{!hasParams && valuesPreview?.({ valuePath })}</div>
       </div>
       {hasParams ? (
         <TemplatedBaseField
@@ -383,11 +403,12 @@ export const BaseField = ({
           valuesPreview={valuesPreview}
           isAssigningImportWording={isAssigningImportWording}
           onAssignImportWording={onAssignImportWording}
+          depth={depth}
         >
           {children}
         </TemplatedBaseField>
       ) : (
-        children?.({ fieldPath, valuePath })
+        children?.({ fieldPath, valuePath, depth: depth + 1 })
       )}
     </div>
   );

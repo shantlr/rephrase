@@ -36,9 +36,11 @@ const useFieldVisible = (fieldPath: PathToField): boolean => {
 const SchemaAnyField = ({
   fieldPath,
   valuePath,
+  depth,
 }: {
   fieldPath: PathToField;
   valuePath: string;
+  depth: number;
 }) => {
   const store = useStudioStore();
   const field = useReadStoreField(store, fieldPath) as
@@ -51,6 +53,7 @@ const SchemaAnyField = ({
         <SchemaStringField
           fieldPath={fieldPath}
           valuePath={concatPath(valuePath, field.name)}
+          depth={depth}
         />
       );
     }
@@ -59,6 +62,7 @@ const SchemaAnyField = ({
         <SchemaObjectField
           fieldPath={fieldPath}
           valuePath={concatPath(valuePath, field.name)}
+          depth={depth}
         />
       );
     }
@@ -67,6 +71,7 @@ const SchemaAnyField = ({
         <SchemaArrayField
           fieldPath={fieldPath}
           valuePath={concatPath(valuePath, field.name)}
+          depth={depth}
         />
       );
     }
@@ -79,24 +84,30 @@ const SchemaAnyField = ({
 const FieldWrapper = ({
   fieldPath,
   valuePath,
+  depth,
 }: {
   fieldPath: PathToField;
   valuePath: string;
+  depth: number;
 }) => {
   const isVisible = useFieldVisible(fieldPath);
   if (!isVisible) {
     return null;
   }
 
-  return <SchemaAnyField fieldPath={fieldPath} valuePath={valuePath} />;
+  return (
+    <SchemaAnyField fieldPath={fieldPath} valuePath={valuePath} depth={depth} />
+  );
 };
 
 export const SchemaFieldList = ({
   schemaPath,
   valuePath,
+  depth = 0,
 }: {
   schemaPath: PathToFieldList;
   valuePath: string;
+  depth?: number;
 }) => {
   const store = useStudioStore();
 
@@ -112,7 +123,11 @@ export const SchemaFieldList = ({
         const fieldPath = `${schemaPath}.${index}` as PathToField;
         return (
           <div key={index}>
-            <FieldWrapper fieldPath={fieldPath} valuePath={valuePath} />
+            <FieldWrapper
+              fieldPath={fieldPath}
+              valuePath={valuePath}
+              depth={depth}
+            />
           </div>
         );
       })}

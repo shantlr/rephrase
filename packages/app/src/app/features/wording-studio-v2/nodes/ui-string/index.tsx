@@ -215,7 +215,7 @@ const StringPreview = ({
   );
 
   return (
-    <div className="flex grow justify-end">
+    <div className="flex grow">
       <div className="w-full max-w-[500px] relative">
         <Dropdown
           {...dropdown.dropdownProps}
@@ -304,7 +304,7 @@ const AssignedStringPreview = ({
   const newValue = assignmentInfo.values[selectedLocale];
 
   return (
-    <div className="flex grow justify-end">
+    <div className="flex grow">
       <div className="flex items-center gap-2 text-sm max-w-[500px]">
         {currentValue != null && (
           <span className="text-gray-400 line-through truncate">
@@ -372,9 +372,11 @@ const PluralizedImportTargets = ({
 export const SchemaStringField = ({
   fieldPath,
   valuePath,
+  depth = 0,
 }: {
   fieldPath: PathToField;
   valuePath: string;
+  depth?: number;
 }) => {
   const store = useStudioStore();
   const pluralized = useReadStoreField(
@@ -412,6 +414,7 @@ export const SchemaStringField = ({
         icon={icon}
         fieldPath={fieldPath}
         valuePath={valuePath}
+        depth={depth}
         valuesPreview={() => (
           <PluralizedImportTargets
             valuePath={valuePath}
@@ -429,6 +432,7 @@ export const SchemaStringField = ({
         icon={icon}
         fieldPath={fieldPath}
         valuePath={valuePath}
+        depth={depth}
         isAssigningImportWording={isAssigningImportWording}
         onAssignImportWording={handleAssign}
         valuesPreview={({ valuePath }) =>
@@ -464,6 +468,7 @@ export const SchemaStringField = ({
         icon={icon}
         fieldPath={fieldPath}
         valuePath={valuePath}
+        depth={depth}
         valuesPreview={({ valuePath }) =>
           isAssigning ? (
             <AssignedStringPreview
