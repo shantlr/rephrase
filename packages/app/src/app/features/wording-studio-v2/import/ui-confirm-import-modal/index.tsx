@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/app/common/ui/dialog';
-import { PendingAssignment } from '../types';
+import { AssignmentInfo } from '../types';
 
 // Format value for display (truncate if too long)
 const formatValue = (value: unknown): string => {
@@ -36,17 +36,19 @@ export function ConfirmImportModal({
   open,
   onConfirm,
   onCancel,
-  pendingAssignments,
+  assignedValuesMap,
   locales,
   getCurrentValue,
 }: {
   open: boolean;
   onConfirm: () => void;
   onCancel: () => void;
-  pendingAssignments: PendingAssignment[];
+  assignedValuesMap: Record<string, AssignmentInfo>;
   locales: string[];
   getCurrentValue: (locale: string, valuePath: string) => unknown;
 }) {
+  const assignments = Object.entries(assignedValuesMap);
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
       <DialogContent className="sm:max-w-2xl">
@@ -76,12 +78,9 @@ export function ConfirmImportModal({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {pendingAssignments.flatMap((assignment) =>
+              {assignments.flatMap(([valuePath, assignment]) =>
                 locales.map((locale) => {
-                  const currentValue = getCurrentValue(
-                    locale,
-                    assignment.valuePath,
-                  );
+                  const currentValue = getCurrentValue(locale, valuePath);
                   const newValue = assignment.values[locale];
 
                   // Skip if no new value for this locale
@@ -94,11 +93,11 @@ export function ConfirmImportModal({
 
                   return (
                     <tr
-                      key={`${assignment.valuePath}-${locale}`}
+                      key={`${valuePath}-${locale}`}
                       className={hasChange ? 'bg-green-50' : ''}
                     >
                       <td className="px-3 py-2 font-mono text-xs text-gray-600">
-                        {formatPath(assignment.valuePath)}
+                        {formatPath(valuePath)}
                       </td>
                       <td className="px-3 py-2 text-gray-500">{locale}</td>
                       <td className="px-3 py-2">
@@ -138,8 +137,8 @@ export function ConfirmImportModal({
             Cancel
           </Button>
           <Button onClick={onConfirm}>
-            Apply {pendingAssignments.length} Change
-            {pendingAssignments.length !== 1 ? 's' : ''}
+            Apply {assignments.length} Change
+            {assignments.length !== 1 ? 's' : ''}
           </Button>
         </DialogFooter>
       </DialogContent>

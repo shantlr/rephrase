@@ -1,6 +1,6 @@
 import { useStudioStore } from '../../store';
 import { useReadStoreField } from '../../../wording-studio/store';
-import { PendingAssignment } from '../types';
+import { AssignmentInfo } from '../types';
 
 export function useImportAssign() {
   const store = useStudioStore();
@@ -13,10 +13,10 @@ export function useImportAssign() {
     importState.step === 'assigning' || importState.step === 'confirming'
       ? importState.wordings
       : [];
-  const pendingAssignments =
+  const assignedValuesMap =
     importState.step === 'assigning' || importState.step === 'confirming'
-      ? importState.pendingAssignments
-      : [];
+      ? importState.assignedValuesMap
+      : {};
 
   const handleAssign = (valuePath: string) => {
     if (importState.step !== 'assigning' || selectedWordingIndex === null) {
@@ -35,18 +35,20 @@ export function useImportAssign() {
       assignedTo: valuePath,
     };
 
-    // Remove existing pending assignment for this wording (if reassigning)
-    const newPendingAssignments = pendingAssignments.filter(
-      (pa) => pa.wordingIndex !== selectedWordingIndex,
-    );
+    // Remove any existing assignment for this wording (if reassigning)
+    // by filtering out entries with the same wordingIndex
+    const newAssignedValuesMap: Record<string, AssignmentInfo> = {};
+    for (const [path, info] of Object.entries(assignedValuesMap)) {
+      if (info.wordingIndex !== selectedWordingIndex) {
+        newAssignedValuesMap[path] = info;
+      }
+    }
 
-    // Add new pending assignment
-    const newAssignment: PendingAssignment = {
+    // Add new assignment
+    newAssignedValuesMap[valuePath] = {
       wordingIndex: selectedWordingIndex,
-      valuePath,
       values: wording.values,
     };
-    newPendingAssignments.push(newAssignment);
 
     // Auto-select next unassigned wording
     let nextUnassigned = newWordings.findIndex(
@@ -59,19 +61,17 @@ export function useImportAssign() {
     store.setField('importWording', {
       ...importState,
       wordings: newWordings,
-      pendingAssignments: newPendingAssignments,
+      assignedValuesMap: newAssignedValuesMap,
       selectedWordingIndex: nextUnassigned >= 0 ? nextUnassigned : null,
     });
   };
 
-  // Apply all pending assignments to the studio store
+  // Apply all assignments to the studio store
   const applyAllAssignments = () => {
-    for (const assignment of pendingAssignments) {
+    for (const [valuePath, assignment] of Object.entries(assignedValuesMap)) {
       Object.entries(assignment.values).forEach(([locale, value]) => {
         // Use setFieldFromPath for dynamic paths (including plural .one/.other)
-        const path = `localeValues.${locale}.${assignment.valuePath}`.split(
-          '.',
-        );
+        const path = `localeValues.${locale}.${valuePath}`.split('.');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         store.setFieldFromPath(path as any, value);
       });
@@ -90,10 +90,10 @@ export function useImportAssign() {
 
   return {
     isAssigning,
-    isSelecting: isAssigning && selectedWordingIndex !== null,
+    isAssigningImportWording: isAssigning && selectedWordingIndex !== null,
     handleAssign,
     applyAllAssignments,
-    pendingAssignments,
+    assignedValuesMap,
     getCurrentValue,
   };
 }

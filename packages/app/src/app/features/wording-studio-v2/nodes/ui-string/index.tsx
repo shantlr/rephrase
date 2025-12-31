@@ -267,6 +267,58 @@ const StringPreview = ({
   );
 };
 
+// Component for showing assigned preview with strikethrough for old value
+const AssignedStringPreview = ({
+  valuePath,
+  pluralized,
+  html,
+}: {
+  valuePath: string;
+  pluralized: boolean;
+  html?: boolean;
+}) => {
+  const store = useStudioStore();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+  const currentLocaleValuePath =
+    `localeValues.${selectedLocale}.${valuePath}` as const;
+  const currentValue = useReadStoreField(store, currentLocaleValuePath);
+
+  // Use array path to read specific assignedValuesMap entry without dot-parsing valuePath
+  const assignmentInfo = useReadStoreField(store, [
+    'importWording',
+    'assignedValuesMap',
+    valuePath,
+  ]) as { wordingIndex: number; values: Record<string, string> } | undefined;
+
+  if (!assignmentInfo) {
+    // No assignment for this field, show normal preview
+    return (
+      <StringPreview
+        valuePath={valuePath}
+        pluralized={pluralized}
+        html={html}
+      />
+    );
+  }
+
+  const newValue = assignmentInfo.values[selectedLocale];
+
+  return (
+    <div className="flex grow justify-end">
+      <div className="flex items-center gap-2 text-sm max-w-[500px]">
+        {currentValue != null && (
+          <span className="text-gray-400 line-through truncate">
+            {formatStringPreview(currentValue, pluralized, html)}
+          </span>
+        )}
+        <span className="text-green-600 font-medium truncate">
+          {formatStringPreview(newValue, pluralized, html)}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 // Component for showing separate "one" and "other" targets during import mode
 const PluralizedImportTargets = ({
   valuePath,
@@ -330,7 +382,11 @@ export const SchemaStringField = ({
     `${fieldPath}.type.pluralized` as const,
   );
   const html = useReadStoreField(store, `${fieldPath}.type.html` as const);
-  const { isAssigning, isSelecting, handleAssign } = useImportAssign();
+  const hasParams = useReadStoreField(store, `${fieldPath}.nameParams`) as
+    | Record<string, unknown>
+    | undefined;
+  const { isAssigning, isAssigningImportWording, handleAssign } =
+    useImportAssign();
 
   const icon = html ? (
     <CodeXml className="text-gray-500" size={16} />
@@ -338,10 +394,13 @@ export const SchemaStringField = ({
     <TypeIcon className="text-gray-500" size={16} />
   );
 
+  const isTemplated = !!hasParams && Object.keys(hasParams).length > 0;
+
   const handleClick = () => {
-    if (isSelecting && !pluralized) {
-      // Only handle click for non-pluralized strings
+    if (isAssigningImportWording && !pluralized && !isTemplated) {
+      // Only handle click for non-pluralized, non-templated strings
       // Pluralized strings have their own click targets
+      // Templated strings handle clicks at the instance level
       handleAssign(valuePath);
     }
   };
@@ -363,11 +422,40 @@ export const SchemaStringField = ({
     );
   }
 
+  // For templated fields, pass import props to BaseField for per-instance handling
+  if (isTemplated) {
+    return (
+      <BaseField
+        icon={icon}
+        fieldPath={fieldPath}
+        valuePath={valuePath}
+        isAssigningImportWording={isAssigningImportWording}
+        onAssignImportWording={handleAssign}
+        valuesPreview={({ valuePath }) =>
+          isAssigning ? (
+            <AssignedStringPreview
+              valuePath={valuePath}
+              pluralized={!!pluralized}
+              html={!!html}
+            />
+          ) : (
+            <StringPreview
+              valuePath={valuePath}
+              pluralized={!!pluralized}
+              html={!!html}
+            />
+          )
+        }
+      />
+    );
+  }
+
+  // Non-templated fields: wrap with import styling at the outer level
   return (
     <div
       className={cn(
         'transition-colors rounded',
-        isSelecting &&
+        isAssigningImportWording &&
           'cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset',
       )}
       onClick={handleClick}
@@ -376,13 +464,21 @@ export const SchemaStringField = ({
         icon={icon}
         fieldPath={fieldPath}
         valuePath={valuePath}
-        valuesPreview={({ valuePath }) => (
-          <StringPreview
-            valuePath={valuePath}
-            pluralized={!!pluralized}
-            html={!!html}
-          />
-        )}
+        valuesPreview={({ valuePath }) =>
+          isAssigning ? (
+            <AssignedStringPreview
+              valuePath={valuePath}
+              pluralized={!!pluralized}
+              html={!!html}
+            />
+          ) : (
+            <StringPreview
+              valuePath={valuePath}
+              pluralized={!!pluralized}
+              html={!!html}
+            />
+          )
+        }
       />
     </div>
   );

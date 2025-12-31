@@ -20,6 +20,7 @@ import {
 } from '@/app/common/ui/dropdown-menu';
 import { map } from 'lodash-es';
 import { ExpandedNameInfo } from '../../utils/compute-expanded-names';
+import { cn } from '@/app/common/lib/utils';
 
 /**
  * Parses a template string and returns an array of parts (text or param).
@@ -218,6 +219,14 @@ const TemplatedBaseField = (props: {
   valuePath: string;
   valuesPreview?: (args: { valuePath: string }) => ReactNode;
   children?: (args: { fieldPath: PathToField; valuePath: string }) => ReactNode;
+  /**
+   * Whether we are currently in import assignment mode with a wording selected
+   */
+  isAssigningImportWording?: boolean;
+  /**
+   * Callback to assign the selected import wording to a field
+   */
+  onAssignImportWording?: (valuePath: string) => void;
 }) => {
   const store = useStudioStore();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
@@ -262,7 +271,19 @@ const TemplatedBaseField = (props: {
         const instanceValuePath = `${props.valuePath}.${instantiatedName}`;
         const paramValues = nameToParamValues.get(instantiatedName) ?? {};
         return (
-          <div key={instantiatedName} className="ml-4">
+          <div
+            key={instantiatedName}
+            className={cn(
+              'ml-4',
+              props.isAssigningImportWording &&
+                'cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset rounded transition-colors',
+            )}
+            onClick={
+              props.isAssigningImportWording
+                ? () => props.onAssignImportWording?.(instanceValuePath)
+                : undefined
+            }
+          >
             <div className="flex text-sm text-gray-500 items-center gap-2">
               <FormattedInstanceName
                 template={templateName ?? ''}
@@ -312,6 +333,8 @@ export const BaseField = ({
   valuePath,
   valuesPreview,
   children,
+  isAssigningImportWording,
+  onAssignImportWording,
 }: {
   /**
    * Icon to display right before the field name
@@ -321,6 +344,14 @@ export const BaseField = ({
   valuePath: string;
   valuesPreview?: (args: { valuePath: string }) => ReactNode;
   children?: (args: { fieldPath: PathToField; valuePath: string }) => ReactNode;
+  /**
+   * Whether we are currently in import assignment mode with a wording selected
+   */
+  isAssigningImportWording?: boolean;
+  /**
+   * Callback to assign the selected import wording to a field
+   */
+  onAssignImportWording?: (valuePath: string) => void;
 }) => {
   const store = useStudioStore();
   const name = useReadStoreField(store, `${fieldPath}.name`) as
@@ -350,6 +381,8 @@ export const BaseField = ({
           valuePath={valuePath}
           fieldPath={fieldPath}
           valuesPreview={valuesPreview}
+          isAssigningImportWording={isAssigningImportWording}
+          onAssignImportWording={onAssignImportWording}
         >
           {children}
         </TemplatedBaseField>

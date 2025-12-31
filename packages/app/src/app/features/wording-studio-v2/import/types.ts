@@ -4,9 +4,9 @@ export interface ImportedWording {
   assignedTo: string | null; // field path when assigned (e.g., "buttonLabel" or "buttonLabel.one" for plural parts)
 }
 
-export interface PendingAssignment {
+// Single source of truth: valuePath -> assignment info
+export interface AssignmentInfo {
   wordingIndex: number;
-  valuePath: string; // e.g., "buttonLabel" or "buttonLabel.one" for plural parts
   values: Record<string, string>; // locale -> value
 }
 
@@ -25,10 +25,10 @@ export type ImportState =
       wordings: ImportedWording[];
       selectedWordingIndex: number | null;
       isPanelMinimized: boolean;
-      pendingAssignments: PendingAssignment[];
+      assignedValuesMap: Record<string, AssignmentInfo>; // valuePath → assignment info (single source of truth)
     }
   | {
       step: 'confirming';
       wordings: ImportedWording[];
-      pendingAssignments: PendingAssignment[];
+      assignedValuesMap: Record<string, AssignmentInfo>; // valuePath → assignment info (single source of truth)
     };

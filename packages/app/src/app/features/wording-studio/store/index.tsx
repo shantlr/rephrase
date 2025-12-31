@@ -100,7 +100,10 @@ export type Store<Value extends IValue> = {
   ) => void;
 
   subscribe: (callback: () => void) => () => void;
-  subscribeKey: (key: PropertyKey, callback: () => void) => () => void;
+  subscribeKey: (
+    key: PropertyKey | PropertyKey[],
+    callback: () => void,
+  ) => () => void;
 };
 
 type NestedListeners = {
@@ -215,7 +218,11 @@ export const createStore = <Value extends IValue>(
       };
     },
     subscribeKey(key, callback) {
-      const k = typeof key === 'string' ? key.split('.') : [key];
+      const k: PropertyKey[] = Array.isArray(key)
+        ? key
+        : typeof key === 'string'
+          ? key.split('.')
+          : [key];
 
       let node = listeners;
       const chains = [node];
@@ -250,36 +257,69 @@ export const createStore = <Value extends IValue>(
 
 export const useReadStoreField = <
   Value extends IValue,
-  K extends StoreDeepKeys<Value>,
+  K extends StoreDeepKeys<Value> | (string | number)[],
 >(
   store: Store<Value> | null,
   key: K,
 ) => {
-  const pathFromKey = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (typeof key === 'string' ? key.split('.') : [key]) as any;
-  }, [key]);
-
-  const [fieldValue, rerender] = useReducer(
-    () => {
-      return store?.getFieldFromPath(pathFromKey);
-    },
-    undefined,
-    () => store?.getFieldFromPath(pathFromKey),
+  // Convert key to path array for getFieldFromPath
+  const pathFromKey = useMemo(
+    () =>
+      Array.isArray(key)
+        ? key
+        : typeof key === 'string'
+          ? key.split('.')
+          : [key],
+    [key],
   );
 
-  const lastKey = useRef(key);
+  const [fieldValue, rerender] = useReducer(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    () => store?.getFieldFromPath(pathFromKey as any),
+    undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    () => store?.getFieldFromPath(pathFromKey as any),
+  );
+
+  const lastKey = useRef<K | undefined>(undefined);
+  const unsubscribeRef = useRef<(() => void) | undefined>(undefined);
+
   useEffect(() => {
-    if (lastKey.current !== key) {
+    // Check if key changed (use isEqual since arrays may be new references)
+    const keyChanged = !isEqual(lastKey.current, key);
+
+    if (keyChanged) {
+      // Unsubscribe from previous key
+      unsubscribeRef.current?.();
+
+      // Only rerender if this isn't the first mount
+      if (lastKey.current !== undefined) {
+        rerender();
+      }
       lastKey.current = key;
-      rerender();
+
+      // Subscribe to new key - subscribeKey handles path conversion
+      unsubscribeRef.current = store?.subscribeKey(key, () => {
+        rerender();
+      });
+    } else if (!unsubscribeRef.current) {
+      unsubscribeRef.current = store?.subscribeKey(key, () => {
+        rerender();
+      });
     }
-  }, [key]);
-  useEffect(() => {
-    return store?.subscribeKey(key, () => rerender());
   }, [store, key]);
 
-  return fieldValue as StoreDeepValue<Value, K>;
+  // Cleanup on unmount only
+  useEffect(() => {
+    return () => {
+      unsubscribeRef.current?.();
+      unsubscribeRef.current = undefined;
+    };
+  }, []);
+
+  return fieldValue as K extends (string | number)[]
+    ? unknown
+    : StoreDeepValue<Value, K>;
 };
 
 export const useSelectStoreField = <
@@ -292,14 +332,16 @@ export const useSelectStoreField = <
   selector: (value: StoreDeepValue<Value, K>) => R,
 ) => {
   const pathFromKey = useMemo(() => {
+    if (Array.isArray(key)) {
+      return key;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (typeof key === 'string' ? key.split('.') : [key]) as any;
   }, [key]);
 
   const [fieldValue, rerender] = useReducer(
-    () => {
-      return store?.getFieldFromPath(pathFromKey);
-    },
+    () => store?.getFieldFromPath(pathFromKey),
     undefined,
     () => store?.getFieldFromPath(pathFromKey),
   );
@@ -357,7 +399,7 @@ export function StoreField<
     ) => void;
   }) => ReactNode;
 }) {
-  const value = useReadStoreField(store, name);
+  const value = useReadStoreField(store, name) as StoreDeepValue<Value, K>;
   const setValue = useCallback(
     (
       value:

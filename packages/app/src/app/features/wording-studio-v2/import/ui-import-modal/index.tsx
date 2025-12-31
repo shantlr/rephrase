@@ -136,7 +136,7 @@ export function ImportModal() {
       wordings,
       selectedWordingIndex: 0,
       isPanelMinimized: false,
-      pendingAssignments: [],
+      assignedValuesMap: {},
     });
   };
 

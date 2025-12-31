@@ -6,7 +6,7 @@ import { useStudioStore } from '../../store';
 import { useReadStoreField } from '../../../wording-studio/store';
 import { useImportAssign } from './use-import-assign';
 import { ConfirmImportModal } from '../ui-confirm-import-modal';
-import { ImportState } from '../types';
+import { AssignmentInfo } from '../types';
 
 interface ImportPanelProps {
   selectedLocale: string;
@@ -26,38 +26,50 @@ const formatAssignedPath = (path: string): string => {
 
 export function ImportPanel({ selectedLocale, locales }: ImportPanelProps) {
   const store = useStudioStore();
-  const importState = useReadStoreField(store, 'importWording');
 
-  const { applyAllAssignments, getCurrentValue } = useImportAssign();
+  const { applyAllAssignments, getCurrentValue, assignedValuesMap } =
+    useImportAssign();
+
+  // Use selectors to read only what's needed for rendering
+  const step = useReadStoreField(store, 'importWording.step');
+  const wordings = useReadStoreField(store, 'importWording.wordings') ?? [];
+  const selectedWordingIndex = useReadStoreField(
+    store,
+    'importWording.selectedWordingIndex',
+  );
+  const isPanelMinimized = useReadStoreField(
+    store,
+    'importWording.isPanelMinimized',
+  );
 
   // Only render when in assigning or confirming step
-  if (importState.step !== 'assigning' && importState.step !== 'confirming') {
+  if (step !== 'assigning' && step !== 'confirming') {
     return null;
   }
 
-  const isConfirming = importState.step === 'confirming';
-  const wordings = importState.wordings;
-  const pendingAssignments = importState.pendingAssignments;
-  const selectedWordingIndex =
-    importState.step === 'assigning' ? importState.selectedWordingIndex : null;
-  const isPanelMinimized =
-    importState.step === 'assigning' ? importState.isPanelMinimized : false;
+  const isConfirming = step === 'confirming';
 
-  const updateAssigningState = (
-    updates: Partial<Extract<ImportState, { step: 'assigning' }>>,
-  ) => {
+  const handleSelectWording = (index: number | null) => {
+    console.log('click', index);
+    const importState = store.getField('importWording');
     if (importState.step !== 'assigning') {
       return;
     }
-    store.setField('importWording', { ...importState, ...updates });
-  };
-
-  const handleSelectWording = (index: number | null) => {
-    updateAssigningState({ selectedWordingIndex: index });
+    store.setField('importWording', {
+      ...importState,
+      selectedWordingIndex: index,
+    });
   };
 
   const handleTogglePanelMinimized = () => {
-    updateAssigningState({ isPanelMinimized: !isPanelMinimized });
+    const importState = store.getField('importWording');
+    if (importState.step !== 'assigning') {
+      return;
+    }
+    store.setField('importWording', {
+      ...importState,
+      isPanelMinimized: !importState.isPanelMinimized,
+    });
   };
 
   const handleCancelAssignment = () => {
@@ -65,9 +77,12 @@ export function ImportPanel({ selectedLocale, locales }: ImportPanelProps) {
   };
 
   const handleUnassignWording = (wordingIndex: number) => {
+    const importState = store.getField('importWording');
     if (importState.step !== 'assigning') {
       return;
     }
+
+    const { wordings, assignedValuesMap: currentMap } = importState;
 
     const newWordings = [...wordings];
     if (newWordings[wordingIndex]) {
@@ -77,33 +92,48 @@ export function ImportPanel({ selectedLocale, locales }: ImportPanelProps) {
       };
     }
 
-    const newPendingAssignments = pendingAssignments.filter(
-      (pa) => pa.wordingIndex !== wordingIndex,
-    );
+    // Remove assignment for this wording from the map
+    const newAssignedValuesMap: Record<string, AssignmentInfo> = {};
+    for (const [path, info] of Object.entries(currentMap)) {
+      if (info.wordingIndex !== wordingIndex) {
+        newAssignedValuesMap[path] = info;
+      }
+    }
 
-    updateAssigningState({
+    store.setField('importWording', {
+      ...importState,
       wordings: newWordings,
-      pendingAssignments: newPendingAssignments,
+      assignedValuesMap: newAssignedValuesMap,
     });
   };
 
   const handleReviewChanges = () => {
-    // Transition to confirming step
+    const importState = store.getField('importWording');
+    if (importState.step !== 'assigning') {
+      return;
+    }
+
+    const { wordings, assignedValuesMap: currentMap } = importState;
     store.setField('importWording', {
       step: 'confirming',
       wordings,
-      pendingAssignments,
+      assignedValuesMap: currentMap,
     });
   };
 
   const handleCancelConfirm = () => {
-    // Go back to assigning step
+    const importState = store.getField('importWording');
+    if (importState.step !== 'confirming') {
+      return;
+    }
+
+    const { wordings, assignedValuesMap: currentMap } = importState;
     store.setField('importWording', {
       step: 'assigning',
       wordings,
       selectedWordingIndex: null,
       isPanelMinimized: false,
-      pendingAssignments,
+      assignedValuesMap: currentMap,
     });
   };
 
@@ -111,7 +141,7 @@ export function ImportPanel({ selectedLocale, locales }: ImportPanelProps) {
     applyAllAssignments();
   };
 
-  const assignedCount = wordings.filter((w) => w.assignedTo !== null).length;
+  const assignedCount = wordings?.filter((w) => w.assignedTo !== null).length;
 
   return (
     <div
@@ -124,7 +154,7 @@ export function ImportPanel({ selectedLocale, locales }: ImportPanelProps) {
       <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 rounded-t-lg">
         <div className="flex items-center gap-2 min-w-0">
           <GripVertical className="w-4 h-4 text-gray-400 shrink-0" />
-          {isPanelMinimized && selectedWordingIndex !== null ? (
+          {isPanelMinimized && selectedWordingIndex != null ? (
             <span className="text-sm font-medium text-blue-700 truncate">
               {wordings[selectedWordingIndex]?.values[selectedLocale] ||
                 Object.values(
@@ -240,10 +270,10 @@ export function ImportPanel({ selectedLocale, locales }: ImportPanelProps) {
 
           {/* Footer */}
           <div className="p-2 border-t bg-gray-50 rounded-b-lg">
-            {pendingAssignments.length > 0 ? (
+            {Object.keys(assignedValuesMap).length > 0 ? (
               <Button className="w-full" onClick={handleReviewChanges}>
                 <Check className="w-4 h-4 mr-2" />
-                Review Changes ({pendingAssignments.length})
+                Review Changes ({Object.keys(assignedValuesMap).length})
               </Button>
             ) : (
               <p className="text-xs text-center text-gray-500">
@@ -259,7 +289,7 @@ export function ImportPanel({ selectedLocale, locales }: ImportPanelProps) {
         open={isConfirming}
         onConfirm={handleConfirmApply}
         onCancel={handleCancelConfirm}
-        pendingAssignments={pendingAssignments}
+        assignedValuesMap={assignedValuesMap}
         locales={locales}
         getCurrentValue={getCurrentValue}
       />
