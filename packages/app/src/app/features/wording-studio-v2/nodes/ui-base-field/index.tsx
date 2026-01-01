@@ -206,10 +206,6 @@ const FormattedInstanceName = ({
   );
 };
 
-/**
- * When field name is templated, we show '+' to add instances of the field with
- * specific parameter values.
- */
 const TemplatedBaseField = (props: {
   /**
    * Icon to display right before the field name
@@ -278,6 +274,7 @@ const TemplatedBaseField = (props: {
       {map(existingValues, (v, instantiatedName) => {
         const instanceValuePath = `${props.valuePath}.${instantiatedName}`;
         const paramValues = nameToParamValues.get(instantiatedName) ?? {};
+        const depth = props.depth ?? 0;
         return (
           <div
             key={instantiatedName}
@@ -292,18 +289,26 @@ const TemplatedBaseField = (props: {
                 : undefined
             }
           >
-            <div className="grid grid-cols-[250px_350px] gap-8 items-start mx-auto text-sm text-gray-500">
+            <div
+              data-value-path={instanceValuePath}
+              data-depth={depth + 1}
+              className="grid grid-cols-[250px_350px] gap-8 items-start mx-auto text-sm text-gray-500"
+              onMouseEnter={() =>
+                store.setField('hoveredPath', instanceValuePath)
+              }
+              onMouseLeave={() => store.setField('hoveredPath', null)}
+            >
               <FormattedInstanceName
                 template={templateName ?? ''}
                 paramValues={paramValues}
               />
               {props.valuesPreview?.({ valuePath: instanceValuePath })}
             </div>
-            <div className="">
+            <div>
               {props.children?.({
                 fieldPath: props.fieldPath,
                 valuePath: instanceValuePath,
-                depth: (props.depth ?? 0) + 1,
+                depth: depth + 1,
               })}
             </div>
           </div>
@@ -384,7 +389,13 @@ export const BaseField = ({
 
   return (
     <div>
-      <div className="grid grid-cols-[250px_350px] gap-8 mx-auto">
+      <div
+        data-value-path={valuePath}
+        data-depth={depth}
+        className="grid grid-cols-[250px_350px] gap-8 mx-auto"
+        onMouseEnter={() => store.setField('hoveredPath', valuePath)}
+        onMouseLeave={() => store.setField('hoveredPath', null)}
+      >
         <div className="flex gap-2" style={{ paddingLeft: depth * 12 }}>
           {icon && <div className="mt-1.5">{icon}</div>}
           {hasParams ? (

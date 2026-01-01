@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/app/common/ui/button';
 import { Card, CardContent } from '@/app/common/ui/card';
 import { Input } from '@/app/common/ui/input';
@@ -20,6 +20,22 @@ import { SchemaFieldList } from './nodes/ui-schema-field-list';
 import { SearchSync } from './ui-search-sync';
 import { ImportModal } from './import/ui-import-modal';
 import { ImportPanel } from './import/ui-assign-panel';
+import { TreeOverlay } from './ui-tree-overlay';
+
+const FieldListWithTreeOverlay = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Card>
+      <CardContent>
+        <div ref={containerRef} className="relative max-w-4xl mx-auto">
+          <TreeOverlay containerRef={containerRef} />
+          <SchemaFieldList schemaPath="schema.fields" valuePath="" depth={0} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const ImportButton = () => {
   const store = useStudioStore();
@@ -167,17 +183,7 @@ export const WordingStudioV2 = ({ branch, projectName, projectId }: Props) => {
             </div>
           </div>
 
-          <Card>
-            <CardContent>
-              <div className="max-w-4xl mx-auto">
-                <SchemaFieldList
-                  schemaPath="schema.fields"
-                  valuePath=""
-                  depth={0}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <FieldListWithTreeOverlay />
         </div>
       </div>
     </StudioStoreProvider>

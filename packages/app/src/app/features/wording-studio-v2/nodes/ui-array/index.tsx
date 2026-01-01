@@ -126,7 +126,7 @@ const StringArrayPreview = ({
           trigger={
             <div
               role="button"
-              className="w-full border rounded-l border-gray-300 p-1 mt-0.5 cursor-pointer hover:border-gray-500 transition-all"
+              className="w-full border border-transparent rounded-l  p-1 mt-0.5 cursor-pointer hover:border-gray-500 transition-all"
             >
               {range(count).map((index) => (
                 <div key={index} className="flex gap-2">

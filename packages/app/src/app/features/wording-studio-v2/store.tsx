@@ -28,6 +28,9 @@ export const createV2Store = (initialData: {
 
     // Import wording state (discriminated union)
     importWording: { step: 'idle' } as ImportState,
+
+    // The full path currently being hovered (for tree overlay visualization)
+    hoveredPath: null as string | null,
   });
 };
 
