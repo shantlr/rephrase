@@ -319,6 +319,58 @@ const AssignedStringPreview = ({
   );
 };
 
+// Component for showing a single plural target (one or other) with assignment preview
+const PluralTargetItem = ({
+  valuePath,
+  label,
+  currentValue,
+  handleAssign,
+}: {
+  valuePath: string;
+  label: string;
+  currentValue: string;
+  handleAssign: (path: string) => void;
+}) => {
+  const store = useStudioStore();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+
+  const assignmentInfo = useReadStoreField(store, [
+    'importWording',
+    'assignedValuesMap',
+    valuePath,
+  ]) as { wordingIndex: number; values: Record<string, string> } | undefined;
+
+  return (
+    <div
+      className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset rounded px-2 py-1.5 transition-colors"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleAssign(valuePath);
+      }}
+    >
+      <span className="text-xs text-gray-400 w-10 shrink-0">{label}</span>
+      {assignmentInfo ? (
+        <div className="flex items-center gap-2 text-sm flex-1 truncate">
+          {currentValue && (
+            <span className="text-gray-400 line-through truncate">
+              {currentValue}
+            </span>
+          )}
+          <span className="text-green-600 font-medium truncate">
+            {assignmentInfo.values[selectedLocale] ?? ''}
+          </span>
+        </div>
+      ) : (
+        <span className="text-sm text-gray-600 truncate flex-1">
+          {currentValue || (
+            <span className="text-gray-400">Click to assign</span>
+          )}
+        </span>
+      )}
+    </div>
+  );
+};
+
 // Component for showing separate "one" and "other" targets during import mode
 const PluralizedImportTargets = ({
   valuePath,
@@ -341,30 +393,18 @@ const PluralizedImportTargets = ({
 
   return (
     <div className="flex flex-col gap-1 flex-1">
-      <div
-        className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset rounded px-2 py-1.5 transition-colors"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleAssign(`${valuePath}.one`);
-        }}
-      >
-        <span className="text-xs text-gray-400 w-10 shrink-0">one</span>
-        <span className="text-sm text-gray-600 truncate flex-1">
-          {oneValue || <span className="text-gray-400">Click to assign</span>}
-        </span>
-      </div>
-      <div
-        className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset rounded px-2 py-1.5 transition-colors"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleAssign(`${valuePath}.other`);
-        }}
-      >
-        <span className="text-xs text-gray-400 w-10 shrink-0">other</span>
-        <span className="text-sm text-gray-600 truncate flex-1">
-          {otherValue || <span className="text-gray-400">Click to assign</span>}
-        </span>
-      </div>
+      <PluralTargetItem
+        valuePath={`${valuePath}.one`}
+        label="one"
+        currentValue={oneValue}
+        handleAssign={handleAssign}
+      />
+      <PluralTargetItem
+        valuePath={`${valuePath}.other`}
+        label="other"
+        currentValue={otherValue}
+        handleAssign={handleAssign}
+      />
     </div>
   );
 };

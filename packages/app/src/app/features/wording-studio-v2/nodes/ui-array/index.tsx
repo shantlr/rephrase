@@ -17,6 +17,8 @@ import { range } from 'lodash-es';
 import { formatStringPreview, StringLocaleInputField } from '../ui-string';
 import { useState } from 'react';
 import { Dropdown } from '@/app/common/ui/dropdown';
+import { useImportAssign } from '../../import/ui-assign-panel/use-import-assign';
+import { cn } from '@/app/common/lib/utils';
 
 const StringPreview = ({
   valuePath,
@@ -34,6 +36,51 @@ const StringPreview = ({
   return (
     <div className="text-sm text-gray-600">
       {formatStringPreview(value, pluralized)}
+    </div>
+  );
+};
+
+const StringArrayItemPreview = ({
+  valuePath,
+  pluralized,
+}: {
+  valuePath: string;
+  pluralized: boolean;
+}) => {
+  const store = useStudioStore();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+  const currentValue = useReadStoreField(
+    store,
+    `localeValues.${selectedLocale}.${valuePath}`,
+  );
+
+  const assignmentInfo = useReadStoreField(store, [
+    'importWording',
+    'assignedValuesMap',
+    valuePath,
+  ]) as { wordingIndex: number; values: Record<string, string> } | undefined;
+
+  if (assignmentInfo) {
+    const newValue = assignmentInfo.values[selectedLocale];
+    return (
+      <div className="flex items-center gap-2 text-sm flex-1">
+        {!!currentValue && (
+          <span className="text-gray-400 line-through truncate">
+            {formatStringPreview(currentValue, pluralized)}
+          </span>
+        )}
+        <span className="text-green-600 font-medium truncate">
+          {formatStringPreview(newValue, pluralized)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-sm text-gray-600 flex-1 truncate">
+      {formatStringPreview(currentValue, pluralized) || (
+        <span className="text-gray-400">Click to assign</span>
+      )}
     </div>
   );
 };
@@ -100,6 +147,69 @@ const StringLocaleInput = ({
   );
 };
 
+const StringArrayImportView = ({
+  itemType,
+  valuePath,
+}: {
+  itemType: SchemaStringNode;
+  valuePath: string;
+}) => {
+  const store = useStudioStore();
+  const { isAssigningImportWording, handleAssign } = useImportAssign();
+  const selectedLocale = useReadStoreField(store, 'selectedLocale');
+  const pathToValue = `localeValues.${selectedLocale}.${valuePath}` as const;
+  const arrayValue = useReadStoreField(store, pathToValue) as
+    | unknown[]
+    | undefined;
+  const count = arrayValue?.length ?? 0;
+
+  const handleAdd = () => {
+    const currentArray = arrayValue ?? [];
+    const emptyItem = itemType.pluralized ? { one: '', other: '' } : '';
+    store.setField(pathToValue, [...currentArray, emptyItem]);
+  };
+
+  return (
+    <div className="w-full flex justify-end">
+      <div className="w-full max-w-[500px]">
+        <div className="flex flex-col gap-1">
+          {range(count).map((index) => {
+            const itemPath = concatPath(valuePath, String(index));
+            return (
+              <div
+                key={index}
+                className={cn(
+                  'flex items-center gap-2 rounded px-2 py-1.5 transition-colors',
+                  isAssigningImportWording &&
+                    'cursor-pointer hover:bg-blue-50 ring-2 ring-blue-200 ring-inset',
+                )}
+                onClick={() =>
+                  isAssigningImportWording && handleAssign(itemPath)
+                }
+              >
+                <span className="text-gray-400">&bull;</span>
+                <StringArrayItemPreview
+                  valuePath={itemPath}
+                  pluralized={!!itemType.pluralized}
+                />
+              </div>
+            );
+          })}
+          {count === 0 && (
+            <span className="text-sm text-gray-500">{'<empty>'}</span>
+          )}
+          <button
+            onClick={handleAdd}
+            className="cursor-pointer hover:bg-gray-100 rounded p-1 self-start"
+          >
+            <PlusIcon size={12} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const StringArrayPreview = ({
   itemType,
   valuePath,
@@ -108,6 +218,7 @@ const StringArrayPreview = ({
   valuePath: string;
 }) => {
   const store = useStudioStore();
+  const { isAssigning } = useImportAssign();
   const selectedLocale = useReadStoreField(store, 'selectedLocale');
   const pathToValue = `localeValues.${selectedLocale}.${valuePath}` as const;
   const count = useSelectStoreField(
@@ -117,6 +228,10 @@ const StringArrayPreview = ({
   );
   const [open, setOpen] = useState(false);
   const locales = useReadStoreField(store, 'locales');
+
+  if (isAssigning) {
+    return <StringArrayImportView itemType={itemType} valuePath={valuePath} />;
+  }
 
   return (
     <div className="w-full flex justify-end">
